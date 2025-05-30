@@ -1,5 +1,6 @@
 // @ts-ignore
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import mammoth from "mammoth";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
@@ -31,11 +32,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
     }
 
-    const fileBuffer = await files[0].arrayBuffer();
+    const file = files[0];
+    const fileBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(fileBuffer);
+    let text: string;
 
-    const parsedPdf = await pdfParse(buffer);
-    const text = parsedPdf.text;
+    // Handle different file types
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      const parsedPdf = await pdfParse(buffer);
+      text = parsedPdf.text;
+    } else if (file.name.toLowerCase().endsWith('.docx')) {
+      const result = await mammoth.extractRawText({ buffer });
+      text = result.value;
+    } else {
+      return NextResponse.json(
+        { error: "Unsupported file type. Please upload a PDF or DOCX file." },
+        { status: 400 }
+      );
+    }
 
     if (!text) {
       return NextResponse.json(
