@@ -1,19 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/components/auth-provider";
+
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { redirect } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateExamUpload } from "@/components/create-exam/create-exam-upload";
 import { CreateExamCustomize } from "@/components/create-exam/create-exam-customize";
 import { CreateExamPreview } from "@/components/create-exam/create-exam-preview";
-import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
 
 export default function CreateExamPage() {
-  const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("upload");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [examConfig, setExamConfig] = useState({
@@ -29,21 +25,6 @@ export default function CreateExamPage() {
     difficulty: "mixed",
     timeLimit: 60,
   });
-
-  const { toast } = useToast();
-
-  // Redirect to login if user is not authenticated
-  if (!isLoading && !user) {
-    redirect("/login");
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-      </div>
-    );
-  }
 
   const handleFilesUploaded = (files: File[]) => {
     setUploadedFiles(files);

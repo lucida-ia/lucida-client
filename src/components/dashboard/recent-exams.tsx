@@ -19,11 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileText, Edit, Trash, Copy } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useAuth } from "@/components/auth-provider";
 
 export function RecentExams() {
-  const { user } = useAuth();
-  
   // Mock data - would come from an API in a real application
   const [exams, setExams] = useState([
     {
@@ -58,7 +55,7 @@ export function RecentExams() {
 
   // Mock function to delete an exam
   const handleDelete = (id: string) => {
-    setExams(exams.filter(exam => exam.id !== id));
+    setExams(exams.filter((exam) => exam.id !== id));
   };
 
   return (
@@ -86,8 +83,12 @@ export function RecentExams() {
                 <TableRow key={exam.id}>
                   <TableCell className="font-medium">{exam.title}</TableCell>
                   <TableCell>{exam.questionsCount}</TableCell>
-                  <TableCell>{formatDistanceToNow(exam.createdAt, { addSuffix: true })}</TableCell>
-                  <TableCell>{formatDistanceToNow(exam.updatedAt, { addSuffix: true })}</TableCell>
+                  <TableCell>
+                    {formatDistanceToNow(exam.createdAt, { addSuffix: true })}
+                  </TableCell>
+                  <TableCell>
+                    {formatDistanceToNow(exam.updatedAt, { addSuffix: true })}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="icon">
@@ -102,7 +103,11 @@ export function RecentExams() {
                         <Copy className="h-4 w-4" />
                         <span className="sr-only">Duplicate</span>
                       </Button>
-                      <Button variant="outline" size="icon" onClick={() => handleDelete(exam.id)}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleDelete(exam.id)}
+                      >
                         <Trash className="h-4 w-4" />
                         <span className="sr-only">Delete</span>
                       </Button>
