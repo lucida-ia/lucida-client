@@ -92,8 +92,8 @@ export function CreateExamCustomize({
     if (!config.title.trim()) {
       toast({
         variant: "destructive",
-        title: "Title required",
-        description: "Please provide a title for your exam.",
+        title: "Título obrigatório",
+        description: "Por favor, forneça um título para sua prova.",
       });
       return;
     }
@@ -104,8 +104,8 @@ export function CreateExamCustomize({
     if (!hasQuestionType) {
       toast({
         variant: "destructive",
-        title: "Question type required",
-        description: "Please select at least one question type.",
+        title: "Tipo de questão obrigatório",
+        description: "Por favor, selecione pelo menos um tipo de questão.",
       });
       return;
     }
@@ -115,30 +115,30 @@ export function CreateExamCustomize({
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Exam Details</CardTitle>
+          <CardTitle>Detalhes da Prova</CardTitle>
           <CardDescription>
-            Set the basic information about your exam.
+            Defina as informações básicas sobre sua prova.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Exam Title</Label>
+            <Label htmlFor="title">Título da Prova</Label>
             <Input
               id="title"
               name="title"
               value={config.title}
               onChange={handleInputChange}
-              placeholder="e.g., Biology Midterm Exam"
+              placeholder="ex., Prova de Biologia"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">Descrição (Opcional)</Label>
             <Textarea
               id="description"
               name="description"
               value={config.description}
               onChange={handleInputChange}
-              placeholder="Brief description of the exam content and purpose"
+              placeholder="Breve descrição do conteúdo e propósito da prova"
               rows={3}
             />
           </div>
@@ -147,14 +147,14 @@ export function CreateExamCustomize({
 
       <Card>
         <CardHeader>
-          <CardTitle>Question Settings</CardTitle>
+          <CardTitle>Configurações das Questões</CardTitle>
           <CardDescription>
-            Configure the types and number of questions.
+            Configure os tipos e número de questões.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
-            <Label>Number of Questions: {config.questionCount}</Label>
+            <Label>Número de Questões: {config.questionCount}</Label>
             <Slider
               value={[config.questionCount]}
               min={1}
@@ -165,7 +165,7 @@ export function CreateExamCustomize({
           </div>
 
           <div className="space-y-4">
-            <Label>Question Types</Label>
+            <Label>Tipos de Questões</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -178,7 +178,7 @@ export function CreateExamCustomize({
                     )
                   }
                 />
-                <Label htmlFor="multipleChoice">Multiple Choice</Label>
+                <Label htmlFor="multipleChoice">Múltipla Escolha</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -188,31 +188,31 @@ export function CreateExamCustomize({
                     handleQuestionTypeChange("trueFalse", checked as boolean)
                   }
                 />
-                <Label htmlFor="trueFalse">True/False</Label>
+                <Label htmlFor="trueFalse">Verdadeiro/Falso</Label>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="difficulty">Difficulty Level</Label>
+            <Label htmlFor="difficulty">Nível de Dificuldade</Label>
             <Select
               value={config.difficulty}
               onValueChange={handleDifficultyChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select difficulty level" />
+                <SelectValue placeholder="Selecione o nível de dificuldade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="easy">Easy</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="hard">Hard</SelectItem>
-                <SelectItem value="mixed">Mixed (Various Levels)</SelectItem>
+                <SelectItem value="easy">Fácil</SelectItem>
+                <SelectItem value="medium">Médio</SelectItem>
+                <SelectItem value="hard">Difícil</SelectItem>
+                <SelectItem value="mixed">Misto (Vários Níveis)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-4">
-            <Label>Time Limit: {config.timeLimit} minutes</Label>
+            <Label>Tempo Limite: {config.timeLimit} minutos</Label>
             <Slider
               value={[config.timeLimit]}
               min={15}
@@ -226,10 +226,10 @@ export function CreateExamCustomize({
 
       <div className="flex justify-between">
         <Button type="button" variant="outline" onClick={onBack}>
-          Back to Upload
+          Voltar para Upload
         </Button>
 
-        <Button onClick={() => onConfigured(config)}>Preview Exam</Button>
+        <Button onClick={() => onConfigured(config)}>Visualizar Prova</Button>
       </div>
     </form>
   );

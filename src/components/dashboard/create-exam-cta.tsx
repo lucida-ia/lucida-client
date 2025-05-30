@@ -7,7 +7,7 @@ export function CreateExamCTA() {
     <Button asChild>
       <Link href="/dashboard/create">
         <PlusCircle className="mr-2 h-4 w-4" />
-        Create Exam
+        Criar Prova
       </Link>
     </Button>
   );

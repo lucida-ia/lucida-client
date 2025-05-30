@@ -5,23 +5,23 @@ export function FeatureSection() {
   const features = [
     {
       icon: <Upload className="h-10 w-10 text-primary" />,
-      title: "Easy File Upload",
-      description: "Upload PDFs, Word documents, and text files with our intuitive drag-and-drop interface."
+      title: "Upload Fácil de Arquivos",
+      description: "Envie PDFs, documentos do Word e arquivos de texto com nossa interface intuitiva de arrastar e soltar."
     },
     {
       icon: <Brain className="h-10 w-10 text-primary" />,
-      title: "AI-Powered Generation",
-      description: "Our advanced AI analyzes your content and generates challenging, relevant questions across various formats."
+      title: "Geração com IA",
+      description: "Nossa IA avançada analisa seu conteúdo e gera questões desafiadoras e relevantes em vários formatos."
     },
     {
       icon: <Settings className="h-10 w-10 text-primary" />,
-      title: "Fully Customizable",
-      description: "Control question types, difficulty levels, and exam structure to match your specific needs."
+      title: "Totalmente Personalizável",
+      description: "Controle tipos de questões, níveis de dificuldade e estrutura da prova para atender suas necessidades específicas."
     },
     {
       icon: <Clock className="h-10 w-10 text-primary" />,
-      title: "Save Hours of Work",
-      description: "Create professional exams in minutes instead of hours with our powerful AI assistant."
+      title: "Economize Horas de Trabalho",
+      description: "Crie provas profissionais em minutos em vez de horas com nosso poderoso assistente de IA."
     }
   ];
 
@@ -30,9 +30,9 @@ export function FeatureSection() {
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Features that Transform Exam Creation</h2>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Recursos que Transformam a Criação de Provas</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Our AI-powered platform makes creating high-quality exams faster and easier than ever before.
+              Nossa plataforma com IA torna a criação de provas de alta qualidade mais rápida e fácil do que nunca.
             </p>
           </div>
         </div>
@@ -50,16 +50,16 @@ export function FeatureSection() {
         
         <div className="mt-16 lg:mt-24 grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
           <div>
-            <h3 className="text-2xl font-bold mb-4">Intelligent Question Generation</h3>
+            <h3 className="text-2xl font-bold mb-4">Geração Inteligente de Questões</h3>
             <p className="text-muted-foreground mb-6">
-              Our AI doesn't just extract questions from your content - it understands context, identifies key concepts, and creates original questions that test true comprehension.
+              Nossa IA não apenas extrai questões do seu conteúdo - ela entende o contexto, identifica conceitos-chave e cria questões originais que testam a verdadeira compreensão.
             </p>
             <ul className="space-y-2">
               {[
-                "Multiple choice, true/false, short answer, and essay questions",
-                "Adjustable difficulty levels from basic recall to advanced analysis",
-                "Custom weighting for different topics and concepts",
-                "Automatic answer key generation for quick grading"
+                "Questões de múltipla escolha, verdadeiro/falso, resposta curta e dissertativas",
+                "Níveis de dificuldade ajustáveis, desde recordação básica até análise avançada",
+                "Ponderação personalizada para diferentes tópicos e conceitos",
+                "Geração automática de gabarito para correção rápida"
               ].map((item, i) => (
                 <li key={i} className="flex items-start">
                   <svg
@@ -84,7 +84,7 @@ export function FeatureSection() {
           <div className="rounded-lg border bg-background p-2 shadow-lg">
             <Image 
               src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" 
-              alt="AI Question Generation" 
+              alt="Geração de Questões com IA" 
               width={600} 
               height={400} 
               className="rounded shadow-sm"

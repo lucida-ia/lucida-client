@@ -5,51 +5,51 @@ import { Check } from 'lucide-react';
 export function PricingSection() {
   const plans = [
     {
-      name: "Basic",
-      description: "Perfect for individual educators and small projects",
-      price: "$9.99",
-      period: "per month",
+      name: "Básico",
+      description: "Perfeito para educadores individuais e pequenos projetos",
+      price: "R$49,90",
+      period: "por mês",
       features: [
-        "Up to 5 exams per month",
-        "Basic question formats",
-        "Standard AI generation",
-        "Email support",
-        "1 user account"
+        "Até 5 provas por mês",
+        "Formatos básicos de questões",
+        "Geração padrão com IA",
+        "Suporte por email",
+        "1 conta de usuário"
       ],
-      cta: "Get Started",
+      cta: "Começar Agora",
       popular: false
     },
     {
       name: "Pro",
-      description: "Ideal for regular exam creators and departments",
-      price: "$29.99",
-      period: "per month",
+      description: "Ideal para criadores regulares de provas e departamentos",
+      price: "R$149,90",
+      period: "por mês",
       features: [
-        "Up to 25 exams per month",
-        "All question formats",
-        "Advanced AI generation",
-        "Priority email support",
-        "Up to 5 user accounts",
-        "Export to multiple formats"
+        "Até 25 provas por mês",
+        "Todos os formatos de questões",
+        "Geração avançada com IA",
+        "Suporte prioritário por email",
+        "Até 5 contas de usuário",
+        "Exportação para múltiplos formatos"
       ],
-      cta: "Get Started",
+      cta: "Começar Agora",
       popular: true
     },
     {
-      name: "Enterprise",
-      description: "For institutions with extensive assessment needs",
-      price: "$99.99",
-      period: "per month",
+      name: "Empresarial",
+      description: "Para instituições com necessidades extensivas de avaliação",
+      price: "R$499,90",
+      period: "por mês",
       features: [
-        "Unlimited exams",
-        "All question formats",
-        "Premium AI generation",
-        "24/7 priority support",
-        "Unlimited user accounts",
-        "Custom integrations",
-        "Dedicated account manager"
+        "Provas ilimitadas",
+        "Todos os formatos de questões",
+        "Geração premium com IA",
+        "Suporte prioritário 24/7",
+        "Contas de usuário ilimitadas",
+        "Integrações personalizadas",
+        "Gerente de conta dedicado"
       ],
-      cta: "Contact Sales",
+      cta: "Fale com Vendas",
       popular: false
     }
   ];
@@ -59,9 +59,9 @@ export function PricingSection() {
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Pricing Plans for Every Need</h2>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Planos para Cada Necessidade</h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Choose the perfect plan for your assessment needs. All plans include our core AI technology.
+              Escolha o plano perfeito para suas necessidades de avaliação. Todos os planos incluem nossa tecnologia central de IA.
             </p>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function PricingSection() {
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                  Most Popular
+                  Mais Popular
                 </div>
               )}
               <div className="space-y-2">

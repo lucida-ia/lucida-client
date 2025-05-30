@@ -8,39 +8,39 @@ import {
 export function FaqSection() {
   const faqs = [
     {
-      question: "How does the AI exam generation work?",
+      question: "Como funciona a geração de provas com IA?",
       answer:
-        "Our AI analyzes your uploaded content, identifies key concepts and learning objectives, and then generates relevant questions at different cognitive levels. The system uses natural language processing to understand context and create meaningful assessments that accurately reflect your material.",
+        "Nossa IA analisa seu conteúdo enviado, identifica conceitos-chave e objetivos de aprendizado, e então gera questões relevantes em diferentes níveis cognitivos. O sistema usa processamento de linguagem natural para entender o contexto e criar avaliações significativas que refletem com precisão seu material.",
     },
     {
-      question: "What file formats can I upload?",
+      question: "Quais formatos de arquivo posso enviar?",
       answer:
-        "Lucida supports various file formats including PDF, DOC/DOCX (Microsoft Word), TXT, and RTF. You can upload lecture notes, textbook chapters, study guides, or any other text-based learning material.",
+        "O Lucida suporta vários formatos de arquivo, incluindo PDF, DOC/DOCX (Microsoft Word), TXT e RTF. Você pode enviar anotações de aula, capítulos de livros, guias de estudo ou qualquer outro material de aprendizado baseado em texto.",
     },
     {
-      question: "Can I customize the types of questions generated?",
+      question: "Posso personalizar os tipos de questões geradas?",
       answer:
-        "Absolutely! You can specify the types of questions (multiple choice, true/false, short answer, essay), difficulty levels, and even the distribution of questions across different topics or learning objectives.",
+        "Absolutamente! Você pode especificar os tipos de questões (múltipla escolha, verdadeiro/falso, resposta curta, dissertativa), níveis de dificuldade e até mesmo a distribuição de questões entre diferentes tópicos ou objetivos de aprendizado.",
     },
     {
-      question: "How accurate are the generated questions?",
+      question: "Quão precisas são as questões geradas?",
       answer:
-        "Our AI has been trained on educational content across numerous disciplines and produces high-quality questions. However, we always recommend reviewing the generated exams before use. The system improves over time as you provide feedback on question quality.",
+        "Nossa IA foi treinada com conteúdo educacional de diversas disciplinas e produz questões de alta qualidade. No entanto, sempre recomendamos revisar as provas geradas antes do uso. O sistema melhora com o tempo conforme você fornece feedback sobre a qualidade das questões.",
     },
     {
-      question: "Can I edit the generated questions?",
+      question: "Posso editar as questões geradas?",
       answer:
-        "Yes, all generated questions can be edited, replaced, or removed. You have complete control over the final exam content. Our editor makes it easy to refine questions and answers as needed.",
+        "Sim, todas as questões geradas podem ser editadas, substituídas ou removidas. Você tem controle total sobre o conteúdo final da prova. Nosso editor facilita o refinamento de questões e respostas conforme necessário.",
     },
     {
-      question: "Is my content secure when I upload it?",
+      question: "Meu conteúdo está seguro quando eu o envio?",
       answer:
-        "We take data security seriously. All uploaded content is encrypted in transit and at rest. We do not share your materials with third parties, and you retain all rights to your content. For details, please review our privacy policy.",
+        "Levamos a segurança dos dados muito a sério. Todo o conteúdo enviado é criptografado em trânsito e em repouso. Não compartilhamos seus materiais com terceiros, e você mantém todos os direitos sobre seu conteúdo. Para detalhes, consulte nossa política de privacidade.",
     },
     {
-      question: "Do you offer educational discounts?",
+      question: "Vocês oferecem descontos educacionais?",
       answer:
-        "Yes, we offer special pricing for educational institutions. Contact our sales team for more information about our educational licensing options and volume discounts.",
+        "Sim, oferecemos preços especiais para instituições educacionais. Entre em contato com nossa equipe comercial para mais informações sobre nossas opções de licenciamento educacional e descontos por volume.",
     },
   ];
 
@@ -50,10 +50,10 @@ export function FaqSection() {
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-              Frequently Asked Questions
+              Perguntas Frequentes
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Find answers to common questions about Lucida.
+              Encontre respostas para perguntas comuns sobre o Lucida.
             </p>
           </div>
         </div>

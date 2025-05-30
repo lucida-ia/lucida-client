@@ -4,25 +4,25 @@ export function TestimonialSection() {
   const testimonials = [
     {
       quote:
-        "Lucida has completely transformed how I create assessments. What used to take me hours now takes minutes, and the quality is exceptional.",
-      author: "Dr. Sarah Johnson",
-      title: "Professor of Biology, Stanford University",
+        "O Lucida transformou completamente a forma como crio avaliações. O que antes me levava horas agora leva minutos, e a qualidade é excepcional.",
+      author: "Dra. Sarah Johnson",
+      title: "Professora de Biologia, Universidade de Stanford",
       avatar:
         "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
     },
     {
       quote:
-        "As someone who creates training materials regularly, Lucida has been a game-changer. The AI understands context remarkably well.",
+        "Como alguém que cria materiais de treinamento regularmente, o Lucida tem sido revolucionário. A IA entende o contexto de forma notável.",
       author: "Michael Chen",
-      title: "Corporate Training Director, Global Solutions Inc.",
+      title: "Diretor de Treinamento Corporativo, Global Solutions Inc.",
       avatar:
         "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
     },
     {
       quote:
-        "The time I save with Lucida allows me to focus more on teaching rather than test creation. It's an essential tool for modern educators.",
+        "O tempo que economizo com o Lucida me permite focar mais no ensino do que na criação de provas. É uma ferramenta essencial para educadores modernos.",
       author: "Emma Rodriguez",
-      title: "High School Math Teacher",
+      title: "Professora de Matemática do Ensino Médio",
       avatar:
         "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
     },
@@ -34,11 +34,11 @@ export function TestimonialSection() {
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-              Trusted by Educators Worldwide
+              Confiado por Educadores em Todo o Mundo
             </h2>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              See why thousands of educators and trainers choose Lucida for
-              their assessment needs.
+              Veja por que milhares de educadores e treinadores escolhem o Lucida para
+              suas necessidades de avaliação.
             </p>
           </div>
         </div>

@@ -25,28 +25,28 @@ export function RecentExams() {
   const [exams, setExams] = useState([
     {
       id: "1",
-      title: "Biology Midterm",
+      title: "Prova de Biologia",
       questionsCount: 35,
       createdAt: new Date(2025, 3, 10),
       updatedAt: new Date(2025, 3, 15),
     },
     {
       id: "2",
-      title: "Introduction to Psychology",
+      title: "Introdução à Psicologia",
       questionsCount: 42,
       createdAt: new Date(2025, 3, 5),
       updatedAt: new Date(2025, 3, 5),
     },
     {
       id: "3",
-      title: "World History Final",
+      title: "História Mundial Final",
       questionsCount: 50,
       createdAt: new Date(2025, 2, 28),
       updatedAt: new Date(2025, 3, 1),
     },
     {
       id: "4",
-      title: "Calculus Quiz",
+      title: "Quiz de Cálculo",
       questionsCount: 20,
       createdAt: new Date(2025, 2, 20),
       updatedAt: new Date(2025, 2, 20),
@@ -61,9 +61,9 @@ export function RecentExams() {
   return (
     <Card className="col-span-4">
       <CardHeader>
-        <CardTitle>Recent Exams</CardTitle>
+        <CardTitle>Provas Recentes</CardTitle>
         <CardDescription>
-          You have created {exams.length} exams in total.
+          Você criou {exams.length} provas no total.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -71,11 +71,11 @@ export function RecentExams() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Exam Title</TableHead>
-                <TableHead>Questions</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Título da Prova</TableHead>
+                <TableHead>Questões</TableHead>
+                <TableHead>Criada</TableHead>
+                <TableHead>Última Atualização</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -93,15 +93,15 @@ export function RecentExams() {
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="icon">
                         <FileText className="h-4 w-4" />
-                        <span className="sr-only">View</span>
+                        <span className="sr-only">Visualizar</span>
                       </Button>
                       <Button variant="outline" size="icon">
                         <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">Editar</span>
                       </Button>
                       <Button variant="outline" size="icon">
                         <Copy className="h-4 w-4" />
-                        <span className="sr-only">Duplicate</span>
+                        <span className="sr-only">Duplicar</span>
                       </Button>
                       <Button
                         variant="outline"
@@ -109,7 +109,7 @@ export function RecentExams() {
                         onClick={() => handleDelete(exam.id)}
                       >
                         <Trash className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">Excluir</span>
                       </Button>
                     </div>
                   </TableCell>
@@ -121,9 +121,9 @@ export function RecentExams() {
           <div className="flex h-48 items-center justify-center rounded-md border border-dashed">
             <div className="flex flex-col items-center gap-1 text-center">
               <FileText className="h-10 w-10 text-muted-foreground" />
-              <h3 className="font-semibold">No exams created yet</h3>
+              <h3 className="font-semibold">Nenhuma prova criada ainda</h3>
               <p className="text-sm text-muted-foreground">
-                Create your first exam to get started.
+                Crie sua primeira prova para começar.
               </p>
             </div>
           </div>

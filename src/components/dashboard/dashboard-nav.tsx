@@ -20,27 +20,27 @@ export function DashboardNav() {
 
   const navItems = [
     {
-      title: "Dashboard",
+      title: "Painel",
       href: "/dashboard",
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      title: "Create Exam",
+      title: "Criar Prova",
       href: "/dashboard/create",
       icon: <FileText className="h-5 w-5" />,
     },
     {
-      title: "My Exams",
+      title: "Minhas Provas",
       href: "/dashboard/exams",
       icon: <Folder className="h-5 w-5" />,
     },
     {
-      title: "Subscription",
+      title: "Assinatura",
       href: "/dashboard/subscription",
       icon: <CreditCard className="h-5 w-5" />,
     },
     {
-      title: "Settings",
+      title: "Configurações",
       href: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
     },
@@ -76,7 +76,7 @@ export function DashboardNav() {
           <SignOutButton>
             <Button variant="outline" className="w-full justify-start gap-3">
               <LogOut className="h-5 w-5" />
-              Log out
+              Sair
             </Button>
           </SignOutButton>
         </div>

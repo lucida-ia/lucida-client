@@ -70,7 +70,7 @@ export function CreateExamPreview({
       if (data.error) {
         toast({
           variant: "destructive",
-          title: "Error",
+          title: "Erro",
           description: data.error,
         });
         return;
@@ -82,7 +82,7 @@ export function CreateExamPreview({
           errors.forEach((error: any) => {
             toast({
               variant: "destructive",
-              title: `Error processing ${error.fileName}`,
+              title: `Erro ao processar ${error.fileName}`,
               description: error.error,
             });
           });
@@ -91,7 +91,7 @@ export function CreateExamPreview({
           (result: any) => result.questions
         );
         if (successfulResults.length > 0) {
-          console.log("Generated questions:", successfulResults);
+          console.log("Questões geradas:", successfulResults);
         }
       }
       setIsGenerating(false);
@@ -101,8 +101,8 @@ export function CreateExamPreview({
       setIsGenerating(false);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to process the files. Please try again.",
+        title: "Erro",
+        description: "Falha ao processar os arquivos. Por favor, tente novamente.",
       });
     }
   };
@@ -113,70 +113,76 @@ export function CreateExamPreview({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Exam Preview</CardTitle>
+          <CardTitle>Visualização da Prova</CardTitle>
           <CardDescription>
-            Review your exam configuration before generation.
+            Revise a configuração da sua prova antes da geração.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold">Exam Details</h3>
+              <h3 className="text-lg font-semibold">Detalhes da Prova</h3>
               <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Title
+                    Título
                   </dt>
                   <dd className="mt-1">{config.title}</dd>
                 </div>
                 {config.description && (
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
-                      Description
+                      Descrição
                     </dt>
                     <dd className="mt-1">{config.description}</dd>
                   </div>
                 )}
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Time Limit
+                    Tempo Limite
                   </dt>
                   <dd className="mt-1 flex items-center">
                     <Clock className="mr-1 h-4 w-4" />
-                    {config.timeLimit} minutes
+                    {config.timeLimit} minutos
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Difficulty
+                    Dificuldade
                   </dt>
-                  <dd className="mt-1 capitalize">{config.difficulty}</dd>
+                  <dd className="mt-1 capitalize">
+                    {config.difficulty === "easy" && "Fácil"}
+                    {config.difficulty === "medium" && "Médio"}
+                    {config.difficulty === "hard" && "Difícil"}
+                    {config.difficulty === "mixed" && "Misto"}
+                  </dd>
                 </div>
               </dl>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold">Question Configuration</h3>
+              <h3 className="text-lg font-semibold">Configuração das Questões</h3>
               <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Total Questions
+                    Total de Questões
                   </dt>
                   <dd className="mt-1">{config.questionCount}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Question Types
+                    Tipos de Questões
                   </dt>
                   <dd className="mt-1">
                     {Object.entries(config.questionTypes)
                       .filter(([_, enabled]) => enabled)
-                      .map(([type]) => type)
-                      .map((type) =>
-                        type
-                          .replace(/([A-Z])/g, " $1")
-                          .replace(/^./, (str) => str.toUpperCase())
-                      )
+                      .map(([type]) => {
+                        if (type === "multipleChoice") return "Múltipla Escolha";
+                        if (type === "trueFalse") return "Verdadeiro/Falso";
+                        if (type === "shortAnswer") return "Resposta Curta";
+                        if (type === "essay") return "Dissertativa";
+                        return type;
+                      })
                       .join(", ")}
                   </dd>
                 </div>
@@ -184,7 +190,7 @@ export function CreateExamPreview({
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold">Source Materials</h3>
+              <h3 className="text-lg font-semibold">Materiais de Origem</h3>
               <ul className="mt-2 space-y-1">
                 {files.map((file, index) => (
                   <li key={index} className="flex items-center text-sm">
@@ -198,11 +204,11 @@ export function CreateExamPreview({
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={onBack}>
-            Back to Customize
+            Voltar para Personalização
           </Button>
           {examGenerated ? (
             <Button asChild>
-              <Link href="/dashboard/exams">View All Exams</Link>
+              <Link href="/dashboard/exams">Ver Todas as Provas</Link>
             </Button>
           ) : (
             <Button
@@ -212,10 +218,10 @@ export function CreateExamPreview({
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Exam...
+                  Gerando Prova...
                 </>
               ) : (
-                "Generate Exam"
+                "Gerar Prova"
               )}
             </Button>
           )}
@@ -229,16 +235,21 @@ export function CreateExamPreview({
             <CardDescription className="flex flex-col gap-1 ">
               <span>{generatedExam.config.description}</span>
               <div className="flex items-center gap-2">
-                <span>{generatedExam.config.timeLimit} minutes</span>
-                <span>{generatedExam.config.difficulty}</span>
+                <span>{generatedExam.config.timeLimit} minutos</span>
+                <span>
+                  {generatedExam.config.difficulty === "easy" && "Fácil"}
+                  {generatedExam.config.difficulty === "medium" && "Médio"}
+                  {generatedExam.config.difficulty === "hard" && "Difícil"}
+                  {generatedExam.config.difficulty === "mixed" && "Misto"}
+                </span>
               </div>
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="exam">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="exam">Exam Preview</TabsTrigger>
-                <TabsTrigger value="answers">Answer Key</TabsTrigger>
+                <TabsTrigger value="exam">Visualização da Prova</TabsTrigger>
+                <TabsTrigger value="answers">Gabarito</TabsTrigger>
               </TabsList>
               <TabsContent value="exam" className="space-y-4 mt-4">
                 <div className="rounded-md border p-4">
@@ -271,7 +282,7 @@ export function CreateExamPreview({
               <TabsContent value="answers" className="space-y-4 mt-4">
                 <div className="rounded-md border p-4">
                   <h2 className="text-xl font-bold">
-                    Answer Key: {generatedExam.config.title}
+                    Gabarito: {generatedExam.config.title}
                   </h2>
                   <div className="mt-6 space-y-4">
                     {generatedExam.questions.map(
@@ -282,7 +293,7 @@ export function CreateExamPreview({
                           </h3>
                           <div className="ml-6">
                             <span className="text-sm font-medium">
-                              Answer:{" "}
+                              Resposta:{" "}
                             </span>
                             <span>{question.correctAnswer}</span>
                           </div>
@@ -297,13 +308,13 @@ export function CreateExamPreview({
           <CardFooter className="justify-between">
             <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
-              Edit Questions
+              Editar Questões
             </Button>
 
             <Button asChild>
               <Link href={`/dashboard/exams/${generatedExam.id}`}>
                 <Download className="mr-2 h-4 w-4" />
-                Save Exam
+                Salvar Prova
               </Link>
             </Button>
           </CardFooter>

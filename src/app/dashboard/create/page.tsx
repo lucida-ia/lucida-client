@@ -47,17 +47,17 @@ export default function CreateExamPage() {
   return (
     <DashboardShell>
       <DashboardHeader
-        heading="Create New Exam"
-        text="Upload content, customize settings, and generate your exam."
+        heading="Criar Nova Prova"
+        text="Envie conteúdo, personalize configurações e gere sua prova."
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="upload">1. Upload Content</TabsTrigger>
+          <TabsTrigger value="upload">1. Enviar Conteúdo</TabsTrigger>
           <TabsTrigger value="customize" disabled={uploadedFiles.length === 0}>
-            2. Customize
+            2. Personalizar
           </TabsTrigger>
           <TabsTrigger value="preview" disabled={!examConfig.title}>
-            3. Preview & Generate
+            3. Visualizar e Gerar
           </TabsTrigger>
         </TabsList>
 

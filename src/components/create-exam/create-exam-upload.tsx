@@ -79,8 +79,8 @@ export function CreateExamUpload({
     if (invalidFiles.length > 0) {
       toast({
         variant: "destructive",
-        title: "Invalid files",
-        description: `Couldn't add: ${invalidFiles.join(", ")}`,
+        title: "Arquivos inválidos",
+        description: `Não foi possível adicionar: ${invalidFiles.join(", ")}`,
       });
     }
 
@@ -95,8 +95,8 @@ export function CreateExamUpload({
     if (files.length === 0) {
       toast({
         variant: "destructive",
-        title: "No files added",
-        description: "Please upload at least one file to continue.",
+        title: "Nenhum arquivo adicionado",
+        description: "Por favor, envie pelo menos um arquivo para continuar.",
       });
       return;
     }
@@ -118,7 +118,7 @@ export function CreateExamUpload({
         <Card>
           <CardContent className="pt-6">
             <h3 className="text-lg font-medium mb-4">
-              Uploaded Files ({files.length})
+              Arquivos Enviados ({files.length})
             </h3>
             <ul className="space-y-3">
               {files.map((file, index) => (
@@ -139,7 +139,7 @@ export function CreateExamUpload({
                     onClick={() => removeFile(index)}
                   >
                     <X className="h-4 w-4" />
-                    <span className="sr-only">Remove file</span>
+                    <span className="sr-only">Remover arquivo</span>
                   </Button>
                 </li>
               ))}
@@ -151,13 +151,13 @@ export function CreateExamUpload({
       <Alert>
         <CheckCircle className="h-4 w-4" />
         <AlertDescription>
-          Your files will only be used to generate exam questions and won&apos;t
-          be shared or stored permanently.
+          Seus arquivos serão usados apenas para gerar questões da prova e não serão
+          compartilhados ou armazenados permanentemente.
         </AlertDescription>
       </Alert>
 
       <div className="flex justify-end">
-        <Button onClick={handleContinue}>Continue to Customize</Button>
+        <Button onClick={handleContinue}>Continuar para Personalização</Button>
       </div>
     </div>
   );

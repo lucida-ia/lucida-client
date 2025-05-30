@@ -7,28 +7,28 @@ export function OverviewStats() {
   // Mock data - would come from an API in a real application
   const stats = [
     {
-      title: "Total Exams",
+      title: "Total de Provas",
       value: "12",
       icon: <FileText className="h-5 w-5 text-muted-foreground" />,
-      description: "3 created this month",
+      description: "3 criadas este mês",
     },
     {
-      title: "Time Saved",
+      title: "Tempo Economizado",
       value: "24h",
       icon: <Clock className="h-5 w-5 text-muted-foreground" />,
-      description: "Estimated time saved",
+      description: "Tempo estimado economizado",
     },
     {
-      title: "Questions Generated",
+      title: "Questões Geradas",
       value: "238",
       icon: <Zap className="h-5 w-5 text-muted-foreground" />,
-      description: "Across all exams",
+      description: "Em todas as provas",
     },
     // {
-    //   title: "Subscription",
-    //   value: user?.subscription || "Free Trial",
+    //   title: "Assinatura",
+    //   value: user?.subscription || "Período de Teste",
     //   icon: <Users className="h-5 w-5 text-muted-foreground" />,
-    //   description: user?.subscription ? "Active" : "7 days remaining",
+    //   description: user?.subscription ? "Ativa" : "7 dias restantes",
     // },
   ];
 
