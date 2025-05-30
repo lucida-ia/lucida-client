@@ -14,6 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
+import LucidaLogo from "../lucida-logo";
 
 export function DashboardNav() {
   const pathname = usePathname();
@@ -51,8 +52,7 @@ export function DashboardNav() {
       <div className="flex h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Book className="h-6 w-6" />
-            <span>Lucida</span>
+            <LucidaLogo className="w-24 h-10" />
           </Link>
         </div>
         <div className="flex-1 overflow-y-auto py-2">
