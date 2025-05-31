@@ -11,6 +11,7 @@ import {
   Settings,
   CreditCard,
   LogOut,
+  UsersRound,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -34,9 +35,9 @@ export function DashboardNav() {
       icon: <Folder className="h-5 w-5" />,
     },
     {
-      title: "Assinatura",
-      href: "/dashboard/subscription",
-      icon: <CreditCard className="h-5 w-5" />,
+      title: "Minhas Turmas",
+      href: "/dashboard/classes",
+      icon: <UsersRound className="h-5 w-5" />,
     },
     {
       title: "Configurações",
