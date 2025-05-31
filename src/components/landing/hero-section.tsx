@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted">
+    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48  to-muted">
       <div className="container px-4 md:px-6">
         <div className="grid gap-6 lg:grid-cols-[1fr_600px] lg:gap-12 xl:grid-cols-[1fr_800px]">
           <div className="flex flex-col justify-center space-y-4">
@@ -14,9 +14,9 @@ export function HeroSection() {
                 Crie Provas Profissionais em Segundos com IA
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                O Lucida usa IA avançada para transformar seus materiais de estudo em
-                provas prontas para uso. Economize horas de preparação e crie
-                avaliações melhores.
+                O Lucida usa IA avançada para transformar seus materiais de
+                estudo em provas prontas para uso. Economize horas de preparação
+                e crie avaliações melhores.
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">

@@ -44,13 +44,13 @@ const UploadArea = ({
               <Upload className="h-12 w-12 text-muted-foreground" />
               <div className="space-y-2">
                 <h3 className="text-xl font-semibold">
-                  Drag & drop your files
+                  Arraste e solte seus arquivos
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Upload PDF, Word documents, or text files
+                  Faça upload de PDF, Word ou arquivos de texto
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Max file size: 10MB
+                  Tamanho máximo do arquivo: 10MB
                 </p>
               </div>
               <div>
@@ -60,7 +60,7 @@ const UploadArea = ({
                     variant="outline"
                     className="cursor-pointer"
                   >
-                    Browse Files
+                    Selecionar arquivos
                   </Button>
                   <input
                     id="file-upload"

@@ -10,7 +10,6 @@ import LucidaLogo from "../lucida-logo";
 
 export function NavBar() {
   const { isSignedIn, user } = useUser();
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 

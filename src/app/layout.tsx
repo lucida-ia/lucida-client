@@ -21,7 +21,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className} suppressHydrationWarning>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <ThemeProvider attribute="class" enableSystem>
             <div className="flex min-h-screen flex-col">
               <main className="flex-1">{children}</main>
             </div>
