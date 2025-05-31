@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Book,
   LayoutDashboard,
   FileText,
   Folder,
@@ -14,7 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
-
+import LucidaLogo from "../lucida-logo";
 export function DashboardNav() {
   const pathname = usePathname();
 
@@ -50,9 +49,8 @@ export function DashboardNav() {
     <div className="hidden border-r bg-muted/40 lg:block sticky top-0 left-0 w-64 h-screen">
       <div className="flex h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Book className="h-6 w-6" />
-            <span>Lucida</span>
+          <Link href="/dashboard" className="flex items-center space-x-2 w-24">
+            <LucidaLogo />
           </Link>
         </div>
         <div className="flex-1 overflow-y-auto py-2">

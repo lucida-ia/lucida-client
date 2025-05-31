@@ -3,21 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+
+import LucidaLogo from "../lucida-logo";
 
 export function NavBar() {
   const { isSignedIn, user } = useUser();
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -32,9 +24,8 @@ export function NavBar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between mx-auto">
         <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <Book className="h-6 w-6" />
-            <span className="hidden font-bold sm:inline-block">Lucida</span>
+          <Link href="/" className="flex items-center space-x-2 w-24">
+            <LucidaLogo />
           </Link>
           <nav className="hidden gap-6 md:flex">
             {navigation.map((item) => (
