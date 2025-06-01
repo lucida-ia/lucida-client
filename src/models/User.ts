@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { ExamSchema } from "./Exam";
 
 const UserSchema = new mongoose.Schema({
   id: {

@@ -28,7 +28,7 @@ export default function ListExamsPage() {
   React.useEffect(() => {
     const fetchExams = async () => {
       const response = await axios.get("/api/exam/all");
-      setExams(response.data.exams.exams);
+      setExams(response.data.exams);
     };
     fetchExams();
   }, []);
