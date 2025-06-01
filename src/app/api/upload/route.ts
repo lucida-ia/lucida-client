@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
       text = result.value;
     } else {
       return NextResponse.json(
-        { error: "Unsupported file type. Please upload a PDF or DOCX file." },
+        { error: "Tipo de arquivo não suportado. Por favor, envie um arquivo PDF ou DOCX." },
         { status: 400 }
       );
     }
 
     if (!text) {
       return NextResponse.json(
-        { error: "No text found in the uploaded file" },
+        { error: "Nenhum texto encontrado no arquivo enviado" },
         { status: 400 }
       );
     }
@@ -64,12 +64,15 @@ export async function POST(request: NextRequest) {
         {
           role: "system",
           content:
-            "Você é um professor especialista. Retorne as questões em formato JSON com a seguinte estrutura: { questions: [{ question: string, options: string[], correctAnswer: number }] }",
+            "Você é um professor especialista. Retorne as questões em formato JSON com a seguinte estrutura: { questions: [{ type: 'multipleChoice' | 'trueFalse', question: string, options?: string[], correctAnswer: number | boolean }] }. Para questões de múltipla escolha, use options e correctAnswer como número. Para verdadeiro/falso, use correctAnswer como boolean.",
         },
         {
           role: "user",
-          content: `Gere ${config.questionCount} questões de múltipla escolha com base no conteúdo abaixo.
+          content: `Gere ${config.questionCount} questões com base no conteúdo abaixo.
           As questões devem ser de nível ${config.difficulty}.
+          ${config.questionTypes.multipleChoice && config.questionTypes.trueFalse ? 'Gere uma mistura de questões de múltipla escolha e verdadeiro/falso.' : 
+           config.questionTypes.multipleChoice ? 'Gere apenas questões de múltipla escolha.' : 
+           'Gere apenas questões de verdadeiro/falso.'}
           Retorne APENAS o JSON, sem texto adicional:\n\n${text}`,
         },
       ],
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     if (!completion.choices[0]?.message?.content) {
       return NextResponse.json(
-        { error: "No questions generated" },
+        { error: "Nenhuma questão foi gerada" },
         { status: 400 }
       );
     }
@@ -91,14 +94,14 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error("Error parsing questions JSON:", error);
       return NextResponse.json(
-        { error: "Invalid questions format" },
+        { error: "Formato de questões inválido" },
         { status: 400 }
       );
     }
   } catch (error) {
     console.error("Error processing form data:", error);
     return NextResponse.json(
-      { error: "Failed to process form data" },
+      { error: "Falha ao processar os dados do formulário" },
       { status: 500 }
     );
   }
