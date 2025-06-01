@@ -20,7 +20,7 @@ export function DashboardNav() {
 
   const navItems = [
     {
-      title: "Painel",
+      title: "Dashboard",
       href: "/dashboard",
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
