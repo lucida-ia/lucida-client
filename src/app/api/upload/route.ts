@@ -11,10 +11,10 @@ interface ExamConfig {
   description: string;
   questionCount: number;
   questionTypes: {
-    multipleChoice: true;
-    trueFalse: true;
-    shortAnswer: false;
-    essay: false;
+    multipleChoice: boolean;
+    trueFalse: boolean;
+    shortAnswer: boolean;
+    essay: boolean;
   };
   difficulty: string;
   timeLimit: number;
@@ -58,24 +58,98 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const systemPrompt = `Você é um professor especialista em criar avaliações para estudantes brasileiros. Todas as saídas devem estar em Português do Brasil.
+
+Retorne estritamente um objeto JSON válido (sem texto extra) com a estrutura abaixo:
+
+{
+  "questions": [
+    {
+      "id": string,                // identificador único (e.g., "Q1", "Q2")
+      "subject": string,           // disciplina ou tópico (e.g., "Matemática", "História")
+      "type": "multipleChoice" | "trueFalse",
+      "difficulty": "fácil" | "médio" | "difícil",
+      "question": string,          // enunciado da questão
+      "options"?: string[],        // apenas para múltipla escolha: array com alternativas
+      "correctAnswer": number | boolean, // índice (0-based) ou boolean para true/false
+      "explanation"?: string       // (opcional) breve justificativa da resposta correta
+    }
+  ]
+}
+
+Regras para construção das questões:
+1. **Linguagem e contexto**: 
+   - Use Português (Brasil) claro e objetivo.
+   - Adeque exemplos e contextos à realidade brasileira (se for o caso).
+
+2. **Quantidade e forma**:
+   - Gere exatamente ${config.questionCount} questões.
+   - Siga o nível de dificuldade passado em ${config.difficulty} (fácil, médio ou difícil).
+   - Se ${config.questionTypes.multipleChoice} e ${config.questionTypes.trueFalse} forem verdadeiros, gere uma mistura coerente entre múltipla escolha e verdadeiro/falso, respeitando proporções razoáveis. 
+   - Se for apenas múltipla escolha, todas devem ter 4 alternativas (opções "A", "B", "C" e "D"), com **altamente plausíveis** ("distratores") e apenas uma resposta correta.
+   - Se for apenas verdadeiro/falso, gere afirmações que possam gerar dúvida, não óbvias.
+
+3. **Metadados**:
+   - \`id\`: um código único sequencial ("Q1", "Q2", etc.).
+   - \`subject\`: identifique qual área/conteúdo a questão aborda (por exemplo, "Matemática – Álgebra" ou "Biologia – Citologia").
+   - \`difficulty\`: reforce o nível (faça com que a questão esteja de fato adequada ao nível pedido, sem simplificações ou excessos).
+
+4. **Formato JSON estrito**:
+   - Não emita texto antes ou depois do JSON.
+   - Mantenha todas as aspas e vírgulas perfeitamente formatadas.
+   - Não use comentários, nem quebras de linha fora da estrutura JSON padrão.
+   - Não inclua anotações, emojis ou explicações extras fora da chave \`explanation\`.
+
+5. **Qualidade pedagógica**:
+   - Enunciados claros, sem ambiguidade.
+   - Para múltipla escolha, aponte distratores que façam o aluno pensar (não opções obviamente erradas).
+   - Para verdadeiro/falso, asserções relevantes ao conteúdo, de modo a testar compreensão, não "achismo".
+
+6. **Exemplo de estrutura interna de uma questão**:
+   {
+     "id": "Q1",
+     "subject": "Química – Tabela Periódica",
+     "type": "multipleChoice",
+     "difficulty": "médio",
+     "question": "Qual elemento é representado pelo símbolo 'Na' na Tabela Periódica?",
+     "options": [
+       "Nitrogênio", 
+       "Nióbio", 
+       "Sódio", 
+       "Cálcio"
+     ],
+     "correctAnswer": 2,
+     "explanation": "O sódio (Na) pertence ao grupo dos alcalinos. 'Na' vem do latim Natrium."
+   }
+
+Comece já a gerar as questões de acordo com essas diretrizes.`;
+
+    const userPrompt = `Gere ${config.questionCount} questões com base no conteúdo abaixo:
+${text}
+
+- Nível de dificuldade: ${config.difficulty}.
+- Tipos de questões: ${
+  config.questionTypes.multipleChoice && config.questionTypes.trueFalse
+    ? "mistura de múltipla escolha e verdadeiro/falso"
+    : config.questionTypes.multipleChoice
+    ? "apenas múltipla escolha"
+    : "apenas verdadeiro/falso"
+}.
+
+Retorne **APENAS** o JSON seguindo rigorosamente o formato definido.`;
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         {
           role: "system",
-          content:
-            "Você é um professor especialista. Retorne as questões em formato JSON com a seguinte estrutura: { questions: [{ type: 'multipleChoice' | 'trueFalse', question: string, options?: string[], correctAnswer: number | boolean }] }. Para questões de múltipla escolha, use options e correctAnswer como número. Para verdadeiro/falso, use correctAnswer como boolean.",
+          content: systemPrompt
         },
         {
           role: "user",
-          content: `Gere ${config.questionCount} questões com base no conteúdo abaixo.
-          As questões devem ser de nível ${config.difficulty}.
-          ${config.questionTypes.multipleChoice && config.questionTypes.trueFalse ? 'Gere uma mistura de questões de múltipla escolha e verdadeiro/falso.' : 
-           config.questionTypes.multipleChoice ? 'Gere apenas questões de múltipla escolha.' : 
-           'Gere apenas questões de verdadeiro/falso.'}
-          Retorne APENAS o JSON, sem texto adicional:\n\n${text}`,
-        },
-      ],
+          content: userPrompt
+        }
+      ]
     });
 
     if (!completion.choices[0]?.message?.content) {
