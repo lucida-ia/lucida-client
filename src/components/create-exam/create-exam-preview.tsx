@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Download, Edit, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import router from "next/router";
 
 interface ExamConfig {
   title: string;
@@ -102,12 +103,20 @@ export function CreateExamPreview({
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Falha ao processar os arquivos. Por favor, tente novamente.",
+        description:
+          "Falha ao processar os arquivos. Por favor, tente novamente.",
       });
     }
   };
 
-  console.log("generatedExam", generatedExam);
+  const handleCreateExam = async () => {
+    await axios("/api/exam", {
+      method: "POST",
+      data: generatedExam,
+    });
+
+    router.push("/dashboard/exams");
+  };
 
   return (
     <div className="space-y-6">
@@ -161,7 +170,9 @@ export function CreateExamPreview({
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold">Configuração das Questões</h3>
+              <h3 className="text-lg font-semibold">
+                Configuração das Questões
+              </h3>
               <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
@@ -177,7 +188,8 @@ export function CreateExamPreview({
                     {Object.entries(config.questionTypes)
                       .filter(([_, enabled]) => enabled)
                       .map(([type]) => {
-                        if (type === "multipleChoice") return "Múltipla Escolha";
+                        if (type === "multipleChoice")
+                          return "Múltipla Escolha";
                         if (type === "trueFalse") return "Verdadeiro/Falso";
                         if (type === "shortAnswer") return "Resposta Curta";
                         if (type === "essay") return "Dissertativa";
@@ -311,11 +323,9 @@ export function CreateExamPreview({
               Editar Questões
             </Button>
 
-            <Button asChild>
-              <Link href={`/dashboard/exams/${generatedExam.id}`}>
-                <Download className="mr-2 h-4 w-4" />
-                Salvar Prova
-              </Link>
+            <Button onClick={handleCreateExam}>
+              <Download className="mr-2 h-4 w-4" />
+              Salvar Prova
             </Button>
           </CardFooter>
         </Card>
