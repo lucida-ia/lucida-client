@@ -87,6 +87,15 @@ export async function POST(request: NextRequest) {
 
     try {
       const questions = JSON.parse(completion.choices[0].message.content);
+      
+      // Shuffle the questions array if both types are enabled
+      if (config.questionTypes.multipleChoice && config.questionTypes.trueFalse) {
+        for (let i = questions.questions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [questions.questions[i], questions.questions[j]] = [questions.questions[j], questions.questions[i]];
+        }
+      }
+
       return NextResponse.json({
         questions: questions.questions,
         config: config,
