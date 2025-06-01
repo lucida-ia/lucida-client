@@ -274,15 +274,28 @@ export function CreateExamPreview({
                           </h3>
 
                           <div className="ml-6 space-y-1">
-                            {question.options.map((option: any) => (
-                              <div
-                                key={option.id}
-                                className="flex items-center space-x-2"
-                              >
-                                <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                <span>{option}</span>
+                            {question.type === 'multipleChoice' ? (
+                              question.options.map((option: string, optionIndex: number) => (
+                                <div
+                                  key={optionIndex}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
+                                  <span>{option}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
+                                  <span>Verdadeiro</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
+                                  <span>Falso</span>
+                                </div>
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
                       )
@@ -307,7 +320,11 @@ export function CreateExamPreview({
                             <span className="text-sm font-medium">
                               Resposta:{" "}
                             </span>
-                            <span>{question.correctAnswer}</span>
+                            <span>
+                              {question.type === 'multipleChoice' 
+                                ? question.options[question.correctAnswer]
+                                : question.correctAnswer ? 'Verdadeiro' : 'Falso'}
+                            </span>
                           </div>
                         </div>
                       )

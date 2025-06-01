@@ -23,7 +23,7 @@ export default function DashboardPage() {
   return (
     <DashboardShell>
       <DashboardHeader
-        heading="Painel"
+        heading="Dashboard"
         text="Bem-vindo de volta! Aqui está um resumo das suas provas."
       >
         <CreateExamCTA />

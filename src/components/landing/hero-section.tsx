@@ -38,7 +38,7 @@ export function HeroSection() {
             <div className="rounded-lg border bg-background p-2 shadow-lg">
               <Image
                 src="https://images.pexels.com/photos/4145153/pexels-photo-4145153.jpeg"
-                alt="Painel do Gerador de Provas com IA"
+                alt="Dashboard do Gerador de Provas com IA"
                 width={800}
                 height={500}
                 className="rounded shadow-sm"
