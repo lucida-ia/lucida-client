@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const handleCheckUser = async () => {
     const response = await axios.get("/api/user");
 
-    console.log(response);
+    localStorage.setItem("user", JSON.stringify(response.data.user));
   };
 
   React.useEffect(() => {

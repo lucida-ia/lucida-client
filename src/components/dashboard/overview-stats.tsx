@@ -1,26 +1,45 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Zap, Clock } from "lucide-react";
 
+interface UserData {
+  totalExams: number;
+  totalExamsCreatedThisMonth: any[];
+  totalQuestions: number;
+}
+
 export function OverviewStats() {
-  // Mock data - would come from an API in a real application
+  const [userData, setUserData] = useState<UserData>({
+    totalExams: 0,
+    totalExamsCreatedThisMonth: [],
+    totalQuestions: 0,
+  });
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("user");
+    if (storedData) {
+      setUserData(JSON.parse(storedData));
+    }
+  }, []);
+
   const stats = [
     {
       title: "Total de Provas",
-      value: "12",
+      value: userData.totalExams,
       icon: <FileText className="h-5 w-5 text-muted-foreground" />,
-      description: "3 criadas este mês",
+      description: `${userData.totalExamsCreatedThisMonth.length} provas criadas este mês`,
     },
     {
       title: "Tempo Economizado",
-      value: "24h",
+      value: userData.totalQuestions,
       icon: <Clock className="h-5 w-5 text-muted-foreground" />,
       description: "Tempo estimado economizado",
     },
     {
       title: "Questões Geradas",
-      value: "238",
+      value: userData.totalQuestions,
       icon: <Zap className="h-5 w-5 text-muted-foreground" />,
       description: "Em todas as provas",
     },
