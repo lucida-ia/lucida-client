@@ -21,6 +21,7 @@ import React from "react";
 import axios from "axios";
 import { DBExam, Exam } from "@/types/exam";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function ListExamsPage() {
   const [exams, setExams] = React.useState<DBExam[]>([]);
@@ -72,9 +73,11 @@ export default function ListExamsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="icon">
-                          <FileText className="h-4 w-4" />
-                          <span className="sr-only">Visualizar</span>
+                        <Button variant="outline" size="icon" asChild>
+                          <Link href={`/dashboard/exams/${exam._id}`}>
+                            <FileText className="h-4 w-4" />
+                            <span className="sr-only">Visualizar</span>
+                          </Link>
                         </Button>
                         <Button variant="outline" size="icon">
                           <Edit className="h-4 w-4" />
