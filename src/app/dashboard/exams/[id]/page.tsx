@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Edit } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { DBExam } from "@/types/exam";
+import { ExamEditForm } from "@/components/exam/exam-edit-form";
 
 export default function ExamPreviewPage() {
   const params = useParams();
@@ -37,6 +38,10 @@ export default function ExamPreviewPage() {
 
     fetchExam();
   }, [params.id]);
+
+  const handleExamUpdated = (updatedExam: DBExam) => {
+    setExam(updatedExam);
+  };
 
   if (loading) {
     return (
@@ -81,10 +86,6 @@ export default function ExamPreviewPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Link>
-          </Button>
-          <Button variant="outline">
-            <Edit className="mr-2 h-4 w-4" />
-            Editar
           </Button>
           <Button>
             <Download className="mr-2 h-4 w-4" />
@@ -143,35 +144,7 @@ export default function ExamPreviewPage() {
                 <TabsTrigger value="answers">Gabarito</TabsTrigger>
               </TabsList>
               <TabsContent value="exam" className="space-y-4 mt-4">
-                <div className="rounded-md border p-4">
-                  <div className="mt-6 space-y-6">
-                    {exam.questions.map((question, index) => (
-                      <div key={index} className="space-y-2">
-                        <h3 className="font-medium">
-                          {index + 1}. {question.question}
-                        </h3>
-                        {question.options && (
-                          <div className="ml-6 space-y-1">
-                            {question.options.map((option, optionIndex) => (
-                              <div
-                                key={optionIndex}
-                                className="flex items-center space-x-2"
-                              >
-                                <input
-                                  type="radio"
-                                  name={`question-${index}`}
-                                  className="h-4 w-4"
-                                  disabled
-                                />
-                                <label>{option}</label>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ExamEditForm exam={exam} onExamUpdated={handleExamUpdated} />
               </TabsContent>
               <TabsContent value="answers" className="space-y-4 mt-4">
                 <div className="rounded-md border p-4">
