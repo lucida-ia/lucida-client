@@ -150,7 +150,7 @@ export default function ExamPreviewPage() {
                         <h3 className="font-medium">
                           {index + 1}. {question.question}
                         </h3>
-                        {question.options && (
+                        {question.options ? (
                           <div className="ml-6 space-y-1">
                             {question.options.map((option, optionIndex) => (
                               <div
@@ -166,6 +166,27 @@ export default function ExamPreviewPage() {
                                 <label>{option}</label>
                               </div>
                             ))}
+                          </div>
+                        ) : (
+                          <div className="ml-6 space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                name={`question-${index}`}
+                                className="h-4 w-4"
+                                disabled
+                              />
+                              <label>Verdadeiro</label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                name={`question-${index}`}
+                                className="h-4 w-4"
+                                disabled
+                              />
+                              <label>Falso</label>
+                            </div>
                           </div>
                         )}
                       </div>
