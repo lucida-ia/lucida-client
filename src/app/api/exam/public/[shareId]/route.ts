@@ -2,15 +2,12 @@ import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { shareId: string } }
-) {
+export async function GET(request: NextRequest, params: any) {
   try {
     await connectToDB();
 
     const exam = await Exam.findOne({
-      shareId: context.params.shareId,
+      shareId: params.shareId,
       isPublic: true,
     });
 

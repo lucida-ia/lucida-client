@@ -2,10 +2,7 @@ import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { shareId: string } }
-) {
+export async function POST(request: NextRequest, params: any) {
   try {
     await connectToDB();
 
@@ -50,4 +47,4 @@ export async function POST(
       message: "Failed to submit exam",
     });
   }
-} 
+}
