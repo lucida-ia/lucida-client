@@ -47,6 +47,7 @@ export function CreateExamUpload({
         validateAndAddFiles(selectedFiles);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -151,8 +152,8 @@ export function CreateExamUpload({
       <Alert>
         <CheckCircle className="h-4 w-4" />
         <AlertDescription>
-          Seus arquivos serão usados apenas para gerar questões da prova e não serão
-          compartilhados ou armazenados permanentemente.
+          Seus arquivos serão usados apenas para gerar questões da prova e não
+          serão compartilhados ou armazenados permanentemente.
         </AlertDescription>
       </Alert>
 
