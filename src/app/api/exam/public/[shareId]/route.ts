@@ -25,7 +25,8 @@ export async function GET(
     const sanitizedQuestions = exam.questions.map((q: any) => ({
       question: q.question || "",
       options: Array.isArray(q.options) ? q.options : [],
-      correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0
+      correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+      type: q.type || (Array.isArray(q.options) && q.options.length > 0 ? 'multipleChoice' : 'trueFalse')
     }));
 
     // Remove sensitive information and ensure proper structure

@@ -10,8 +10,9 @@ import { Clock, Loader2, CheckCircle2, PlayCircle } from "lucide-react";
 
 interface Question {
   question: string;
-  options: string[];
+  options?: string[];
   correctAnswer: number;
+  type?: 'multipleChoice' | 'trueFalse';
 }
 
 interface Exam {
@@ -53,7 +54,8 @@ export default function PublicExamPage() {
         const validatedQuestions = examData.questions.map((q: any) => ({
           question: q.question || "",
           options: Array.isArray(q.options) ? q.options : [],
-          correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0
+          correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+          type: q.type || 'multipleChoice'
         }));
 
         setExam({
@@ -216,29 +218,74 @@ export default function PublicExamPage() {
                   <div key={index} className="space-y-2 p-4 rounded-lg border">
                     <p className="font-medium">{question.question}</p>
                     <div className="space-y-1">
-                      {question.options.map((option, optionIndex) => (
-                        <div
-                          key={optionIndex}
-                          className={`flex items-center space-x-2 ${
-                            optionIndex === question.correctAnswer
-                              ? "text-green-600"
-                              : answers[index] === optionIndex
-                              ? "text-red-600"
-                              : ""
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            checked={answers[index] === optionIndex}
-                            disabled
-                            className="h-4 w-4"
-                          />
-                          <label>{option}</label>
-                          {optionIndex === question.correctAnswer && (
-                            <span className="text-sm text-green-600">(Correct Answer)</span>
-                          )}
-                        </div>
-                      ))}
+                      {question.type === 'trueFalse' ? (
+                        <>
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              1 === question.correctAnswer
+                                ? "text-green-600"
+                                : answers[index] === 1
+                                ? "text-red-600"
+                                : ""
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              checked={answers[index] === 1}
+                              disabled
+                              className="h-4 w-4"
+                            />
+                            <label>Verdadeiro</label>
+                            {1 === question.correctAnswer && (
+                              <span className="text-sm text-green-600">(Correct Answer)</span>
+                            )}
+                          </div>
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              0 === question.correctAnswer
+                                ? "text-green-600"
+                                : answers[index] === 0
+                                ? "text-red-600"
+                                : ""
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              checked={answers[index] === 0}
+                              disabled
+                              className="h-4 w-4"
+                            />
+                            <label>Falso</label>
+                            {0 === question.correctAnswer && (
+                              <span className="text-sm text-green-600">(Correct Answer)</span>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        question.options?.map((option, optionIndex) => (
+                          <div
+                            key={optionIndex}
+                            className={`flex items-center space-x-2 ${
+                              optionIndex === question.correctAnswer
+                                ? "text-green-600"
+                                : answers[index] === optionIndex
+                                ? "text-red-600"
+                                : ""
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              checked={answers[index] === optionIndex}
+                              disabled
+                              className="h-4 w-4"
+                            />
+                            <label>{option}</label>
+                            {optionIndex === question.correctAnswer && (
+                              <span className="text-sm text-green-600">(Correct Answer)</span>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 ))}
@@ -273,18 +320,43 @@ export default function PublicExamPage() {
                   {questionIndex + 1}. {question.question}
                 </h3>
                 <div className="space-y-2">
-                  {question.options.map((option, optionIndex) => (
-                    <div key={optionIndex} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        name={`question-${questionIndex}`}
-                        checked={answers[questionIndex] === optionIndex}
-                        onChange={() => handleAnswerSelect(questionIndex, optionIndex)}
-                        className="h-4 w-4"
-                      />
-                      <label>{option}</label>
-                    </div>
-                  ))}
+                  {question.type === 'trueFalse' ? (
+                    <>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name={`question-${questionIndex}`}
+                          checked={answers[questionIndex] === 1}
+                          onChange={() => handleAnswerSelect(questionIndex, 1)}
+                          className="h-4 w-4"
+                        />
+                        <label>Verdadeiro</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name={`question-${questionIndex}`}
+                          checked={answers[questionIndex] === 0}
+                          onChange={() => handleAnswerSelect(questionIndex, 0)}
+                          className="h-4 w-4"
+                        />
+                        <label>Falso</label>
+                      </div>
+                    </>
+                  ) : (
+                    question.options?.map((option, optionIndex) => (
+                      <div key={optionIndex} className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name={`question-${questionIndex}`}
+                          checked={answers[questionIndex] === optionIndex}
+                          onChange={() => handleAnswerSelect(questionIndex, optionIndex)}
+                          className="h-4 w-4"
+                        />
+                        <label>{option}</label>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             ))}
