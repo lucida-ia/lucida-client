@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Download, Edit, Clock, Loader2 } from "lucide-react";
+import { FileText, Download, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import router from "next/router";
+import { ExamEditForm } from "@/components/exam/exam-edit-form";
 
 interface ExamConfig {
   title: string;
@@ -116,6 +117,10 @@ export function CreateExamPreview({
     });
 
     router.push("/dashboard/exams");
+  };
+
+  const handleExamUpdated = (updatedExam: any) => {
+    setGeneratedExam(updatedExam);
   };
 
   return (
@@ -244,7 +249,7 @@ export function CreateExamPreview({
         <Card>
           <CardHeader>
             <CardTitle>{generatedExam.config.title}</CardTitle>
-            <CardDescription className="flex flex-col gap-1 ">
+            <CardDescription className="flex flex-col gap-1">
               <span>{generatedExam.config.description}</span>
               <div className="flex items-center gap-2">
                 <span>{generatedExam.config.timeLimit} minutos</span>
@@ -264,46 +269,8 @@ export function CreateExamPreview({
                 <TabsTrigger value="answers">Gabarito</TabsTrigger>
               </TabsList>
               <TabsContent value="exam" className="space-y-4 mt-4">
-                <div className="rounded-md border p-4">
-                  <div className="mt-6 space-y-6">
-                    {generatedExam.questions.map(
-                      (question: any, index: number) => (
-                        <div key={index} className="space-y-2">
-                          <h3 className="font-medium">
-                            {index + 1}. {question.question}
-                          </h3>
-
-                          <div className="ml-6 space-y-1">
-                            {question.type === 'multipleChoice' ? (
-                              question.options.map((option: string, optionIndex: number) => (
-                                <div
-                                  key={optionIndex}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                  <span>{option}</span>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                  <span>Verdadeiro</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                  <span>Falso</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
+                <ExamEditForm exam={generatedExam} onExamUpdated={handleExamUpdated} />
               </TabsContent>
-
               <TabsContent value="answers" className="space-y-4 mt-4">
                 <div className="rounded-md border p-4">
                   <h2 className="text-xl font-bold">
@@ -334,12 +301,7 @@ export function CreateExamPreview({
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="justify-between">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Editar Questões
-            </Button>
-
+          <CardFooter className="justify-end">
             <Button onClick={handleCreateExam}>
               <Download className="mr-2 h-4 w-4" />
               Salvar Prova
