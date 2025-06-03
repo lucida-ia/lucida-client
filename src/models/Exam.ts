@@ -30,6 +30,15 @@ const ExamSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  shareId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  isPublic: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
 
-    console.log("[DEBUG] userId:", userId);
-
     await connectToDB();
 
     const user = await User.findOne({ id: userId });

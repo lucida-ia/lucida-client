@@ -23,6 +23,7 @@ import { DBExam } from "@/types/exam";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { ExamShareButton } from "@/components/exam/exam-share-button";
 
 export default function ListExamsPage() {
   const [exams, setExams] = React.useState<DBExam[]>([]);
@@ -110,7 +111,7 @@ export default function ListExamsPage() {
                           <Copy className="h-4 w-4" />
                           <span className="sr-only">Duplicar</span>
                         </Button>
-
+                        <ExamShareButton examId={exam._id} />
                         <Button
                           variant="outline"
                           size="icon"

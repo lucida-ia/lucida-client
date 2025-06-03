@@ -26,8 +26,6 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll("file") as File[];
     const config = JSON.parse(formData.get("config") as string) as ExamConfig;
 
-    console.log(config);
-
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
     }
@@ -38,15 +36,18 @@ export async function POST(request: NextRequest) {
     let text: string;
 
     // Handle different file types
-    if (file.name.toLowerCase().endsWith('.pdf')) {
+    if (file.name.toLowerCase().endsWith(".pdf")) {
       const parsedPdf = await pdfParse(buffer);
       text = parsedPdf.text;
-    } else if (file.name.toLowerCase().endsWith('.docx')) {
+    } else if (file.name.toLowerCase().endsWith(".docx")) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else {
       return NextResponse.json(
-        { error: "Tipo de arquivo não suportado. Por favor, envie um arquivo PDF ou DOCX." },
+        {
+          error:
+            "Tipo de arquivo não suportado. Por favor, envie um arquivo PDF ou DOCX.",
+        },
         { status: 400 }
       );
     }
@@ -124,17 +125,19 @@ Regras para construção das questões:
 
 Comece já a gerar as questões de acordo com essas diretrizes.`;
 
-    const userPrompt = `Gere ${config.questionCount} questões com base no conteúdo abaixo:
+    const userPrompt = `Gere ${
+      config.questionCount
+    } questões com base no conteúdo abaixo:
 ${text}
 
 - Nível de dificuldade: ${config.difficulty}.
 - Tipos de questões: ${
-  config.questionTypes.multipleChoice && config.questionTypes.trueFalse
-    ? "mistura de múltipla escolha e verdadeiro/falso"
-    : config.questionTypes.multipleChoice
-    ? "apenas múltipla escolha"
-    : "apenas verdadeiro/falso"
-}.
+      config.questionTypes.multipleChoice && config.questionTypes.trueFalse
+        ? "mistura de múltipla escolha e verdadeiro/falso"
+        : config.questionTypes.multipleChoice
+        ? "apenas múltipla escolha"
+        : "apenas verdadeiro/falso"
+    }.
 
 Retorne **APENAS** o JSON seguindo rigorosamente o formato definido.`;
 
@@ -143,13 +146,13 @@ Retorne **APENAS** o JSON seguindo rigorosamente o formato definido.`;
       messages: [
         {
           role: "system",
-          content: systemPrompt
+          content: systemPrompt,
         },
         {
           role: "user",
-          content: userPrompt
-        }
-      ]
+          content: userPrompt,
+        },
+      ],
     });
 
     if (!completion.choices[0]?.message?.content) {
@@ -161,12 +164,18 @@ Retorne **APENAS** o JSON seguindo rigorosamente o formato definido.`;
 
     try {
       const questions = JSON.parse(completion.choices[0].message.content);
-      
+
       // Shuffle the questions array if both types are enabled
-      if (config.questionTypes.multipleChoice && config.questionTypes.trueFalse) {
+      if (
+        config.questionTypes.multipleChoice &&
+        config.questionTypes.trueFalse
+      ) {
         for (let i = questions.questions.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
-          [questions.questions[i], questions.questions[j]] = [questions.questions[j], questions.questions[i]];
+          [questions.questions[i], questions.questions[j]] = [
+            questions.questions[j],
+            questions.questions[i],
+          ];
         }
       }
 

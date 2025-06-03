@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Download, Edit, Clock, Loader2 } from "lucide-react";
+import { FileText, Download, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+// import { ExamEditForm } from "@/components/exam/exam-edit-form";
 
 interface ExamConfig {
   title: string;
@@ -93,9 +94,6 @@ export function CreateExamPreview({
         const successfulResults = data.results.filter(
           (result: any) => result.questions
         );
-        if (successfulResults.length > 0) {
-          console.log("Questões geradas:", successfulResults);
-        }
       }
       setIsGenerating(false);
       setExamGenerated(true);
@@ -120,6 +118,10 @@ export function CreateExamPreview({
 
     router.push("/dashboard/exams");
     setIsSavingExam(false);
+  };
+
+  const handleExamUpdated = (updatedExam: any) => {
+    setGeneratedExam(updatedExam);
   };
 
   return (
@@ -223,8 +225,18 @@ export function CreateExamPreview({
             Voltar para Personalização
           </Button>
           {examGenerated ? (
-            <Button asChild>
-              <Link href="/dashboard/exams">Ver Todas as Provas</Link>
+            <Button
+              onClick={() => handleUploadFilesAndGenerateQuestions(files)}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Gerando Prova...
+                </>
+              ) : (
+                "Gerar Prova Novamente"
+              )}
             </Button>
           ) : (
             <Button
@@ -248,7 +260,7 @@ export function CreateExamPreview({
         <Card>
           <CardHeader>
             <CardTitle>{generatedExam.config.title}</CardTitle>
-            <CardDescription className="flex flex-col gap-1 ">
+            <CardDescription className="flex flex-col gap-1">
               <span>{generatedExam.config.description}</span>
               <div className="flex items-center gap-2">
                 <span>{generatedExam.config.timeLimit} minutos</span>
@@ -308,8 +320,11 @@ export function CreateExamPreview({
                     )}
                   </div>
                 </div>
+                {/* <ExamEditForm
+                  exam={generatedExam}
+                  onExamUpdated={handleExamUpdated}
+                /> */}
               </TabsContent>
-
               <TabsContent value="answers" className="space-y-4 mt-4">
                 <div className="rounded-md border p-4">
                   <h2 className="text-xl font-bold">
@@ -342,13 +357,8 @@ export function CreateExamPreview({
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="justify-between">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Editar Questões
-            </Button>
-
-            <Button onClick={handleCreateExam} disabled={isSavingExam}>
+          <CardFooter className="justify-end">
+            <Button onClick={handleCreateExam}>
               <Download className="mr-2 h-4 w-4" />
               {isSavingExam ? (
                 <>
