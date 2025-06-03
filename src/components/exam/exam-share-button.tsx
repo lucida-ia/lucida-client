@@ -18,12 +18,12 @@ export function ExamShareButton({ examId }: ExamShareButtonProps) {
     try {
       setIsLoading(true);
       const response = await axios.post("/api/exam/share", { examId });
-      
+
       const shareUrl = `${window.location.origin}/exam/${response.data.shareId}`;
-      
+
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      
+
       toast({
         title: "Share link copied!",
         description: "The exam link has been copied to your clipboard.",
@@ -44,9 +44,9 @@ export function ExamShareButton({ examId }: ExamShareButtonProps) {
       variant="outline"
       onClick={handleShare}
       disabled={isLoading}
+      size="icon"
     >
-      <Share2 className="mr-2 h-4 w-4" />
-      Share Exam
+      <Share2 className="h-4 w-4" />
     </Button>
   );
-} 
+}

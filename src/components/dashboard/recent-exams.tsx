@@ -17,21 +17,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Edit, Trash, Copy } from "lucide-react";
+import { FileText, Edit, Trash, Copy, Link } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { DBExam } from "@/types/exam";
 import axios from "axios";
+import { TooltipContent } from "@radix-ui/react-tooltip";
+import { TooltipTrigger } from "@radix-ui/react-tooltip";
+import { Tooltip } from "@radix-ui/react-tooltip";
+import { ExamShareButton } from "../exam/exam-share-button";
+import { toast } from "@/hooks/use-toast";
 
 export function RecentExams() {
   const [exams, setExams] = React.useState<DBExam[]>([]);
 
+  const fetchExams = async () => {
+    const response = await axios.get("/api/exam/all");
+    setExams(response.data.exams);
+  };
+
   React.useEffect(() => {
-    const fetchExams = async () => {
-      const response = await axios.get("/api/exam/all");
-      setExams(response.data.exams);
-    };
     fetchExams();
   }, []);
+
+  const handleDeleteExam = async (examId: string) => {
+    const response = await axios.delete("/api/exam", {
+      data: { examId },
+    });
+
+    if (response.status === 200) {
+      toast({
+        title: "Prova deletada com sucesso",
+      });
+    } else {
+      toast({
+        title: "Falha ao deletar prova",
+        description: response.data.message,
+      });
+    }
+    fetchExams();
+  };
 
   return (
     <Card className="col-span-4">
@@ -66,22 +90,58 @@ export function RecentExams() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="icon">
-                        <FileText className="h-4 w-4" />
-                        <span className="sr-only">Visualizar</span>
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Editar</span>
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <Copy className="h-4 w-4" />
-                        <span className="sr-only">Duplicar</span>
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <Trash className="h-4 w-4" />
-                        <span className="sr-only">Excluir</span>
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" asChild>
+                            <Link href={`/dashboard/exams/${exam._id}`}>
+                              <FileText className="h-4 w-4" />
+                              <span className="sr-only">Visualizar</span>
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Visualizar Prova</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Editar Prova</TooltipContent>
+                      </Tooltip>
+
+                      {/* <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="icon">
+                              <Copy className="h-4 w-4" />
+                              <span className="sr-only">Duplicar</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Duplicar Prova</TooltipContent>
+                        </Tooltip> */}
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ExamShareButton examId={exam._id} />
+                        </TooltipTrigger>
+                        <TooltipContent>Compartilhar Prova</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDeleteExam(exam._id)}
+                          >
+                            <Trash className="h-4 w-4 text-red-500" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Excluir Prova</TooltipContent>
+                      </Tooltip>
                     </div>
                   </TableCell>
                 </TableRow>
