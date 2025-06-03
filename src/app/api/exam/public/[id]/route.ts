@@ -2,17 +2,19 @@ import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, params: any) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await connectToDB();
+    const { id } = await params;
 
-    console.log(params);
+    console.log("id", id);
 
     const exam = await Exam.findOne({
-      shareId: params.shareId,
+      _id: id,
     });
-
-    console.log(exam);
 
     if (!exam) {
       return NextResponse.json({

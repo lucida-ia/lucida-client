@@ -15,6 +15,15 @@ import {
 } from "lucide-react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
+
+type NavItem = {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  role?: string;
+  disabled?: boolean;
+};
+
 export function DashboardNav() {
   const pathname = usePathname();
 
@@ -38,11 +47,13 @@ export function DashboardNav() {
       title: "Minhas Turmas",
       href: "/dashboard/classes",
       icon: <UsersRound className="h-5 w-5" />,
+      disabled: true,
     },
     {
       title: "Configurações",
       href: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
+      disabled: true,
     },
   ];
 
@@ -56,19 +67,29 @@ export function DashboardNav() {
           <UserButton />
         </div>
         <div className="flex-1 overflow-y-auto py-2">
-          <nav className="grid items-start px-2 text-sm font-medium">
+          <nav className="grid items-start px-2 text-sm font-medium gap-1">
             {navItems.map((item, index) => (
-              <Link
+              <Button
                 key={index}
-                href={item.href}
+                disabled={item.disabled}
+                size="sm"
+                variant="ghost"
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                  "w-full justify-start gap-3",
                   pathname === item.href && "bg-muted text-primary"
                 )}
               >
-                {item.icon}
-                {item.title}
-              </Link>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    item.disabled && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {item.icon}
+                  {item.title}
+                </Link>
+              </Button>
             ))}
           </nav>
         </div>

@@ -10,18 +10,8 @@ export async function POST(request: NextRequest) {
     await connectToDB();
 
     const { examId } = await request.json();
-    
-    // Generate a unique share ID
-    const shareId = crypto.randomBytes(8).toString('hex');
-    
-    const exam = await Exam.findOneAndUpdate(
-      { _id: examId },
-      { 
-        shareId,
-        isPublic: true
-      },
-      { new: true }
-    );
+
+    const exam = await Exam.findById(examId);
 
     if (!exam) {
       return NextResponse.json({
@@ -33,7 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       status: "success",
       message: "Share link generated successfully",
-      shareId: exam.shareId,
+      id: exam._id,
     });
   } catch (error) {
     console.error("[EXAM_SHARE_ERROR]", error);
@@ -42,4 +32,4 @@ export async function POST(request: NextRequest) {
       message: "Failed to generate share link",
     });
   }
-} 
+}

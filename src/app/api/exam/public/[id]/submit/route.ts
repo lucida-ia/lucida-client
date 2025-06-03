@@ -2,12 +2,17 @@ import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, params: any) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await connectToDB();
 
+    const { id } = await params;
+
     const exam = await Exam.findOne({
-      shareId: params.shareId,
+      _id: id,
     });
 
     if (!exam) {

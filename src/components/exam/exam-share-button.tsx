@@ -19,7 +19,7 @@ export function ExamShareButton({ examId }: ExamShareButtonProps) {
       setIsLoading(true);
       const response = await axios.post("/api/exam/share", { examId });
 
-      const shareUrl = `${window.location.origin}/exam/${response.data.shareId}`;
+      const shareUrl = `${window.location.origin}/exam/${response.data.id}`;
 
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
