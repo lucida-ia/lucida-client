@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { shareId: string } }
+  context: { params: { shareId: string } }
 ) {
   try {
     await connectToDB();
 
     const exam = await Exam.findOne({
-      shareId: params.shareId,
+      shareId: context.params.shareId,
       isPublic: true,
     });
 
@@ -25,15 +25,19 @@ export async function GET(
     const sanitizedQuestions = exam.questions.map((q: any) => ({
       question: q.question || "",
       options: Array.isArray(q.options) ? q.options : [],
-      correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
-      type: q.type || (Array.isArray(q.options) && q.options.length > 0 ? 'multipleChoice' : 'trueFalse')
+      correctAnswer: typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
+      type:
+        q.type ||
+        (Array.isArray(q.options) && q.options.length > 0
+          ? "multipleChoice"
+          : "trueFalse"),
     }));
 
     // Remove sensitive information and ensure proper structure
     const sanitizedExam = {
       title: exam.title || "",
       description: exam.description || "",
-      duration: typeof exam.duration === 'number' ? exam.duration : 60,
+      duration: typeof exam.duration === "number" ? exam.duration : 60,
       questions: sanitizedQuestions,
     };
 
@@ -48,4 +52,4 @@ export async function GET(
       message: "Failed to get exam",
     });
   }
-} 
+}
