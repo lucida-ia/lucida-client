@@ -71,7 +71,7 @@ export default function ListExamsPage() {
       <Card className="col-span-4">
         <CardHeader></CardHeader>
         <CardContent>
-          {exams.length > 0 ? (
+          {exams?.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -83,15 +83,19 @@ export default function ListExamsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exams.map((exam) => (
-                  <TableRow key={exam._id}>
-                    <TableCell className="font-medium">{exam.title}</TableCell>
-                    <TableCell>{exam.questions.length}</TableCell>
+                {exams?.map((exam) => (
+                  <TableRow key={exam?._id}>
+                    <TableCell className="font-medium">{exam?.title}</TableCell>
+                    <TableCell>{exam?.questions.length}</TableCell>
                     <TableCell>
-                      {formatDistanceToNow(exam.createdAt, { addSuffix: true })}
+                      {formatDistanceToNow(exam?.createdAt, {
+                        addSuffix: true,
+                      })}
                     </TableCell>
                     <TableCell>
-                      {formatDistanceToNow(exam.updatedAt, { addSuffix: true })}
+                      {formatDistanceToNow(exam?.updatedAt, {
+                        addSuffix: true,
+                      })}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -129,7 +133,7 @@ export default function ListExamsPage() {
 
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <ExamShareButton examId={exam._id} />
+                            <ExamShareButton examId={exam?._id} />
                           </TooltipTrigger>
                           <TooltipContent>Compartilhar Prova</TooltipContent>
                         </Tooltip>
@@ -139,7 +143,7 @@ export default function ListExamsPage() {
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => handleDeleteExam(exam._id)}
+                              onClick={() => handleDeleteExam(exam?._id)}
                             >
                               <Trash className="h-4 w-4 text-red-500" />
                               <span className="sr-only">Excluir</span>

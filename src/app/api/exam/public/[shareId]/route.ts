@@ -6,10 +6,13 @@ export async function GET(request: NextRequest, params: any) {
   try {
     await connectToDB();
 
+    console.log(params);
+
     const exam = await Exam.findOne({
       shareId: params.shareId,
-      isPublic: true,
     });
+
+    console.log(exam);
 
     if (!exam) {
       return NextResponse.json({

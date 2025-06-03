@@ -26,9 +26,11 @@ import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { Tooltip } from "@radix-ui/react-tooltip";
 import { ExamShareButton } from "../exam/exam-share-button";
 import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export function RecentExams() {
   const [exams, setExams] = React.useState<DBExam[]>([]);
+  const router = useRouter();
 
   const fetchExams = async () => {
     const response = await axios.get("/api/exam/all");
@@ -62,11 +64,11 @@ export function RecentExams() {
       <CardHeader>
         <CardTitle>Provas Recentes</CardTitle>
         <CardDescription>
-          Você criou {exams.length} provas no total.
+          Você criou {exams?.length} provas no total.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {exams.length > 0 ? (
+        {exams?.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -81,22 +83,26 @@ export function RecentExams() {
               {exams.map((exam) => (
                 <TableRow key={exam._id}>
                   <TableCell className="font-medium">{exam.title}</TableCell>
-                  <TableCell>{exam.questions.length}</TableCell>
+                  <TableCell>{exam?.questions.length}</TableCell>
                   <TableCell>
-                    {formatDistanceToNow(exam.createdAt, { addSuffix: true })}
+                    {formatDistanceToNow(exam?.createdAt, { addSuffix: true })}
                   </TableCell>
                   <TableCell>
-                    {formatDistanceToNow(exam.updatedAt, { addSuffix: true })}
+                    {formatDistanceToNow(exam?.updatedAt, { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" asChild>
-                            <Link href={`/dashboard/exams/${exam._id}`}>
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">Visualizar</span>
-                            </Link>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              router.push(`/dashboard/exams/${exam?._id}`)
+                            }
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span className="sr-only">Visualizar</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Visualizar Prova</TooltipContent>
@@ -124,7 +130,7 @@ export function RecentExams() {
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <ExamShareButton examId={exam._id} />
+                          <ExamShareButton examId={exam?._id} />
                         </TooltipTrigger>
                         <TooltipContent>Compartilhar Prova</TooltipContent>
                       </Tooltip>
@@ -134,7 +140,7 @@ export function RecentExams() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => handleDeleteExam(exam._id)}
+                            onClick={() => handleDeleteExam(exam?._id)}
                           >
                             <Trash className="h-4 w-4 text-red-500" />
                             <span className="sr-only">Excluir</span>

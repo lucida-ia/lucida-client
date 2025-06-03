@@ -8,7 +8,6 @@ export async function POST(request: NextRequest, params: any) {
 
     const exam = await Exam.findOne({
       shareId: params.shareId,
-      isPublic: true,
     });
 
     if (!exam) {
