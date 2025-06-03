@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -19,44 +19,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileText, Edit, Trash, Copy } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { DBExam } from "@/types/exam";
+import axios from "axios";
 
 export function RecentExams() {
-  // Mock data - would come from an API in a real application
-  const [exams, setExams] = useState([
-    {
-      id: "1",
-      title: "Prova de Biologia",
-      questionsCount: 35,
-      createdAt: new Date(2025, 3, 10),
-      updatedAt: new Date(2025, 3, 15),
-    },
-    {
-      id: "2",
-      title: "Introdução à Psicologia",
-      questionsCount: 42,
-      createdAt: new Date(2025, 3, 5),
-      updatedAt: new Date(2025, 3, 5),
-    },
-    {
-      id: "3",
-      title: "História Mundial Final",
-      questionsCount: 50,
-      createdAt: new Date(2025, 2, 28),
-      updatedAt: new Date(2025, 3, 1),
-    },
-    {
-      id: "4",
-      title: "Quiz de Cálculo",
-      questionsCount: 20,
-      createdAt: new Date(2025, 2, 20),
-      updatedAt: new Date(2025, 2, 20),
-    },
-  ]);
+  const [exams, setExams] = React.useState<DBExam[]>([]);
 
-  // Mock function to delete an exam
-  const handleDelete = (id: string) => {
-    setExams(exams.filter((exam) => exam.id !== id));
-  };
+  React.useEffect(() => {
+    const fetchExams = async () => {
+      const response = await axios.get("/api/exam/all");
+      setExams(response.data.exams);
+    };
+    fetchExams();
+  }, []);
 
   return (
     <Card className="col-span-4">
@@ -80,9 +55,9 @@ export function RecentExams() {
             </TableHeader>
             <TableBody>
               {exams.map((exam) => (
-                <TableRow key={exam.id}>
+                <TableRow key={exam._id}>
                   <TableCell className="font-medium">{exam.title}</TableCell>
-                  <TableCell>{exam.questionsCount}</TableCell>
+                  <TableCell>{exam.questions.length}</TableCell>
                   <TableCell>
                     {formatDistanceToNow(exam.createdAt, { addSuffix: true })}
                   </TableCell>
@@ -103,11 +78,7 @@ export function RecentExams() {
                         <Copy className="h-4 w-4" />
                         <span className="sr-only">Duplicar</span>
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDelete(exam.id)}
-                      >
+                      <Button variant="outline" size="icon">
                         <Trash className="h-4 w-4" />
                         <span className="sr-only">Excluir</span>
                       </Button>

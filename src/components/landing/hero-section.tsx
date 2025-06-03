@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import { SignInButton } from "@clerk/nextjs";
 
 export function HeroSection() {
   return (
@@ -20,15 +21,12 @@ export function HeroSection() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Button
-                asChild
-                size="lg"
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Link href="/signup">
+              <SignInButton>
+                <Button size="lg" className="bg-primary hover:bg-primary/90">
                   Começar Agora <ChevronRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+                </Button>
+              </SignInButton>
+
               <Button asChild size="lg" variant="outline">
                 <Link href="#features">Saiba Mais</Link>
               </Button>

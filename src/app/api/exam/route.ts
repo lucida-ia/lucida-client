@@ -60,3 +60,29 @@ export async function POST(request: NextRequest) {
     });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await connectToDB();
+
+    if (!mongoose.connection.db) {
+      throw new Error("Database connection not established");
+    }
+
+    const { examId } = await request.json();
+
+    const deletedExam = await ExamModel.findByIdAndDelete(examId);
+
+    return NextResponse.json({
+      status: "success",
+      message: "Prova deletada com sucesso",
+      exam: deletedExam,
+    });
+  } catch (error) {
+    console.error("[EXAM_DELETE_ERROR]", error);
+    return NextResponse.json({
+      status: "error",
+      message: "Falha ao deletar prova",
+    });
+  }
+}

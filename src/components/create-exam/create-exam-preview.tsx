@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Download, Edit, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 interface ExamConfig {
   title: string;
@@ -45,7 +45,9 @@ export function CreateExamPreview({
   const [isGenerating, setIsGenerating] = useState(false);
   const [examGenerated, setExamGenerated] = useState(false);
   const [generatedExam, setGeneratedExam] = useState<any>(null);
+  const [isSavingExam, setIsSavingExam] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleUploadFilesAndGenerateQuestions = async (files: File[]) => {
     try {
@@ -110,12 +112,14 @@ export function CreateExamPreview({
   };
 
   const handleCreateExam = async () => {
+    setIsSavingExam(true);
     await axios("/api/exam", {
       method: "POST",
       data: generatedExam,
     });
 
     router.push("/dashboard/exams");
+    setIsSavingExam(false);
   };
 
   return (
@@ -215,7 +219,7 @@ export function CreateExamPreview({
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={onBack}>
+          <Button variant="outline" onClick={onBack} disabled={isGenerating}>
             Voltar para Personalização
           </Button>
           {examGenerated ? (
@@ -274,16 +278,18 @@ export function CreateExamPreview({
                           </h3>
 
                           <div className="ml-6 space-y-1">
-                            {question.type === 'multipleChoice' ? (
-                              question.options.map((option: string, optionIndex: number) => (
-                                <div
-                                  key={optionIndex}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                  <span>{option}</span>
-                                </div>
-                              ))
+                            {question.type === "multipleChoice" ? (
+                              question.options.map(
+                                (option: string, optionIndex: number) => (
+                                  <div
+                                    key={optionIndex}
+                                    className="flex items-center space-x-2"
+                                  >
+                                    <div className="h-4 w-4 rounded-full border border-primary"></div>
+                                    <span>{option}</span>
+                                  </div>
+                                )
+                              )
                             ) : (
                               <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-2">
@@ -321,9 +327,11 @@ export function CreateExamPreview({
                               Resposta:{" "}
                             </span>
                             <span>
-                              {question.type === 'multipleChoice' 
+                              {question.type === "multipleChoice"
                                 ? question.options[question.correctAnswer]
-                                : question.correctAnswer ? 'Verdadeiro' : 'Falso'}
+                                : question.correctAnswer
+                                ? "Verdadeiro"
+                                : "Falso"}
                             </span>
                           </div>
                         </div>
@@ -340,9 +348,16 @@ export function CreateExamPreview({
               Editar Questões
             </Button>
 
-            <Button onClick={handleCreateExam}>
+            <Button onClick={handleCreateExam} disabled={isSavingExam}>
               <Download className="mr-2 h-4 w-4" />
-              Salvar Prova
+              {isSavingExam ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar Prova"
+              )}
             </Button>
           </CardFooter>
         </Card>

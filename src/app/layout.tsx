@@ -6,10 +6,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { ClerkProvider } from "@clerk/nextjs";
 const inter = Inter({ subsets: ["latin"] });
 
+import { ptBR } from "@clerk/localizations";
+
 export const metadata: Metadata = {
-  title: "Lucida - AI-Powered Exam Generator",
-  description:
-    "Generate professional exams in seconds with our AI-powered platform",
+  title: "Lucida - Crie Provas Profissionais em Segundos com IA",
+  description: "Economize horas de preparação e crie avaliações melhores.",
 };
 
 export default function RootLayout({
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={ptBR}>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className} suppressHydrationWarning>
           <ThemeProvider attribute="class" enableSystem>

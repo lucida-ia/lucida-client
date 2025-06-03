@@ -9,7 +9,7 @@ export function Footer() {
   const { theme } = useTheme();
 
   return (
-    <footer className="border-t bg-background">
+    <footer className="border-t bg-background px-4">
       <div className="container py-10 md:py-16 mx-auto">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           <div className="col-span-2 lg:col-span-2">
@@ -87,7 +87,7 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Lucida. Todos os direitos
             reservados.
           </p>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
+          <div className="flex items-center space-x-4 mt-4 md:mt-0 text-xs">
             <span className="text-muted-foreground">
               Feito com {theme == "dark" ? "🖤" : "🤍"} por{" "}
               <Link

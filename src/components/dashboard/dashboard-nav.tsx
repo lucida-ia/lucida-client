@@ -13,7 +13,7 @@ import {
   LogOut,
   UsersRound,
 } from "lucide-react";
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
 export function DashboardNav() {
   const pathname = usePathname();
@@ -49,10 +49,11 @@ export function DashboardNav() {
   return (
     <div className="hidden border-r bg-muted/40 lg:block sticky top-0 left-0 w-64 h-screen">
       <div className="flex h-screen flex-col gap-2">
-        <div className="flex h-14 items-center border-b px-4">
+        <div className="flex h-14 items-center border-b px-4 justify-between">
           <Link href="/dashboard" className="flex items-center space-x-2 w-24">
             <LucidaLogo />
           </Link>
+          <UserButton />
         </div>
         <div className="flex-1 overflow-y-auto py-2">
           <nav className="grid items-start px-2 text-sm font-medium">

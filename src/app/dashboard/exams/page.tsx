@@ -19,20 +19,41 @@ import { Edit } from "lucide-react";
 import { FileText } from "lucide-react";
 import React from "react";
 import axios from "axios";
-import { DBExam, Exam } from "@/types/exam";
+import { DBExam } from "@/types/exam";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ListExamsPage() {
   const [exams, setExams] = React.useState<DBExam[]>([]);
+  const { toast } = useToast();
+
+  const fetchExams = async () => {
+    const response = await axios.get("/api/exam/all");
+    setExams(response.data.exams);
+  };
 
   React.useEffect(() => {
-    const fetchExams = async () => {
-      const response = await axios.get("/api/exam/all");
-      setExams(response.data.exams);
-    };
     fetchExams();
   }, []);
+
+  const handleDeleteExam = async (examId: string) => {
+    const response = await axios.delete("/api/exam", {
+      data: { examId },
+    });
+
+    if (response.status === 200) {
+      toast({
+        title: "Prova deletada com sucesso",
+      });
+    } else {
+      toast({
+        title: "Falha ao deletar prova",
+        description: response.data.message,
+      });
+    }
+    fetchExams();
+  };
 
   return (
     <DashboardShell>
@@ -79,18 +100,21 @@ export default function ListExamsPage() {
                             <span className="sr-only">Visualizar</span>
                           </Link>
                         </Button>
+
                         <Button variant="outline" size="icon">
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Editar</span>
                         </Button>
+
                         <Button variant="outline" size="icon">
                           <Copy className="h-4 w-4" />
                           <span className="sr-only">Duplicar</span>
                         </Button>
+
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => console.log(exam._id)}
+                          onClick={() => handleDeleteExam(exam._id)}
                         >
                           <Trash className="h-4 w-4" />
                           <span className="sr-only">Excluir</span>

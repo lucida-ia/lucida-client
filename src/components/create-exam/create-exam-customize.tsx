@@ -229,7 +229,9 @@ export function CreateExamCustomize({
           Voltar para Upload
         </Button>
 
-        <Button onClick={() => onConfigured(config)}>Visualizar Prova</Button>
+        <Button onClick={() => onConfigured(config)}>
+          Revisar Configurações
+        </Button>
       </div>
     </form>
   );
