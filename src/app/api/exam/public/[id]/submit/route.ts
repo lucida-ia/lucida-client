@@ -1,5 +1,6 @@
 import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
+import { Result } from "@/models/Result";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -22,7 +23,7 @@ export async function POST(
       });
     }
 
-    const { answers } = await request.json();
+    const { answers, email } = await request.json();
 
     // Calculate score
     let score = 0;
@@ -37,12 +38,20 @@ export async function POST(
     // Here you might want to save the submission to a database
     // For now, we'll just return the score
 
+    const result = Result.create({
+      examId: exam._id.toString(),
+      email,
+      score,
+      percentage: percentage / 100,
+    });
+
     return NextResponse.json({
       status: "success",
       message: "Exam submitted successfully",
       score,
       percentage,
       totalQuestions: exam.questions.length,
+      result,
     });
   } catch (error) {
     console.error("[EXAM_SUBMIT_ERROR]", error);

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import { Clock, Loader2, CheckCircle2, PlayCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Question {
   question: string;
@@ -44,6 +45,7 @@ export default function PublicExamPage() {
   const [isStarted, setIsStarted] = useState(false);
   const [result, setResult] = useState<ExamResult | null>(null);
   const { toast } = useToast();
+  const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -121,6 +123,7 @@ export default function PublicExamPage() {
     try {
       const response = await axios.post(`/api/exam/public/${shareId}/submit`, {
         answers,
+        email,
       });
 
       setResult(response.data);
@@ -200,8 +203,17 @@ export default function PublicExamPage() {
                   <li>You can review your answers before submitting</li>
                 </ul>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <span>Confirme seu e-mail antes de prosseguir:</span>
+                <Input
+                  placeholder="exemplo@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
               <div className="flex justify-end">
-                <Button size="lg" onClick={handleStartExam}>
+                <Button size="lg" onClick={handleStartExam} disabled={!email}>
                   Iniciar Prova
                 </Button>
               </div>
@@ -219,7 +231,7 @@ export default function PublicExamPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-6 w-6 text-green-500" />
-              Prova Completada
+              Prova Completada - {email}
             </CardTitle>
             <CardDescription>Seus resultados estão prontos</CardDescription>
           </CardHeader>
