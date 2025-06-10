@@ -9,6 +9,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 interface ExamConfig {
   title: string;
   description: string;
+  questionStyle: "simples" | "enem";
   questionCount: number;
   questionTypes: {
     multipleChoice: boolean;
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = `Você é um professor especialista em criar avaliações para estudantes brasileiros. Todas as saídas devem estar em Português do Brasil.
+    const simpleSystemPrompt = `Você é um professor especialista em criar avaliações para estudantes brasileiros. Todas as saídas devem estar em Português do Brasil.
 
 Retorne estritamente um objeto JSON válido (sem texto extra) com a estrutura abaixo:
 
@@ -124,6 +125,59 @@ Regras para construção das questões:
    }
 
 Comece já a gerar as questões de acordo com essas diretrizes.`;
+
+    const enemSystemPrompt = `Você é um especialista em elaborar questões no estilo do ENEM (Exame Nacional do Ensino Médio) para estudantes brasileiros. Suas questões devem ser interdisciplinares, contextualizadas e exigir habilidades de interpretação e raciocínio crítico.
+
+Retorne estritamente um objeto JSON válido (sem texto extra) com a estrutura abaixo:
+
+{
+  "questions": [
+    {
+      "id": string,
+      "subject": string,
+      "type": "multipleChoice", // ENEM é predominantemente múltipla escolha
+      "difficulty": "fácil" | "médio" | "difícil",
+      "context": string,         // Texto base, cenário, gráfico, etc.
+      "question": string,
+      "options": string[],
+      "correctAnswer": number,
+      "explanation": string
+    }
+  ]
+}
+
+Regras para construção das questões (Estilo ENEM):
+1.  **Contextualização Profunda**: Cada questão DEVE ter um texto-base (campo 'context') rico e denso, com 2 a 5 sentenças. Pode ser um trecho de notícia, um texto literário, a descrição de um experimento, dados estatísticos ou uma situação-problema. O texto-base é a âncora da questão.
+2.  **Enunciado Conectado**: O enunciado (campo 'question') não deve ser uma simples pergunta sobre o texto-base. Ele deve criar uma ponte entre o contexto apresentado e o conhecimento mais amplo do conteúdo fornecido. A pergunta deve exigir que o aluno utilize o conteúdo para analisar, interpretar ou resolver o problema do texto-base.
+3.  **Alternativas Plausíveis**: Crie 5 alternativas (A, B, C, D, E). Todas devem ser plausíveis e relacionadas ao tema. Os distratores (alternativas incorretas) devem ser cuidadosamente elaborados para representar erros comuns de raciocínio ou interpretações parciais do texto.
+4.  **Interdisciplinaridade**: Sempre que possível, relacione o conteúdo com outras áreas do conhecimento para refletir a natureza do ENEM.
+5.  **Rigor e Qualidade**: Gere exatamente ${config.questionCount} questões, adaptando a complexidade do texto, do raciocínio exigido e dos distratores ao nível de dificuldade (${config.difficulty}). A questão deve ser desafiadora e avaliar o pensamento crítico.
+6.  **Metadados**: Preencha 'id', 'subject', 'type' (sempre 'multipleChoice' para ENEM), e 'difficulty'.
+7.  **Formato JSON Estrito**: Siga o formato JSON à risca, sem comentários ou texto adicional.
+
+Exemplo de estrutura (Questão ENEM de alta qualidade):
+{
+  "id": "Q1",
+  "subject": "Biologia - Virologia e Saúde",
+  "type": "multipleChoice",
+  "difficulty": "difícil",
+  "context": "A agência norte-americana que regula medicamentos (FDA) aprovou um fármaco cujo uso contínuo reduz o risco de infecção do vírus HIV. Esse fármaco surge como profilaxia medicamentosa aos grupos de alto risco, uma vez que age na célula infectada inibindo a ação da enzima transcriptase reversa. Contudo, a camisinha ainda é o método mais seguro, barato e eficaz na prevenção de doenças como a aids, com taxas de aproximadamente 100% de proteção. (Fonte: SEGATTO, C. Época, n. 740, jul. 2012, adaptado).",
+  "question": "O bloqueio dessa enzima contribui para o controle da doença, pois:",
+  "options": [
+    "inibe a transcrição do DNA viral, o que impede a formação de moléculas de RNA celular.",
+    "impede a transformação do RNA viral em uma fita dupla de DNA, que se integra ao DNA celular.",
+    "evita a duplicação do RNA viral, que levaria à formação de proteínas virais defeituosas.",
+    "dificulta a duplicação do DNA da célula hospedeira, com a formação de novas fitas virais.",
+    "controla a formação de moléculas de RNA transportador, que bloqueiam a síntese de novos vírus."
+  ],
+  "correctAnswer": 1,
+  "explanation": "O HIV é um retrovírus que usa a enzima transcriptase reversa para converter seu RNA em DNA. Esse DNA viral então se integra ao genoma da célula hospedeira. O fármaco inibe essa enzima, impedindo a formação do DNA viral a partir do RNA viral, interrompendo o ciclo de vida do vírus. A alternativa B descreve corretamente este processo."
+}
+
+Comece a gerar as questões.`;
+
+    const systemPrompt =
+      config.questionStyle === "enem" ? enemSystemPrompt : simpleSystemPrompt;
 
     const userPrompt = `Gere ${
       config.questionCount

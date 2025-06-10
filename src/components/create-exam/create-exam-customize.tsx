@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,10 +23,12 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface ExamConfig {
   title: string;
   description: string;
+  questionStyle: "simples" | "enem";
   questionCount: number;
   questionTypes: {
     multipleChoice: boolean;
@@ -53,6 +55,20 @@ export function CreateExamCustomize({
 }: CreateExamCustomizeProps) {
   const [config, setConfig] = useState<ExamConfig>(initialConfig);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (config.questionStyle === "enem") {
+      setConfig((prev) => ({
+        ...prev,
+        questionTypes: {
+          multipleChoice: true,
+          trueFalse: false,
+          shortAnswer: false,
+          essay: false,
+        },
+      }));
+    }
+  }, [config.questionStyle]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -84,6 +100,12 @@ export function CreateExamCustomize({
 
   const handleDifficultyChange = (value: string) => {
     setConfig((prev) => ({ ...prev, difficulty: value }));
+  };
+
+  const handleQuestionStyleChange = (value: "simples" | "enem") => {
+    if (value) {
+      setConfig((prev) => ({ ...prev, questionStyle: value }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -147,6 +169,40 @@ export function CreateExamCustomize({
 
       <Card>
         <CardHeader>
+          <CardTitle>Estilo das Questões</CardTitle>
+          <CardDescription>
+            Selecione o estilo de questões para a sua prova.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ToggleGroup
+            type="single"
+            value={config.questionStyle}
+            onValueChange={handleQuestionStyleChange}
+            className="grid grid-cols-2"
+          >
+            <ToggleGroupItem value="simples" aria-label="Toggle simples">
+              <div className="text-left">
+                <div className="font-semibold">Simples</div>
+                <div className="text-xs text-muted-foreground">
+                  Questões diretas com base no conteúdo.
+                </div>
+              </div>
+            </ToggleGroupItem>
+            <ToggleGroupItem value="enem" aria-label="Toggle enem">
+              <div className="text-left">
+                <div className="font-semibold">ENEM</div>
+                <div className="text-xs text-muted-foreground">
+                  Questões contextualizadas e densas.
+                </div>
+              </div>
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Configurações das Questões</CardTitle>
           <CardDescription>
             Configure os tipos e número de questões.
@@ -177,6 +233,7 @@ export function CreateExamCustomize({
                       checked as boolean
                     )
                   }
+                  disabled={config.questionStyle === "enem"}
                 />
                 <Label htmlFor="multipleChoice">Múltipla Escolha</Label>
               </div>
@@ -187,6 +244,7 @@ export function CreateExamCustomize({
                   onCheckedChange={(checked) =>
                     handleQuestionTypeChange("trueFalse", checked as boolean)
                   }
+                  disabled={config.questionStyle === "enem"}
                 />
                 <Label htmlFor="trueFalse">Verdadeiro/Falso</Label>
               </div>
