@@ -50,7 +50,7 @@ const UploadArea = ({
                   Faça upload de PDF, Word ou arquivos de texto
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Tamanho máximo do arquivo: 10MB
+                  Tamanho máximo do arquivo: 100MB
                 </p>
               </div>
               <div>
