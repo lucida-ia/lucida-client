@@ -48,8 +48,6 @@ export function ExamTable({
     fetchExams();
   };
 
-  console.log("exams", exams);
-
   return (
     <>
       <Table>

@@ -40,7 +40,6 @@ export default function ListExamsPage() {
         <CardContent>
           <Accordion type="multiple">
             {classes?.map((content) => {
-              console.log("content", content);
               return (
                 <AccordionItem value={content.id} key={content.id}>
                   <AccordionTrigger>{content.name}</AccordionTrigger>
