@@ -61,6 +61,12 @@ export function ExamEditForm({ exam, onExamUpdated }: ExamEditFormProps) {
     setEditedExam({ ...editedExam, questions: updatedQuestions });
   };
 
+  const handleContextChange = (index: number, value: string) => {
+    const updatedQuestions = [...editedExam.questions];
+    updatedQuestions[index] = { ...updatedQuestions[index], context: value };
+    setEditedExam({ ...editedExam, questions: updatedQuestions });
+  };
+
   const handleOptionChange = (questionIndex: number, optionIndex: number, value: string) => {
     const updatedQuestions = [...editedExam.questions];
     const updatedOptions = [...updatedQuestions[questionIndex].options];
@@ -131,6 +137,20 @@ export function ExamEditForm({ exam, onExamUpdated }: ExamEditFormProps) {
         <div className="space-y-6">
           {(isEditing ? editedExam.questions : exam.questions).map((question, index) => (
             <div key={index} className="space-y-2">
+              {isEditing ? (
+                <Textarea
+                  value={question.context || ""}
+                  onChange={(e) => handleContextChange(index, e.target.value)}
+                  placeholder="Contexto da questão (opcional)"
+                  className="text-sm text-muted-foreground"
+                />
+              ) : (
+                question.context && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {question.context}
+                  </p>
+                )
+              )}
               {isEditing ? (
                 <Input
                   value={question.question}

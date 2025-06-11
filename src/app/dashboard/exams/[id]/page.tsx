@@ -154,6 +154,11 @@ export default function ExamPreviewPage() {
                   <div className="mt-6 space-y-4">
                     {exam.questions.map((question, index) => (
                       <div key={index} className="space-y-1">
+                        {question.context && (
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                            {question.context}
+                          </p>
+                        )}
                         <h3 className="font-medium">
                           {index + 1}. {question.question}
                         </h3>

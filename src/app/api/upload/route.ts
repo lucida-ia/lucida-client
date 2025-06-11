@@ -71,6 +71,7 @@ Retorne estritamente um objeto JSON válido (sem texto extra) com a estrutura ab
       "subject": string,           // disciplina ou tópico (e.g., "Matemática", "História")
       "type": "multipleChoice" | "trueFalse",
       "difficulty": "fácil" | "médio" | "difícil",
+      "context"?: string,         // (opcional) Texto base, cenário, etc.
       "question": string,          // enunciado da questão
       "options"?: string[],        // apenas para múltipla escolha: array com alternativas
       "correctAnswer": number | boolean, // índice (0-based) ou boolean para true/false
@@ -147,7 +148,7 @@ Retorne estritamente um objeto JSON válido (sem texto extra) com a estrutura ab
 }
 
 Regras para construção das questões (Estilo ENEM):
-1.  **Contextualização Profunda**: Cada questão DEVE ter um texto-base (campo 'context') rico e denso, com 2 a 5 sentenças. Pode ser um trecho de notícia, um texto literário, a descrição de um experimento, dados estatísticos ou uma situação-problema. O texto-base é a âncora da questão.
+1.  **Contextualização Narrativa e Situacional**: A base de toda questão é o seu contexto. Crie um texto-base (campo 'context') que apresente uma **narrativa curta, uma história ou uma situação-problema do mundo real**. O objetivo é engajar o aluno através de um cenário prático e interessante (ex: um desafio de engenharia, um problema financeiro, um dilema social, um fato histórico curioso). O texto deve ser rico e fornecer os dados necessários para resolver a questão.
 2.  **Enunciado Conectado**: O enunciado (campo 'question') não deve ser uma simples pergunta sobre o texto-base. Ele deve criar uma ponte entre o contexto apresentado e o conhecimento mais amplo do conteúdo fornecido. A pergunta deve exigir que o aluno utilize o conteúdo para analisar, interpretar ou resolver o problema do texto-base.
 3.  **Alternativas Plausíveis**: Crie 5 alternativas (A, B, C, D, E). Todas devem ser plausíveis e relacionadas ao tema. Os distratores (alternativas incorretas) devem ser cuidadosamente elaborados para representar erros comuns de raciocínio ou interpretações parciais do texto.
 4.  **Interdisciplinaridade**: Sempre que possível, relacione o conteúdo com outras áreas do conhecimento para refletir a natureza do ENEM.
@@ -155,7 +156,7 @@ Regras para construção das questões (Estilo ENEM):
 6.  **Metadados**: Preencha 'id', 'subject', 'type' (sempre 'multipleChoice' para ENEM), e 'difficulty'.
 7.  **Formato JSON Estrito**: Siga o formato JSON à risca, sem comentários ou texto adicional.
 
-Exemplo de estrutura (Questão ENEM de alta qualidade):
+Exemplo 1 (Ciências da Natureza):
 {
   "id": "Q1",
   "subject": "Biologia - Virologia e Saúde",
@@ -172,6 +173,25 @@ Exemplo de estrutura (Questão ENEM de alta qualidade):
   ],
   "correctAnswer": 1,
   "explanation": "O HIV é um retrovírus que usa a enzima transcriptase reversa para converter seu RNA em DNA. Esse DNA viral então se integra ao genoma da célula hospedeira. O fármaco inibe essa enzima, impedindo a formação do DNA viral a partir do RNA viral, interrompendo o ciclo de vida do vírus. A alternativa B descreve corretamente este processo."
+}
+
+Exemplo 2 (Matemática e Suas Tecnologias):
+{
+  "id": "Q2",
+  "subject": "Matemática - Otimização e Funções",
+  "type": "multipleChoice",
+  "difficulty": "médio",
+  "context": "Um fazendeiro pretende construir um galinheiro ocupando uma região plana de formato retangular, com lados de comprimentos L e C metros. Os lados serão cercados por telas de tipos diferentes. Nos lados de comprimento L, será utilizada uma tela cujo metro linear custa R$ 20,00, enquanto, nos outros dois lados de comprimento C, uma que custa R$ 15,00. O fazendeiro quer gastar, no máximo, R$ 6.000,00 na compra de toda a tela e deseja que o galinheiro tenha a maior área possível.",
+  "question": "Qual será a medida, em metro, do maior lado do galinheiro que maximiza a área, respeitando o orçamento?",
+  "options": [
+    "75",
+    "100",
+    "150",
+    "200",
+    "300"
+  ],
+  "correctAnswer": 1,
+  "explanation": "O custo total é Custo = 2*L*20 + 2*C*15 = 40L + 30C. Com o orçamento máximo, 40L + 30C = 6000. A área é A = L*C. Isolando C, temos C = (6000 - 40L)/30 = 200 - (4/3)L. A área como função de L é A(L) = L * (200 - (4/3)L) = 200L - (4/3)L^2. Esta é uma parábola com concavidade para baixo, e seu valor máximo ocorre no vértice. O L do vértice é L = -b/(2a) = -200 / (2 * -4/3) = 75 metros. Com L=75, C = 200 - (4/3)*75 = 100 metros. Os lados são 75m e 100m. O maior lado é 100m."
 }
 
 Comece a gerar as questões.`;

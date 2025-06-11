@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     const questionsPayload: Question[] = examPayload.questions.map(
       (question: Question) => ({
         question: question.question,
+        context: question.context,
         options: question.options,
         correctAnswer: question.correctAnswer,
       })
