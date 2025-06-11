@@ -1,4 +1,5 @@
 import { connectToDB } from "@/lib/mongodb";
+import { Class } from "@/models/Class";
 import { Exam } from "@/models/Exam";
 import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
@@ -23,29 +24,17 @@ export async function GET(request: NextRequest) {
       user = await User.create({ id: userId });
     }
 
-    const exams = await Exam.find({ _id: { $in: user?.exams } });
-    const totalExams = exams.length;
-    const totalExamsCreatedThisMonth = exams.filter((exam) => {
-      const examDate = new Date(exam.createdAt);
-      return (
-        examDate.getMonth() === new Date().getMonth() &&
-        examDate.getFullYear() === new Date().getFullYear()
-      );
-    });
+    const classes = await Class.find({ userId: user._id });
 
-    const totalQuestions = exams.reduce(
-      (acc, exam) => acc + exam.questions.length,
-      0
-    );
+    const exams = await Exam.find({ userId: user._id });
 
     return NextResponse.json({
       status: "success",
       message: "User fetched successfully",
-      user: {
-        ...user,
-        totalExams,
-        totalQuestions,
-        totalExamsCreatedThisMonth,
+      data: {
+        user,
+        classes,
+        exams,
       },
     });
   } catch (error) {

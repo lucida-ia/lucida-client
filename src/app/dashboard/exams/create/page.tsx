@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateExamUpload } from "@/components/create-exam/create-exam-upload";
 import { CreateExamCustomize } from "@/components/create-exam/create-exam-customize";
 import { CreateExamPreview } from "@/components/create-exam/create-exam-preview";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CreateExamPage() {
   const [activeTab, setActiveTab] = useState("upload");
@@ -17,6 +18,10 @@ export default function CreateExamPage() {
     description: "",
     questionStyle: "simples" as "simples" | "enem",
     questionCount: 20,
+    class: {
+      _id: "",
+      name: "",
+    },
     questionTypes: {
       multipleChoice: true,
       trueFalse: true,
@@ -27,12 +32,32 @@ export default function CreateExamPage() {
     timeLimit: 60,
   });
 
+  const { toast } = useToast();
+
   const handleFilesUploaded = (files: File[]) => {
     setUploadedFiles(files);
     setActiveTab("customize");
   };
 
   const handleExamConfigured = (config: any) => {
+    if (!config.class) {
+      toast({
+        title: "Erro ao criar prova",
+        description: "Selecione uma turma",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (!config.title) {
+      toast({
+        title: "Erro ao criar prova",
+        description: "Preencha o título da prova",
+        variant: "default",
+      });
+      return;
+    }
+
     setExamConfig(config);
     setActiveTab("preview");
   };

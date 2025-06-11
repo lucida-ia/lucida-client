@@ -10,8 +10,6 @@ export async function GET(
     await connectToDB();
     const { id } = await params;
 
-    console.log("id", id);
-
     const exam = await Exam.findOne({
       _id: id,
     });

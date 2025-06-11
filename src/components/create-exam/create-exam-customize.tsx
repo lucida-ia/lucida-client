@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,6 +30,10 @@ interface ExamConfig {
   description: string;
   questionStyle: "simples" | "enem";
   questionCount: number;
+  class: {
+    _id: string;
+    name: string;
+  };
   questionTypes: {
     multipleChoice: boolean;
     trueFalse: boolean;
@@ -54,6 +58,7 @@ export function CreateExamCustomize({
   onBack,
 }: CreateExamCustomizeProps) {
   const [config, setConfig] = useState<ExamConfig>(initialConfig);
+  const [classes, setClasses] = React.useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -102,6 +107,10 @@ export function CreateExamCustomize({
     setConfig((prev) => ({ ...prev, difficulty: value }));
   };
 
+  const handleClassChange = (value: string) => {
+    setConfig((prev) => ({ ...prev, class: { _id: value, name: value } }));
+  };
+
   const handleQuestionStyleChange = (value: "simples" | "enem") => {
     if (value) {
       setConfig((prev) => ({ ...prev, questionStyle: value }));
@@ -133,6 +142,14 @@ export function CreateExamCustomize({
     }
   };
 
+  React.useEffect(() => {
+    const fetchClasses = async () => {
+      const response = await axios.get("/api/class");
+      setClasses(response.data.data);
+    };
+    fetchClasses();
+  }, []);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
@@ -153,6 +170,7 @@ export function CreateExamCustomize({
               placeholder="ex., Prova de Biologia"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">Descrição (Opcional)</Label>
             <Textarea
@@ -163,6 +181,22 @@ export function CreateExamCustomize({
               placeholder="Breve descrição do conteúdo e propósito da prova"
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Turma</Label>
+            <Select value={config.class._id} onValueChange={handleClassChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a turma" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map((classItem) => (
+                  <SelectItem key={classItem._id} value={classItem._id}>
+                    {classItem.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
