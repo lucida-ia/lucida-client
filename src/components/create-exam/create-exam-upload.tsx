@@ -62,7 +62,7 @@ export function CreateExamUpload({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ];
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const maxFileSize = 100 * 1024 * 1024; // 100MB
 
     const invalidFiles: string[] = [];
     const validFiles: File[] = [];
@@ -71,7 +71,7 @@ export function CreateExamUpload({
       if (!validFileTypes.includes(file.type)) {
         invalidFiles.push(`${file.name} (invalid file type)`);
       } else if (file.size > maxFileSize) {
-        invalidFiles.push(`${file.name} (exceeds 10MB size limit)`);
+        invalidFiles.push(`${file.name} (exceeds 100MB size limit)`);
       } else {
         validFiles.push(file);
       }
@@ -131,7 +131,7 @@ export function CreateExamUpload({
                     <File className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium">{file.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {(file.size / 1024).toFixed(1)} KB
+                      {(file.size / 1024 / 1024).toFixed(1)} MB
                     </span>
                   </div>
                   <Button

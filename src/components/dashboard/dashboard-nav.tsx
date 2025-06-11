@@ -21,28 +21,31 @@ type NavItem = {
   title: string;
   href: string;
   icon: React.ReactNode;
-  role?: string;
+  role?: string[];
   disabled?: boolean;
 };
 
 export function DashboardNav() {
   const pathname = usePathname();
 
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       title: "Dashboard",
       href: "/dashboard",
       icon: <LayoutDashboard className="h-5 w-5" />,
+      role: ["admin", "student", "teacher"],
     },
     {
       title: "Criar Prova",
       href: "/dashboard/exams/create",
       icon: <FileText className="h-5 w-5" />,
+      role: ["admin", "teacher"],
     },
     {
       title: "Minhas Provas",
       href: "/dashboard/exams",
       icon: <Folder className="h-5 w-5" />,
+      role: ["admin", "teacher"],
     },
     {
       title: "Minhas Turmas",
@@ -53,6 +56,7 @@ export function DashboardNav() {
       title: "Configurações",
       href: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
+      role: ["admin", "teacher", "student"],
       disabled: true,
     },
   ];

@@ -1,5 +1,22 @@
 import mongoose from "mongoose";
 
+const QuestionSchema = new mongoose.Schema({
+  question: {
+    type: String,
+    required: true,
+  },
+  context: {
+    type: String,
+  },
+  options: {
+    type: [String],
+  },
+  correctAnswer: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
+});
+
 const ExamSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -32,12 +49,7 @@ const ExamSchema = new mongoose.Schema({
     type: Object,
     required: true,
   },
-  questions: [
-    {
-      type: Object,
-      required: true,
-    },
-  ],
+  questions: [QuestionSchema],
   shareId: {
     type: String,
     unique: true,

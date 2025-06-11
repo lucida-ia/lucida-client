@@ -5,6 +5,7 @@ type Exam = {
 
 type Question = {
   question: string;
+  context?: string;
   options: string[];
   correctAnswer: number;
 };

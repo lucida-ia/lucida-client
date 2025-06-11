@@ -13,9 +13,11 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import { Clock, Loader2, CheckCircle2, PlayCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Question {
   question: string;
+  context?: string;
   options?: string[];
   correctAnswer: number;
   type?: "multipleChoice" | "trueFalse";
@@ -44,6 +46,7 @@ export default function PublicExamPage() {
   const [isStarted, setIsStarted] = useState(false);
   const [result, setResult] = useState<ExamResult | null>(null);
   const { toast } = useToast();
+  const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -63,6 +66,7 @@ export default function PublicExamPage() {
         // Ensure all questions have the required fields
         const validatedQuestions = examData.questions.map((q: any) => ({
           question: q.question || "",
+          context: q.context || "",
           options: Array.isArray(q.options) ? q.options : [],
           correctAnswer:
             typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
@@ -121,6 +125,7 @@ export default function PublicExamPage() {
     try {
       const response = await axios.post(`/api/exam/public/${shareId}/submit`, {
         answers,
+        email,
       });
 
       setResult(response.data);
@@ -200,8 +205,17 @@ export default function PublicExamPage() {
                   <li>You can review your answers before submitting</li>
                 </ul>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <span>Confirme seu e-mail antes de prosseguir:</span>
+                <Input
+                  placeholder="exemplo@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
               <div className="flex justify-end">
-                <Button size="lg" onClick={handleStartExam}>
+                <Button size="lg" onClick={handleStartExam} disabled={!email}>
                   Iniciar Prova
                 </Button>
               </div>
@@ -219,7 +233,7 @@ export default function PublicExamPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-6 w-6 text-green-500" />
-              Prova Completada
+              Prova Completada - {email}
             </CardTitle>
             <CardDescription>Seus resultados estão prontos</CardDescription>
           </CardHeader>
@@ -237,6 +251,11 @@ export default function PublicExamPage() {
                 <h3 className="text-lg font-semibold">Suas Respostas</h3>
                 {exam.questions.map((question, index) => (
                   <div key={index} className="space-y-2 p-4 rounded-lg border">
+                    {question.context && (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {question.context}
+                      </p>
+                    )}
                     <p className="font-medium">{question.question}</p>
                     <div className="space-y-1">
                       {question.type === "trueFalse" ? (
@@ -346,6 +365,11 @@ export default function PublicExamPage() {
           <div className="space-y-8">
             {exam.questions.map((question, questionIndex) => (
               <div key={questionIndex} className="space-y-4">
+                {question.context && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {question.context}
+                  </p>
+                )}
                 <h3 className="text-lg font-medium">
                   {questionIndex + 1}. {question.question}
                 </h3>
