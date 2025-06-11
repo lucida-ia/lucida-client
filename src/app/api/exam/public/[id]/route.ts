@@ -26,6 +26,7 @@ export async function GET(
     // Ensure all questions have the required structure
     const sanitizedQuestions = exam.questions.map((q: any) => ({
       question: q.question || "",
+      context: q.context || "",
       options: Array.isArray(q.options) ? q.options : [],
       correctAnswer: typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
       type:
