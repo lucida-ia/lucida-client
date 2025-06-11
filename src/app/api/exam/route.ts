@@ -33,24 +33,16 @@ export async function POST(request: NextRequest) {
       difficulty: examPayload.config.difficulty,
       type: examPayload.config.questionTypes,
       questions: questionsPayload,
+      classId: examPayload.config.class._id,
+      userId: userId,
     });
 
-    await newExam.save();
-
-    const updatedUser = await User.findOneAndUpdate(
-      { id: userId },
-      {
-        $push: {
-          exams: newExam._id,
-        },
-      },
-      { new: true }
-    );
+    const savedExam = await newExam.save();
 
     return NextResponse.json({
       status: "success",
       message: "Exam created successfully",
-      exam: updatedUser,
+      exam: savedExam,
     });
   } catch (error) {
     console.error("[EXAM_CREATE_ERROR]", error);

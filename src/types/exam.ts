@@ -16,6 +16,10 @@ type Config = {
   questionTypes: QuestionType;
   difficulty: string;
   timeLimit: number;
+  class: {
+    _id: string;
+    name: string;
+  };
 };
 
 type QuestionType = {
@@ -34,4 +38,10 @@ type DBExam = {
   updatedAt: Date;
 };
 
-export type { Exam, Question, Config, QuestionType, DBExam };
+type DBClass = {
+  id: string;
+  name: string;
+  exams: DBExam[];
+};
+
+export type { Exam, Question, Config, QuestionType, DBExam, DBClass };

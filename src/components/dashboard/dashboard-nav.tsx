@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
+import { Switch } from "../ui/switch";
 
 type NavItem = {
   title: string;
@@ -35,7 +36,7 @@ export function DashboardNav() {
     },
     {
       title: "Criar Prova",
-      href: "/dashboard/create",
+      href: "/dashboard/exams/create",
       icon: <FileText className="h-5 w-5" />,
     },
     {
@@ -47,7 +48,6 @@ export function DashboardNav() {
       title: "Minhas Turmas",
       href: "/dashboard/classes",
       icon: <UsersRound className="h-5 w-5" />,
-      disabled: true,
     },
     {
       title: "Configurações",
@@ -94,6 +94,7 @@ export function DashboardNav() {
           </nav>
         </div>
         <div className="mt-auto p-4">
+          <div className="flex items-center gap-2"></div>
           <SignOutButton>
             <Button variant="outline" className="w-full justify-start gap-3">
               <LogOut className="h-5 w-5" />

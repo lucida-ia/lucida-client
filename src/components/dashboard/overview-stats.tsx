@@ -5,20 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Zap, Clock } from "lucide-react";
 
 interface UserData {
-  totalExams: number;
-  totalExamsCreatedThisMonth: any[];
-  totalQuestions: number;
+  user: any;
+  classes: any[];
+  exams: any[];
 }
 
 export function OverviewStats() {
   const [userData, setUserData] = useState<UserData>({
-    totalExams: 0,
-    totalExamsCreatedThisMonth: [],
-    totalQuestions: 0,
+    user: null,
+    classes: [],
+    exams: [],
   });
 
   useEffect(() => {
-    const storedData = localStorage.getItem("user");
+    const storedData = localStorage.getItem("data");
     if (storedData) {
       setUserData(JSON.parse(storedData));
     }
@@ -27,19 +27,22 @@ export function OverviewStats() {
   const stats = [
     {
       title: "Total de Provas",
-      value: userData.totalExams,
+      value: userData.exams.length,
       icon: <FileText className="h-5 w-5 text-muted-foreground" />,
-      description: `${userData.totalExamsCreatedThisMonth.length} provas criadas este mês`,
+      description: `${userData.exams.length} provas criadas este mês`,
     },
     {
       title: "Tempo Economizado",
-      value: userData.totalQuestions,
+      value: userData.exams.reduce((acc, exam) => acc + exam.duration, 0),
       icon: <Clock className="h-5 w-5 text-muted-foreground" />,
       description: "Tempo estimado economizado",
     },
     {
       title: "Questões Geradas",
-      value: userData.totalQuestions,
+      value: userData.exams.reduce(
+        (acc, exam) => acc + exam.questions.length,
+        0
+      ),
       icon: <Zap className="h-5 w-5 text-muted-foreground" />,
       description: "Em todas as provas",
     },
