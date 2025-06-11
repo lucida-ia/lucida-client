@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 
 interface Question {
   question: string;
+  context?: string;
   options?: string[];
   correctAnswer: number;
   type?: "multipleChoice" | "trueFalse";
@@ -65,6 +66,7 @@ export default function PublicExamPage() {
         // Ensure all questions have the required fields
         const validatedQuestions = examData.questions.map((q: any) => ({
           question: q.question || "",
+          context: q.context || "",
           options: Array.isArray(q.options) ? q.options : [],
           correctAnswer:
             typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
@@ -249,6 +251,11 @@ export default function PublicExamPage() {
                 <h3 className="text-lg font-semibold">Suas Respostas</h3>
                 {exam.questions.map((question, index) => (
                   <div key={index} className="space-y-2 p-4 rounded-lg border">
+                    {question.context && (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {question.context}
+                      </p>
+                    )}
                     <p className="font-medium">{question.question}</p>
                     <div className="space-y-1">
                       {question.type === "trueFalse" ? (
@@ -358,6 +365,11 @@ export default function PublicExamPage() {
           <div className="space-y-8">
             {exam.questions.map((question, questionIndex) => (
               <div key={questionIndex} className="space-y-4">
+                {question.context && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {question.context}
+                  </p>
+                )}
                 <h3 className="text-lg font-medium">
                   {questionIndex + 1}. {question.question}
                 </h3>

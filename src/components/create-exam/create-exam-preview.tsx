@@ -285,6 +285,11 @@ export function CreateExamPreview({
                     {generatedExam.questions.map(
                       (question: any, index: number) => (
                         <div key={index} className="space-y-2">
+                          {question.context && (
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {question.context}
+                            </p>
+                          )}
                           <h3 className="font-medium">
                             {index + 1}. {question.question}
                           </h3>
@@ -334,6 +339,11 @@ export function CreateExamPreview({
                     {generatedExam.questions.map(
                       (question: any, index: number) => (
                         <div key={index} className="space-y-1">
+                          {question.context && (
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {question.context}
+                            </p>
+                          )}
                           <h3 className="font-medium">
                             {index + 1}. {question.question}
                           </h3>
