@@ -137,29 +137,27 @@ export function ExamEditForm({ exam, onExamUpdated }: ExamEditFormProps) {
         <div className="space-y-6">
           {(isEditing ? editedExam.questions : exam.questions).map((question, index) => (
             <div key={index} className="space-y-2">
-              {isEditing ? (
+              {isEditing && (
                 <Textarea
                   value={question.context || ""}
                   onChange={(e) => handleContextChange(index, e.target.value)}
                   placeholder="Contexto da questão (opcional)"
                   className="text-sm text-muted-foreground"
                 />
-              ) : (
-                question.context && (
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {question.context}
-                  </p>
-                )
               )}
               {isEditing ? (
-                <Input
+                <Textarea
                   value={question.question}
-                  onChange={(e) => handleQuestionChange(index, e.target.value)}
+                  onChange={(e) =>
+                    handleQuestionChange(index, e.target.value)
+                  }
                   className="font-medium"
+                  placeholder="Enunciado da questão"
                 />
               ) : (
-                <h3 className="font-medium">
-                  {index + 1}. {question.question}
+                <h3 className="font-medium whitespace-pre-wrap">
+                  {index + 1}. {question.context || question.question}
+                  {question.context && `\n${question.question}`}
                 </h3>
               )}
               {question.options ? (

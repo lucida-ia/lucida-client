@@ -251,12 +251,10 @@ export default function PublicExamPage() {
                 <h3 className="text-lg font-semibold">Suas Respostas</h3>
                 {exam.questions.map((question, index) => (
                   <div key={index} className="space-y-2 p-4 rounded-lg border">
-                    {question.context && (
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {question.context}
-                      </p>
-                    )}
-                    <p className="font-medium">{question.question}</p>
+                    <h4 className="font-medium whitespace-pre-wrap">
+                      {index + 1}. {question.context || question.question}
+                      {question.context && `\n${question.question}`}
+                    </h4>
                     <div className="space-y-1">
                       {question.type === "trueFalse" ? (
                         <>
@@ -365,13 +363,9 @@ export default function PublicExamPage() {
           <div className="space-y-8">
             {exam.questions.map((question, questionIndex) => (
               <div key={questionIndex} className="space-y-4">
-                {question.context && (
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {question.context}
-                  </p>
-                )}
-                <h3 className="text-lg font-medium">
-                  {questionIndex + 1}. {question.question}
+                <h3 className="font-medium whitespace-pre-wrap">
+                  {questionIndex + 1}. {question.context || question.question}
+                  {question.context && `\n${question.question}`}
                 </h3>
                 <div className="space-y-2">
                   {question.type === "trueFalse" ? (
