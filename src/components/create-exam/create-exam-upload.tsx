@@ -62,16 +62,16 @@ export function CreateExamUpload({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ];
-    const maxFileSize = 100 * 1024 * 1024; // 100MB
+    const maxFileSize = 50 * 1024 * 1024; // 50MB - increased limit for larger files
 
     const invalidFiles: string[] = [];
     const validFiles: File[] = [];
 
     newFiles.forEach((file) => {
       if (!validFileTypes.includes(file.type)) {
-        invalidFiles.push(`${file.name} (invalid file type)`);
+        invalidFiles.push(`${file.name} (tipo de arquivo inválido)`);
       } else if (file.size > maxFileSize) {
-        invalidFiles.push(`${file.name} (exceeds 100MB size limit)`);
+        invalidFiles.push(`${file.name} (excede o limite de 50MB)`);
       } else {
         validFiles.push(file);
       }
@@ -85,7 +85,13 @@ export function CreateExamUpload({
       });
     }
 
-    setFiles((prev) => [...prev, ...validFiles]);
+    if (validFiles.length > 0) {
+      setFiles((prev) => [...prev, ...validFiles]);
+      toast({
+        title: "Arquivos adicionados",
+        description: `${validFiles.length} arquivo(s) adicionado(s) com sucesso.`,
+      });
+    }
   };
 
   const removeFile = (indexToRemove: number) => {
