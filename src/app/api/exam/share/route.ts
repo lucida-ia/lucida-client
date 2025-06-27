@@ -16,20 +16,20 @@ export async function POST(request: NextRequest) {
     if (!exam) {
       return NextResponse.json({
         status: "error",
-        message: "Exam not found",
+        message: "Prova não encontrada",
       });
     }
 
     return NextResponse.json({
       status: "success",
-      message: "Share link generated successfully",
+      message: "Link de compartilhamento gerado com sucesso",
       id: exam._id,
     });
   } catch (error) {
     console.error("[EXAM_SHARE_ERROR]", error);
     return NextResponse.json({
       status: "error",
-      message: "Failed to generate share link",
+      message: "Falha ao gerar link de compartilhamento",
     });
   }
 }

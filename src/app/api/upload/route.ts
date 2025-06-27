@@ -32,6 +32,18 @@ export async function POST(request: NextRequest) {
     }
 
     const file = files[0];
+    
+    // Add file size validation (50MB limit)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { 
+          error: `Arquivo muito grande. Tamanho máximo permitido: ${MAX_FILE_SIZE / (1024 * 1024)}MB. Tamanho do arquivo: ${(file.size / (1024 * 1024)).toFixed(1)}MB` 
+        },
+        { status: 413 }
+      );
+    }
+
     const fileBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(fileBuffer);
     let text: string;
