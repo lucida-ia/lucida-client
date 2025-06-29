@@ -25,8 +25,8 @@ export function ExamShareButton({ examId }: ExamShareButtonProps) {
       await navigator.clipboard.writeText(shareUrl);
 
       toast({
-        title: "Share link copied!",
-        description: "The exam link has been copied to your clipboard.",
+        title: "Link da Prova Copiado!",
+        description: "O link da prova foi copiado, agora só compartilhar.",
       });
     } catch (error) {
       toast({

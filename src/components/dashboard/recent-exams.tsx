@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileText, Edit, Trash, Copy, Link } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { DBExam } from "@/types/exam";
 import axios from "axios";
 import { TooltipContent } from "@radix-ui/react-tooltip";
@@ -85,10 +86,16 @@ export function RecentExams() {
                   <TableCell className="font-medium">{exam.title}</TableCell>
                   <TableCell>{exam?.questions.length}</TableCell>
                   <TableCell>
-                    {formatDistanceToNow(exam?.createdAt, { addSuffix: true })}
+                    {formatDistanceToNow(exam?.createdAt, { 
+                      addSuffix: true,
+                      locale: ptBR,
+                    })}
                   </TableCell>
                   <TableCell>
-                    {formatDistanceToNow(exam?.updatedAt, { addSuffix: true })}
+                    {formatDistanceToNow(exam?.updatedAt, { 
+                      addSuffix: true,
+                      locale: ptBR,
+                    })}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

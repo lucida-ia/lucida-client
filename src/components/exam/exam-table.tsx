@@ -17,6 +17,7 @@ import { TooltipContent } from "../ui/tooltip";
 import { Tooltip } from "../ui/tooltip";
 import { Edit, FileText, Trash } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -68,11 +69,13 @@ export function ExamTable({
               <TableCell>
                 {formatDistanceToNow(exam?.createdAt, {
                   addSuffix: true,
+                  locale: ptBR,
                 })}
               </TableCell>
               <TableCell>
                 {formatDistanceToNow(exam?.updatedAt, {
                   addSuffix: true,
+                  locale: ptBR,
                 })}
               </TableCell>
               <TableCell className="text-right">
