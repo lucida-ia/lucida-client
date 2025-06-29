@@ -13,20 +13,40 @@ import { ClassTable } from "./class-table";
 import axios from "axios";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 type Class = {
-  _id: string;
+  id: string;
   name: string;
   description: string;
   createdAt: Date;
   updatedAt: Date;
   studants: Studant[];
+  results: Result[];
 };
 
 type Studant = {
   _id: string;
   name: string;
   email: string;
+};
+
+type Result = {
+  _id: string;
+  examId: string;
+  classId: string;
+  email: string;
+  score: number;
+  examTitle: string;
+  examQuestionCount: number;
+  percentage: number;
+  createdAt: Date;
 };
 
 export function ClassesResume() {
@@ -70,7 +90,7 @@ export function ClassesResume() {
     <div>
       <Accordion type="single" collapsible>
         {classes?.map((classItem) => (
-          <AccordionItem key={classItem._id} value={classItem._id.toString()}>
+          <AccordionItem key={classItem.id} value={classItem.id.toString()}>
             <AccordionTrigger>
               <div className="flex items-center gap-2 justify-between w-full pr-4">
                 <span>{classItem.name}</span>
@@ -80,23 +100,38 @@ export function ClassesResume() {
 
             <AccordionContent>
               <div className="flex items-center gap-2 justify-between w-full pr-4">
-                <div className="flex items-center gap-2 w-full justify-end mb-4">
-                  <Button variant="outline" className="gap-2">
-                    <Pencil className="h-4 w-4" />
-                    <span>Editar Turma</span>
-                  </Button>
+                <div className="flex items-center gap-2 w-full justify-between mb-4">
+                  <Select disabled={true}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Selecione uma prova" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classItem.results.map((result) => (
+                        <SelectItem key={result._id} value={result._id}>
+                          {result.examTitle}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                  <Button
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => handleDeleteClass(classItem._id)}
-                  >
-                    <Trash className="h-4 w-4 text-red-500" />
-                    <span>Deletar Turma</span>
-                  </Button>
+                  <div className="flex items-center gap-2 justify-end">
+                    <Button variant="outline" className="gap-2">
+                      <Pencil className="h-4 w-4" />
+                      <span>Editar Turma</span>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => handleDeleteClass(classItem.id)}
+                    >
+                      <Trash className="h-4 w-4 text-red-500" />
+                      <span>Deletar Turma</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <ClassTable studants={classItem.studants || []} />
+              <ClassTable results={classItem.results || []} />
             </AccordionContent>
           </AccordionItem>
         ))}

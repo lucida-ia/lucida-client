@@ -5,6 +5,10 @@ const ResultScheema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  classId: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
@@ -16,6 +20,18 @@ const ResultScheema = new mongoose.Schema({
   percentage: {
     type: Number,
     required: true,
+  },
+  examTitle: {
+    type: String,
+    required: true,
+  },
+  examQuestionCount: {
+    type: Number,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 });
 

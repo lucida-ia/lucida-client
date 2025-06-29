@@ -35,14 +35,15 @@ export async function POST(
 
     const percentage = (score / exam.questions.length) * 100;
 
-    // Here you might want to save the submission to a database
-    // For now, we'll just return the score
-
     const result = Result.create({
       examId: exam._id.toString(),
+      classId: exam.classId,
       email,
       score,
+      examTitle: exam.title,
+      examQuestionCount: exam.questions.length,
       percentage: percentage / 100,
+      createdAt: new Date(),
     });
 
     return NextResponse.json({

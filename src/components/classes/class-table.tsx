@@ -9,29 +9,30 @@ import {
   TableRow,
 } from "../ui/table";
 
-export function ClassTable({ studants }: { studants: any[] }) {
+import { format } from "date-fns";
+
+export function ClassTable({ results }: { results: any[] }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Aluno</TableHead>
+          <TableHead>Prova</TableHead>
           <TableHead>Email</TableHead>
-          <TableHead>Provas Realizadas</TableHead>
-          <TableHead>Média</TableHead>
+          <TableHead>Nota</TableHead>
+          <TableHead>Percentual</TableHead>
+          <TableHead>Data da Prova</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {studants?.map((studant) => (
-          <TableRow key={studant.id}>
-            <TableCell>{studant.name}</TableCell>
-            <TableCell>{studant.email}</TableCell>
-            <TableCell>{studant.exams?.length}</TableCell>
+        {results?.map((result) => (
+          <TableRow key={result._id}>
+            <TableCell>{result.examTitle}</TableCell>
+            <TableCell>{result.email}</TableCell>
             <TableCell>
-              {studant.exams?.reduce(
-                (acc: number, curr: any) => acc + curr.result,
-                0
-              ) / studant.exams?.length}
+              {result.score}/{result.examQuestionCount}
             </TableCell>
+            <TableCell>{result.percentage * 100}%</TableCell>
+            <TableCell>{format(result.createdAt, "dd/MM/yyyy")}</TableCell>
           </TableRow>
         ))}
       </TableBody>
