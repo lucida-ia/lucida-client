@@ -56,18 +56,21 @@ export function CreateExamPreview({
       const formData = new FormData();
 
       for (const file of files) {
-        formData.append("file", file);
+        formData.append("files", file);
       }
 
       formData.append("config", JSON.stringify(config));
 
-      const response = await axios("/api/upload", {
-        method: "POST",
-        data: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios(
+        "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
+        {
+          method: "POST",
+          data: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       const data = response.data;
 
