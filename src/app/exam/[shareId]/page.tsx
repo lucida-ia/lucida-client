@@ -202,7 +202,7 @@ export default function PublicExamPage() {
                     Certifique-se de enviar suas respostas antes que o tempo
                     acabe
                   </li>
-                  <li>You can review your answers before submitting</li>
+                  <li>Revise suas respostas antes de enviar</li>
                 </ul>
               </div>
 
