@@ -191,7 +191,7 @@ export function CreateExamCustomize({
               </SelectTrigger>
               <SelectContent>
                 {classes.map((classItem) => (
-                  <SelectItem key={classItem._id} value={classItem._id}>
+                  <SelectItem key={classItem.id} value={classItem.id}>
                     {classItem.name}
                   </SelectItem>
                 ))}
