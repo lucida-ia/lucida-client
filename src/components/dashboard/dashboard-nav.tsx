@@ -12,10 +12,13 @@ import {
   CreditCard,
   LogOut,
   UsersRound,
+  DotIcon,
+  SunIcon,
+  MoonIcon,
 } from "lucide-react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
-import { Switch } from "../ui/switch";
+import { useTheme } from "next-themes";
 
 type NavItem = {
   title: string;
@@ -26,6 +29,8 @@ type NavItem = {
 };
 
 export function DashboardNav() {
+  const { theme, setTheme } = useTheme();
+
   const pathname = usePathname();
 
   const navItems: NavItem[] = [
@@ -68,7 +73,21 @@ export function DashboardNav() {
           <Link href="/dashboard" className="flex items-center space-x-2 w-24">
             <LucidaLogo />
           </Link>
-          <UserButton />
+          <UserButton>
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label={theme === "dark" ? "Light Mode" : "Dark Mode"}
+                labelIcon={
+                  theme === "dark" ? (
+                    <SunIcon className="w-4 h-4" />
+                  ) : (
+                    <MoonIcon className="w-4 h-4" />
+                  )
+                }
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              />
+            </UserButton.MenuItems>
+          </UserButton>
         </div>
         <div className="flex-1 overflow-y-auto py-2">
           <nav className="grid items-start px-2 text-sm font-medium gap-1">
