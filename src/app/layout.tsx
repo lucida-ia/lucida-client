@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={localization}>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="pt-BR" suppressHydrationWarning>
         <body className={inter.className} suppressHydrationWarning>
           <ThemeProvider attribute="class" enableSystem>
             <TooltipProvider>

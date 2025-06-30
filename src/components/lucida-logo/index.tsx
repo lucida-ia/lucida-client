@@ -3,28 +3,29 @@
 import { useTheme } from "next-themes";
 import * as React from "react";
 
-const LucidaLogo = (props: any) => {
+const LucidaLogo = ({ isDark }: { isDark?: boolean }) => {
+  const [currentTheme, setCurrentTheme] = React.useState<string>("");
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
-  }, []);
+    if (isDark) {
+      setCurrentTheme("dark");
+    } else {
+      setCurrentTheme(
+        theme === "system" ? resolvedTheme || "light" : theme || "light"
+      );
+    }
+  }, [theme, resolvedTheme, isDark]);
 
   if (!mounted) return null;
-
-  const currentTheme = theme === "system" ? resolvedTheme : theme;
 
   const fillColor = currentTheme === "dark" ? "#fcfcfc" : "#111111";
   const strokeColor = currentTheme === "dark" ? "#111111" : "#fcfcfc";
 
   return (
-    <svg
-      width={416}
-      height={122.51400730816079}
-      viewBox="0 0 430.5 127"
-      {...props}
-    >
+    <svg width={416} height={122.51400730816079} viewBox="0 0 430.5 127">
       <defs id="SvgjsDefs1135" />
       <g id="SvgjsG1136" transform="matrix(1,0,0,1,0,0)" fill={fillColor}>
         <rect
