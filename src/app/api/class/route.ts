@@ -46,8 +46,6 @@ export async function GET(request: NextRequest) {
       classId: { $in: classes.map((c) => c._id) },
     });
 
-    console.log(results);
-
     const payload = classes.map((c) => ({
       name: c.name,
       id: c._id,
