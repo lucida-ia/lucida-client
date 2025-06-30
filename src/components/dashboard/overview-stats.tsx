@@ -18,9 +18,16 @@ export function OverviewStats() {
   });
 
   useEffect(() => {
-    const storedData = localStorage.getItem("data");
-    if (storedData) {
-      setUserData(JSON.parse(storedData));
+    const storedUser = localStorage.getItem("user");
+    const storedClasses = localStorage.getItem("classes");
+    const storedExams = localStorage.getItem("exams");
+
+    if (storedUser && storedClasses && storedExams) {
+      setUserData({
+        user: JSON.parse(storedUser),
+        classes: JSON.parse(storedClasses),
+        exams: JSON.parse(storedExams),
+      });
     }
   }, []);
 
@@ -46,12 +53,12 @@ export function OverviewStats() {
       icon: <Zap className="h-5 w-5 text-muted-foreground" />,
       description: "Em todas as provas",
     },
-    // {
-    //   title: "Assinatura",
-    //   value: user?.subscription || "Período de Teste",
-    //   icon: <Users className="h-5 w-5 text-muted-foreground" />,
-    //   description: user?.subscription ? "Ativa" : "7 dias restantes",
-    // },
+    {
+      title: "Assinatura",
+      value: userData.user?.subscription || "Ativo",
+      icon: <Users className="h-5 w-5 text-muted-foreground" />,
+      description: userData.user?.subscription || "Sua assinatura está ativa",
+    },
   ];
 
   return (

@@ -12,7 +12,9 @@ export default function DashboardPage() {
   const handleCheckUser = async () => {
     const response = await axios.get("/api/user");
 
-    localStorage.setItem("user", JSON.stringify(response.data.data));
+    localStorage.setItem("user", JSON.stringify(response.data.data.user));
+    localStorage.setItem("classes", JSON.stringify(response.data.data.classes));
+    localStorage.setItem("exams", JSON.stringify(response.data.data.exams));
   };
 
   React.useEffect(() => {

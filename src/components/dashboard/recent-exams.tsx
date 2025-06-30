@@ -30,12 +30,13 @@ import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 export function RecentExams() {
-  const [exams, setExams] = React.useState<DBExam[]>([]);
+  const [exams, setExams] = React.useState<any[]>([]);
   const router = useRouter();
 
   const fetchExams = async () => {
-    const response = await axios.get("/api/exam/all");
-    setExams(response.data.exams);
+    const response = await axios.get("/api/exam/recent");
+
+    setExams(response.data.data);
   };
 
   React.useEffect(() => {
@@ -86,13 +87,13 @@ export function RecentExams() {
                   <TableCell className="font-medium">{exam.title}</TableCell>
                   <TableCell>{exam?.questions.length}</TableCell>
                   <TableCell>
-                    {formatDistanceToNow(exam?.createdAt, { 
+                    {formatDistanceToNow(exam?.createdAt, {
                       addSuffix: true,
                       locale: ptBR,
                     })}
                   </TableCell>
                   <TableCell>
-                    {formatDistanceToNow(exam?.updatedAt, { 
+                    {formatDistanceToNow(exam?.updatedAt, {
                       addSuffix: true,
                       locale: ptBR,
                     })}

@@ -57,13 +57,6 @@ export function DashboardNav() {
       href: "/dashboard/classes",
       icon: <UsersRound className="h-5 w-5" />,
     },
-    {
-      title: "Configurações",
-      href: "/dashboard/settings",
-      icon: <Settings className="h-5 w-5" />,
-      role: ["admin", "teacher", "student"],
-      disabled: true,
-    },
   ];
 
   return (

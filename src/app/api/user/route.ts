@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
       user = await User.create({ id: userId });
     }
 
-    const classes = await Class.find({ userId: user._id });
+    const classes = await Class.find({ userId: user.id });
 
-    const exams = await Exam.find({ userId: user._id });
+    const exams = await Exam.find({ userId: user.id });
 
     return NextResponse.json({
       status: "success",
