@@ -29,7 +29,7 @@ export default function DashboardPage() {
       >
         <CreateExamCTA />
       </DashboardHeader>
-      <div className="grid gap-4 md:gap-8">
+      <div className="w-full flex flex-col gap-4">
         <OverviewStats />
         <RecentExams />
       </div>
