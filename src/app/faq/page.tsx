@@ -1,11 +1,24 @@
+"use client";
+
+import { NavBar } from "@/components/layout/navbar";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export function FaqSection() {
+export default function Home() {
+  const { isSignedIn, user } = useUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   const faqs = [
     {
       question: "Como funciona a geração de provas com IA?",
@@ -45,19 +58,35 @@ export function FaqSection() {
   ];
 
   return (
-    <section id="faq" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-              Perguntas Frequentes
-            </h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Encontre respostas para perguntas comuns sobre o Lucida.
-            </p>
-          </div>
+    <div className="flex flex-col w-full px-16 py-8 h-screen relative bg-black">
+      <NavBar />
+      <div className="absolute top-80 left-40 w-[400px] h-[400px] bg-yellow-900 rounded-full mix-blend-screen filter blur-3xl opacity-80 animate-blob"></div>
+      <div className="absolute top-20 right-30 w-[400px] h-[400px] bg-blue-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000 "></div>
+      <div className="absolute bottom-10 right-10 w-[600px] h-[500px] bg-green-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-4000 "></div>
+      <div className="flex flex-col w-full h-full rounded-3xl justify-center items-center gap-4">
+        <div className="mx-auto w-1/2 mt-8">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full dark text-white"
+          >
+            {faqs.map((faq, index) => (
+              <AccordionItem
+                className="dark"
+                key={index}
+                value={`item-${index}`}
+              >
+                <AccordionTrigger className="text-left dark">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="dark">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
