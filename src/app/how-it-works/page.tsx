@@ -45,7 +45,7 @@ export default function HowItWorksPage() {
       <div className="absolute bottom-10 right-10 w-[600px] h-[500px] bg-green-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-4000 "></div>
       <div className="flex flex-col w-full h-full rounded-3xl justify-center items-center gap-4">
         <div className="mx-auto w-1/2 mt-8 text-white">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-8 text-center">
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-8 text-center text-white">
             Como Funciona o Lucida
           </h2>
           <ol className="space-y-8">
