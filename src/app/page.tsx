@@ -16,7 +16,7 @@ export default function Home() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Preços", href: "/pricing" },
+    { name: "Planos", href: "/pricing" },
     { name: "Como Funciona", href: "/how-it-works" },
     { name: "FAQ", href: "/faq" },
   ];
@@ -66,10 +66,11 @@ export default function Home() {
 
       <div className="flex flex-col w-full h-full rounded-3xl justify-center items-center gap-4 absolute bottom-0 left-0">
         <h2 className="text-5xl font-semibold w-3/5 text-center text-white">
-          Crie Provas com IA em Segundos 
+          Crie Provas com IA em Segundos
         </h2>
         <p className="text-lg text-center text-white/80 mt-2">
-          Você leu certo, <span className="italic font-bold text-white">segundos</span> !
+          Você leu certo,{" "}
+          <span className="italic font-bold text-white">segundos</span> !
         </p>
         <br />
         <ActionButtons />

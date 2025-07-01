@@ -14,7 +14,7 @@ export function PricingSection() {
         "Geração padrão com IA",
         "Suporte por email",
       ],
-      cta: "Começar Agora",
+      cta: "Entrar na Lista de Espera",
       popular: false,
     },
     {
@@ -28,7 +28,7 @@ export function PricingSection() {
         "Geração avançada com IA",
         "Suporte prioritário por email",
       ],
-      cta: "Começar Agora",
+      cta: "Entrar na Lista de Espera",
       popular: true,
     },
     {
@@ -36,25 +36,25 @@ export function PricingSection() {
       description: "Soluções sob medida para grandes demandas ou instituições.",
       price: "",
       period: "Fale com vendas para um plano personalizado",
-      features: [
-        ,
-      ],
-      cta: "Entrar em Contato",
+      features: [,],
+      cta: "Entrar na Lista de Espera",
       popular: false,
     },
   ];
 
   return (
-    <div className="w-full">
-      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center mb-12 px-4 md:px-0">
+    <div className="w-full h-full">
+      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center px-4 md:px-0">
         <h2 className="text-4xl sm:text-5xl font-bold tracking-tighter text-white mb-4">
           Planos para Cada Necessidade
         </h2>
-        <p className="max-w-2xl text-lg text-muted-foreground text-white/80">
-          Escolha o plano perfeito para suas necessidades de avaliação. Todos os planos incluem nossa tecnologia central de IA.
+        <p className="max-w-2xl text-lg text-white/80">
+          Escolha o plano perfeito para suas necessidades de avaliação. Todos os
+          planos incluem nossa tecnologia central de IA.
         </p>
       </div>
-      <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 px-4 md:px-0">
+
+      <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 px-4 md:px-0 z-10 relative">
         {plans.map((plan, idx) => (
           <div
             key={plan.name}
@@ -68,10 +68,16 @@ export function PricingSection() {
               </div>
             )}
             <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-            <p className="text-sm text-white/80 mb-6 min-h-[48px]">{plan.description}</p>
+            <p className="text-sm text-white/80 mb-6 min-h-[48px]">
+              {plan.description}
+            </p>
             <div className="flex items-end gap-2 mb-6">
-              <span className="text-4xl font-bold text-white">{plan.price}</span>
-              {plan.period && <span className="text-base text-white/60">{plan.period}</span>}
+              <span className="text-4xl font-bold text-white">
+                {plan.price}
+              </span>
+              {plan.period && (
+                <span className="text-base text-white/60">{plan.period}</span>
+              )}
             </div>
             <ul className="mb-8 space-y-3">
               {plan.features.map((feature, i) => (
@@ -83,7 +89,9 @@ export function PricingSection() {
             </ul>
             <Button
               className={`w-full h-12 text-base font-semibold mt-auto ${
-                plan.popular ? "bg-primary hover:bg-primary/90 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                plan.popular
+                  ? "bg-primary hover:bg-primary/90 shadow-lg"
+                  : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
               }`}
               asChild
             >

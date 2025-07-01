@@ -15,7 +15,7 @@ export function NavBar() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Preços", href: "/pricing" },
+    { name: "Planos", href: "/pricing" },
     { name: "Como Funciona", href: "/how-it-works" },
     { name: "FAQ", href: "/faq" },
   ];

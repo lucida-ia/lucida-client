@@ -40,9 +40,9 @@ export default function HowItWorksPage() {
   return (
     <div className="flex flex-col w-full px-16 py-8 h-screen relative bg-black">
       <NavBar />
-      <div className="absolute top-80 left-40 w-[400px] h-[400px] bg-yellow-900 rounded-full mix-blend-screen filter blur-3xl opacity-80 animate-blob"></div>
-      <div className="absolute top-20 right-30 w-[400px] h-[400px] bg-blue-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000 "></div>
-      <div className="absolute bottom-10 right-10 w-[600px] h-[500px] bg-green-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-4000 "></div>
+      <div className="absolute top-20 right-40 w-[400px] h-[400px] bg-pink-900 rounded-full mix-blend-screen filter blur-3xl opacity-80 animate-blob"></div>
+      <div className="absolute top-20 right-30 w-[400px] h-[400px] bg-yellow-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000 "></div>
+      <div className="absolute bottom-10 right-10 w-[600px] h-[500px] bg-blue-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-4000 "></div>
       <div className="flex flex-col w-full h-full rounded-3xl justify-center items-center gap-4">
         <div className="mx-auto w-1/2 mt-8 text-white">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-8 text-center text-white">
@@ -50,9 +50,16 @@ export default function HowItWorksPage() {
           </h2>
           <ol className="space-y-8">
             {steps.map((step, idx) => (
-              <li key={idx} className="flex flex-col gap-2 bg-white/5 rounded-xl p-6 border border-white/10 shadow">
-                <span className="text-xl font-semibold text-primary">{step.title}</span>
-                <span className="text-base text-white/90">{step.description}</span>
+              <li
+                key={idx}
+                className="flex flex-col gap-2 bg-white/5 rounded-xl p-6 border border-white/10 shadow"
+              >
+                <span className="text-xl font-semibold text-primary text-white">
+                  {step.title}
+                </span>
+                <span className="text-base text-white/90">
+                  {step.description}
+                </span>
               </li>
             ))}
           </ol>
@@ -60,4 +67,4 @@ export default function HowItWorksPage() {
       </div>
     </div>
   );
-} 
+}
