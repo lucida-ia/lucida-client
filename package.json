@@ -45,6 +45,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
+    "@vercel/analytics": "^1.5.0",
     "autoprefixer": "10.4.15",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.0",
