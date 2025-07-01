@@ -69,7 +69,7 @@ export default function Home() {
           Crie Provas com IA em Segundos 
         </h2>
         <p className="text-lg text-center text-white/80 mt-2">
-          Você leu certo, <span className="italic font-bold text-primary">segundos</span> !
+          Você leu certo, <span className="italic font-bold text-white">segundos</span> !
         </p>
         <br />
         <ActionButtons />
