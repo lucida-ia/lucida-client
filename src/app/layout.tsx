@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { localization } from "@/helpers/localization";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +23,7 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={localization}>
       <html lang="pt-BR" suppressHydrationWarning>
+        <Analytics />
         <body className={inter.className} suppressHydrationWarning>
           <ThemeProvider attribute="class" enableSystem>
             <TooltipProvider>
