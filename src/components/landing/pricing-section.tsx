@@ -16,6 +16,7 @@ export function PricingSection() {
       ],
       cta: "Entrar na Lista de Espera",
       popular: false,
+      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
     },
     {
       name: "Pro",
@@ -30,6 +31,7 @@ export function PricingSection() {
       ],
       cta: "Entrar na Lista de Espera",
       popular: true,
+      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
     },
     {
       name: "Personalizado",
@@ -39,6 +41,7 @@ export function PricingSection() {
       features: [,],
       cta: "Entrar na Lista de Espera",
       popular: false,
+      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
     },
   ];
 
@@ -95,7 +98,7 @@ export function PricingSection() {
               }`}
               asChild
             >
-              <Link href="/signup">{plan.cta}</Link>
+              <Link href={plan.href}>{plan.cta}</Link>
             </Button>
           </div>
         ))}

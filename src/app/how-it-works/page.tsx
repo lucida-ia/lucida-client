@@ -38,7 +38,7 @@ export default function HowItWorksPage() {
   ];
 
   return (
-    <div className="flex flex-col w-full px-16 py-8 h-screen relative bg-black">
+    <div className="flex flex-col w-full px-16 py-8 h-full relative bg-black">
       <NavBar />
       <div className="absolute top-20 right-40 w-[400px] h-[400px] bg-pink-900 rounded-full mix-blend-screen filter blur-3xl opacity-80 animate-blob"></div>
       <div className="absolute top-20 right-30 w-[400px] h-[400px] bg-yellow-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000 "></div>
@@ -54,7 +54,7 @@ export default function HowItWorksPage() {
                 key={idx}
                 className="flex flex-col gap-2 bg-white/5 rounded-xl p-6 border border-white/10 shadow"
               >
-                <span className="text-xl font-semibold text-primary text-white">
+                <span className="text-xl font-semibold text-white">
                   {step.title}
                 </span>
                 <span className="text-base text-white/90">
