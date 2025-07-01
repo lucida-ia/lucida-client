@@ -11,13 +11,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { DBExam } from "@/types/exam";
 import { ExamEditForm } from "@/components/exam/exam-edit-form";
+import { ExamExportButton } from "@/components/exam/exam-export-button";
 
 export default function ExamPreviewPage() {
   const params = useParams();
@@ -87,10 +88,7 @@ export default function ExamPreviewPage() {
               Voltar
             </Link>
           </Button>
-          <Button>
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
+          <ExamExportButton exam={exam} />
         </div>
       </DashboardHeader>
 
@@ -181,4 +179,4 @@ export default function ExamPreviewPage() {
       </div>
     </DashboardShell>
   );
-} 
+}
