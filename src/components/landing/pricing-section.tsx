@@ -1,117 +1,97 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function PricingSection() {
   const plans = [
     {
       name: "Básico",
-      description: "Perfeito para educadores individuais e pequenos projetos",
-      price: "R$49,90",
+      description: "Para quem está começando ou tem poucas demandas.",
+      price: "R$17,90",
       period: "por mês",
       features: [
-        "Até 5 provas por mês",
-        "Formatos básicos de questões",
+        "Até 10 provas por mês",
+        "Apenas formato simples de questão",
         "Geração padrão com IA",
         "Suporte por email",
-        "1 conta de usuário"
       ],
       cta: "Começar Agora",
-      popular: false
+      popular: false,
     },
     {
       name: "Pro",
-      description: "Ideal para criadores regulares de provas e departamentos",
-      price: "R$149,90",
+      description: "Para quem precisa de mais flexibilidade e recursos.",
+      price: "R$27,90",
       period: "por mês",
       features: [
-        "Até 25 provas por mês",
+        "Até 50 provas por mês",
         "Todos os formatos de questões",
         "Geração avançada com IA",
         "Suporte prioritário por email",
-        "Até 5 contas de usuário",
-        "Exportação para múltiplos formatos"
       ],
       cta: "Começar Agora",
-      popular: true
+      popular: true,
     },
     {
-      name: "Empresarial",
-      description: "Para instituições com necessidades extensivas de avaliação",
-      price: "R$499,90",
-      period: "por mês",
+      name: "Personalizado",
+      description: "Soluções sob medida para grandes demandas ou instituições.",
+      price: "",
+      period: "Fale com vendas para um plano personalizado",
       features: [
-        "Provas ilimitadas",
-        "Todos os formatos de questões",
-        "Geração premium com IA",
-        "Suporte prioritário 24/7",
-        "Contas de usuário ilimitadas",
-        "Integrações personalizadas",
-        "Gerente de conta dedicado"
+        ,
       ],
-      cta: "Fale com Vendas",
-      popular: false
-    }
+      cta: "Entrar em Contato",
+      popular: false,
+    },
   ];
 
   return (
-    <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-background">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Planos para Cada Necessidade</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Escolha o plano perfeito para suas necessidades de avaliação. Todos os planos incluem nossa tecnologia central de IA.
-            </p>
-          </div>
-        </div>
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3 pt-12">
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`flex flex-col rounded-xl p-6 shadow-sm ${
-                plan.popular
-                  ? "border-2 border-primary bg-background relative"
-                  : "border bg-background/50"
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                  Mais Popular
-                </div>
-              )}
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground">{plan.description}</p>
-              </div>
-              <div className="mt-4 flex items-baseline text-foreground">
-                <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                <span className="ml-1 text-sm font-medium text-muted-foreground">
-                  {plan.period}
-                </span>
-              </div>
-              <ul className="mt-6 space-y-3">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center">
-                    <Check className="h-4 w-4 text-primary mr-2" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-8">
-                <Button
-                  className={`w-full ${
-                    plan.popular ? "bg-primary" : ""
-                  }`}
-                  asChild
-                >
-                  <Link href="/signup">{plan.cta}</Link>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="w-full">
+      <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center mb-12 px-4 md:px-0">
+        <h2 className="text-4xl sm:text-5xl font-bold tracking-tighter text-white mb-4">
+          Planos para Cada Necessidade
+        </h2>
+        <p className="max-w-2xl text-lg text-muted-foreground text-white/80">
+          Escolha o plano perfeito para suas necessidades de avaliação. Todos os planos incluem nossa tecnologia central de IA.
+        </p>
       </div>
-    </section>
+      <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 px-4 md:px-0">
+        {plans.map((plan, idx) => (
+          <div
+            key={plan.name}
+            className={`flex flex-col rounded-2xl p-8 shadow-xl border border-white/10 bg-white/5 backdrop-blur-md transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl ${
+              plan.popular ? "border-primary ring-2 ring-primary/30" : ""
+            }`}
+          >
+            {plan.popular && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg">
+                Mais Popular
+              </div>
+            )}
+            <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+            <p className="text-sm text-white/80 mb-6 min-h-[48px]">{plan.description}</p>
+            <div className="flex items-end gap-2 mb-6">
+              <span className="text-4xl font-bold text-white">{plan.price}</span>
+              {plan.period && <span className="text-base text-white/60">{plan.period}</span>}
+            </div>
+            <ul className="mb-8 space-y-3">
+              {plan.features.map((feature, i) => (
+                <li key={i} className="flex items-center text-white/90">
+                  <span className="inline-block w-2 h-2 rounded-full bg-primary mr-3"></span>
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button
+              className={`w-full h-12 text-base font-semibold mt-auto ${
+                plan.popular ? "bg-primary hover:bg-primary/90 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+              }`}
+              asChild
+            >
+              <Link href="/signup">{plan.cta}</Link>
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

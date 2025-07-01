@@ -10,37 +10,42 @@ export function FaqSection() {
     {
       question: "Como funciona a geração de provas com IA?",
       answer:
-        "Nossa IA analisa seu conteúdo enviado, identifica conceitos-chave e objetivos de aprendizado, e então gera questões relevantes em diferentes níveis cognitivos. O sistema usa processamento de linguagem natural para entender o contexto e criar avaliações significativas que refletem com precisão seu material.",
+        "O Lucida usa inteligência artificial avançada (OpenAI GPT-4) para analisar seu conteúdo educacional e gerar questões automaticamente. O sistema processa documentos em PDF ou DOCX, extrai o texto e cria questões personalizadas baseadas no material enviado. Você pode escolher entre dois estilos: questões simples diretas ou questões no estilo ENEM com contextualização.",
     },
     {
       question: "Quais formatos de arquivo posso enviar?",
       answer:
-        "O Lucida suporta vários formatos de arquivo, incluindo PDF, DOC/DOCX (Microsoft Word), TXT e RTF. Você pode enviar anotações de aula, capítulos de livros, guias de estudo ou qualquer outro material de aprendizado baseado em texto.",
+        "O Lucida suporta arquivos PDF e DOCX (Microsoft Word) com tamanho máximo de 50MB. Você pode enviar anotações de aula, capítulos de livros, guias de estudo ou qualquer material educacional em texto. O sistema extrai automaticamente o conteúdo para gerar as questões.",
     },
     {
       question: "Posso personalizar os tipos de questões geradas?",
       answer:
-        "Absolutamente! Você pode especificar os tipos de questões (múltipla escolha, verdadeiro/falso, resposta curta, dissertativa), níveis de dificuldade e até mesmo a distribuição de questões entre diferentes tópicos ou objetivos de aprendizado.",
+        "Sim! Você pode configurar múltipla escolha e verdadeiro/falso, escolher o número de questões (1-30), definir níveis de dificuldade (fácil, médio, difícil ou misto) e estabelecer tempo limite (15-180 minutos). Para questões no estilo ENEM, o sistema gera automaticamente questões contextualizadas com 5 alternativas.",
+    },
+    {
+      question: "Posso compartilhar as provas com meus alunos?",
+      answer:
+        "Sim! Cada prova gerada recebe um link único que você pode compartilhar com seus alunos. Eles podem acessar a prova online, responder as questões e receber a pontuação automaticamente. O sistema também permite organizar provas por turmas.",
     },
     {
       question: "Quão precisas são as questões geradas?",
       answer:
-        "Nossa IA foi treinada com conteúdo educacional de diversas disciplinas e produz questões de alta qualidade. No entanto, sempre recomendamos revisar as provas geradas antes do uso. O sistema melhora com o tempo conforme você fornece feedback sobre a qualidade das questões.",
-    },
-    {
-      question: "Posso editar as questões geradas?",
-      answer:
-        "Sim, todas as questões geradas podem ser editadas, substituídas ou removidas. Você tem controle total sobre o conteúdo final da prova. Nosso editor facilita o refinamento de questões e respostas conforme necessário.",
+        "Nossa IA foi treinada especificamente para criar questões educacionais de qualidade. O sistema gera questões com distratores plausíveis e explicações para as respostas corretas. Recomendamos sempre revisar as provas antes do uso para garantir que atendam às suas necessidades específicas.",
     },
     {
       question: "Meu conteúdo está seguro quando eu o envio?",
       answer:
-        "Levamos a segurança dos dados muito a sério. Todo o conteúdo enviado é criptografado em trânsito e em repouso. Não compartilhamos seus materiais com terceiros, e você mantém todos os direitos sobre seu conteúdo. Para detalhes, consulte nossa política de privacidade.",
+        "Sim, seu conteúdo está protegido. Os arquivos são processados apenas para extração de texto e geração de questões. O sistema não armazena permanentemente seus documentos e não compartilha seu conteúdo com terceiros. Todo o processamento é feito de forma segura e criptografada.",
     },
     {
-      question: "Vocês oferecem descontos educacionais?",
+      question: "Posso editar as questões após a geração?",
       answer:
-        "Sim, oferecemos preços especiais para instituições educacionais. Entre em contato com nossa equipe comercial para mais informações sobre nossas opções de licenciamento educacional e descontos por volume.",
+        "Atualmente, o sistema gera as questões automaticamente e você pode visualizá-las antes de salvar a prova. As questões são criadas com base no conteúdo enviado e nas configurações escolhidas. Após salvar, a prova fica disponível para compartilhamento com os alunos.",
+    },
+    {
+      question: "O sistema funciona para todas as disciplinas?",
+      answer:
+        "Sim! O Lucida foi desenvolvido para funcionar com qualquer disciplina ou área do conhecimento. A IA analisa o conteúdo específico do seu material e gera questões relevantes para a matéria, seja matemática, história, biologia, português ou qualquer outra disciplina.",
     },
   ];
 
@@ -56,6 +61,20 @@ export function FaqSection() {
               Encontre respostas para perguntas comuns sobre o Lucida.
             </p>
           </div>
+        </div>
+        <div className="mt-12 max-w-4xl mx-auto">
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-left">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>
