@@ -1,5 +1,4 @@
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import { DBExam } from "@/types/exam";
 
 export const exportExamToPDF = async (
@@ -7,156 +6,165 @@ export const exportExamToPDF = async (
   includeAnswers: boolean = false
 ) => {
   try {
-    // Create a temporary container for the PDF content
-    const container = document.createElement("div");
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
-    container.style.top = "0";
-    container.style.width = "800px";
-    container.style.padding = "40px";
-    container.style.backgroundColor = "white";
-    container.style.fontFamily = "Arial, sans-serif";
-    container.style.fontSize = "12px";
-    container.style.lineHeight = "1.5";
-    container.style.color = "black";
+    // Create PDF
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Margins and layout
+    const margin = 18;
+    const contentWidth = pageWidth - (2 * margin);
+    const contentHeight = pageHeight - (2 * margin);
+    
+    // Font settings (smaller for more content)
+    const titleFontSize = 13;
+    const subtitleFontSize = 9;
+    const normalFontSize = 8;
+    const smallFontSize = 7;
+    const questionFontSize = 8;
+    const optionFontSize = 8;
+    const answerFontSize = 8;
+    const black = [0, 0, 0];
+    
+    let currentY = margin;
+    let currentPage = 1;
 
-    // Add exam header
-    const header = document.createElement("div");
-    header.innerHTML = `
-      <h1 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: bold;">
-        ${exam.title}
-      </h1>
-      ${
-        exam.description
-          ? `<p style="text-align: center; margin-bottom: 30px; font-style: italic;">${exam.description}</p>`
-          : ""
+    // Function to add footer
+    const addFooter = (pageNum: number) => {
+      pdf.setFontSize(smallFontSize);
+      pdf.setTextColor(black[0], black[1], black[2]);
+      const footerText = `${exam.title} - Página ${pageNum}`;
+      const textWidth = pdf.getTextWidth(footerText);
+      const x = pageWidth - textWidth - margin;
+      const y = pageHeight - 10;
+      pdf.text(footerText, x, y);
+    };
+
+    // Function to check if we need a new page
+    const checkNewPage = (requiredHeight: number) => {
+      if (currentY + requiredHeight > contentHeight) {
+        addFooter(currentPage);
+        pdf.addPage();
+        currentPage++;
+        currentY = margin;
+        return true;
       }
-      <div style="border-bottom: 2px solid #333; margin-bottom: 30px;"></div>
-    `;
-    container.appendChild(header);
+      return false;
+    };
+
+    // Function to add text with word wrapping
+    const addWrappedText = (text: string, fontSize: number, isBold: boolean = false) => {
+      pdf.setFontSize(fontSize);
+      pdf.setTextColor(black[0], black[1], black[2]);
+      if (isBold) {
+        pdf.setFont('helvetica', 'bold');
+      } else {
+        pdf.setFont('helvetica', 'normal');
+      }
+      const lines = pdf.splitTextToSize(text, contentWidth);
+      const lineHeight = fontSize * 0.4;
+      const totalHeight = lines.length * lineHeight;
+      checkNewPage(totalHeight);
+      pdf.text(lines, margin, currentY);
+      currentY += totalHeight + 1.5; // Tighter spacing
+    };
+
+    // Function to add a horizontal line
+    const addHorizontalLine = () => {
+      checkNewPage(3);
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.3);
+      pdf.line(margin, currentY, pageWidth - margin, currentY);
+      currentY += 3;
+    };
+
+    // Add title
+    addWrappedText(exam.title, titleFontSize, true);
+    currentY += 2;
+    
+    // Add description if exists
+    if (exam.description) {
+      addWrappedText(exam.description, subtitleFontSize);
+      currentY += 2;
+    }
+
+    // Add separator line
+    addHorizontalLine();
 
     // Add student info section
-    const studentInfo = document.createElement("div");
-    studentInfo.innerHTML = `
-      <div style="margin-bottom: 30px;">
-        <p><strong>Nome:</strong> _______________________________________________________</p>
-        <p><strong>Data:</strong> _______________________________________________________</p>
-        <p><strong>Turma:</strong> _______________________________________________________</p>
-      </div>
-    `;
-    container.appendChild(studentInfo);
+    addWrappedText("INFORMAÇÕES DO ALUNO", subtitleFontSize, true);
+    currentY += 2;
+    [
+      "Nome: _________________________________________________________________",
+      "Data: _______________________         Turma: __________________________",
+    ].forEach(field => addWrappedText(field, normalFontSize));
+    currentY += 5;
+
+    // Add instructions
+    addWrappedText("INSTRUÇÕES: Leia atentamente cada questão e marque apenas uma alternativa por questão.", smallFontSize, true);
+    currentY += 2;
+    addHorizontalLine();
+    currentY += 2;
+    addWrappedText("QUESTÕES", subtitleFontSize, true);
+    currentY += 2;
 
     // Add questions
     exam.questions.forEach((question, index) => {
-      const questionDiv = document.createElement("div");
-      questionDiv.style.marginBottom = "25px";
-      questionDiv.style.pageBreakInside = "avoid";
-      questionDiv.style.pageBreakAfter = "always";
-
-      let questionContent = `<p style="font-weight: bold; margin-bottom: 10px;"><strong>${
-        index + 1
-      }.</strong> `;
-
-      if (question.context) {
-        questionContent += `${question.context}<br><br>${question.question}`;
-      } else {
-        questionContent += question.question;
-      }
-
-      questionContent += "</p>";
-
+      const questionNumber = `${index + 1}.`;
+      let questionText = question.context 
+        ? `${question.context}\n\n${question.question}`
+        : question.question;
+      pdf.setFontSize(questionFontSize);
+      const questionLines = pdf.splitTextToSize(questionText, contentWidth);
+      const questionHeight = questionLines.length * (questionFontSize * 0.4);
+      // Calculate options height
+      let optionsHeight = 0;
+      let optionsLines = [];
       if (question.options && question.options.length > 0) {
-        questionContent += '<div style="margin-left: 20px;">';
-        question.options.forEach((option, optionIndex) => {
-          const optionLetter = String.fromCharCode(65 + optionIndex); // A, B, C, D...
-          questionContent += `<p style="margin: 5px 0;">${optionLetter}) ${option}</p>`;
+        optionsLines = question.options.map((option, optionIndex) => {
+          const optionLetter = String.fromCharCode(65 + optionIndex);
+          return pdf.splitTextToSize(`   ${optionLetter}) ${option}`, contentWidth);
         });
-        questionContent += "</div>";
+        optionsHeight = optionsLines.reduce((sum, lines) => sum + lines.length * (optionFontSize * 0.4), 0);
       } else {
-        // If no options, assume it's a true/false question
-        questionContent += '<div style="margin-left: 20px;">';
-        questionContent += '<p style="margin: 5px 0;">( ) Verdadeiro</p>';
-        questionContent += '<p style="margin: 5px 0;">( ) Falso</p>';
-        questionContent += "</div>";
+        optionsLines = [pdf.splitTextToSize("   ( ) Verdadeiro", contentWidth), pdf.splitTextToSize("   ( ) Falso", contentWidth)];
+        optionsHeight = 2 * (optionFontSize * 0.4);
       }
-
+      // Calculate answer height if including answers
+      let answerHeight = 0;
+      if (includeAnswers) {
+        answerHeight = answerFontSize * 0.4 + 2;
+      }
+      // Calculate total height needed for this question block
+      const totalQuestionHeight = questionHeight + optionsHeight + answerHeight + 4;
+      // If not enough space for the whole block, break page first
+      checkNewPage(totalQuestionHeight);
+      // Add question number and text
+      addWrappedText(`${questionNumber} ${questionText}`, questionFontSize, true);
+      // Add options (all black)
+      if (question.options && question.options.length > 0) {
+        question.options.forEach((option, optionIndex) => {
+          const optionLetter = String.fromCharCode(65 + optionIndex);
+          addWrappedText(`   ${optionLetter}) ${option}`, optionFontSize);
+        });
+      } else {
+        addWrappedText("   ( ) Verdadeiro", optionFontSize);
+        addWrappedText("   ( ) Falso", optionFontSize);
+      }
+      // Add answer if including answers
       if (includeAnswers) {
         const correctAnswer = question.options
           ? question.options[question.correctAnswer]
           : question.correctAnswer
           ? "Verdadeiro"
           : "Falso";
-        questionContent += `<p style="margin-top: 10px; color: #2563eb; font-weight: bold;">Resposta: ${correctAnswer}</p>`;
+        addWrappedText(`Resposta: ${correctAnswer}`, answerFontSize, true);
       }
-
-      questionDiv.innerHTML = questionContent;
-      container.appendChild(questionDiv);
+      currentY += 2; // Tighter spacing between questions
     });
 
-    // Add to document temporarily
-    document.body.appendChild(container);
-
-    // Convert to canvas
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: "#ffffff",
-      width: 800,
-      height: container.scrollHeight,
-    });
-
-    // Remove temporary container
-    document.body.removeChild(container);
-
-    // Create PDF
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const footerHeight = 15; // Space reserved for footer
-    const availableHeight = pageHeight - footerHeight; // Available space for content
-
-    // Function to add footer to a page
-    const addFooter = (pdfDoc: jsPDF) => {
-      // Save current state
-      pdfDoc.saveGraphicsState();
-
-      // Set font for footer
-      pdfDoc.setFontSize(8);
-      pdfDoc.setTextColor(100, 100, 100); // Gray color
-
-      // Add footer text at bottom right
-      const footerText = exam.title;
-      const textWidth = pdfDoc.getTextWidth(footerText);
-      const x = pageWidth - textWidth - 10; // 10mm from right edge
-      const y = pageHeight - 10; // 10mm from bottom
-
-      pdfDoc.text(footerText, x, y);
-
-      // Restore state
-      pdfDoc.restoreGraphicsState();
-    };
-
-    // Calculate dimensions
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    // Add first page
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    addFooter(pdf);
-    heightLeft -= availableHeight;
-
-    // Add additional pages if needed
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      addFooter(pdf);
-      heightLeft -= availableHeight;
-    }
+    // Add footer to last page
+    addFooter(currentPage);
 
     // Save the PDF
     const fileName = includeAnswers
