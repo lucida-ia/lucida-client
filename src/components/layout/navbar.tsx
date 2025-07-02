@@ -55,8 +55,8 @@ export function NavBar() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-4">
-        {/* Mobile menu button */}
+      {/* Mobile menu button */}
+      {/* <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           className="md:hidden"
@@ -84,10 +84,10 @@ export function NavBar() {
             <Button>Entrar</Button>
           </SignInButton>
         )}
-      </div>
+      </div> */}
 
       {/* Mobile menu */}
-      {isMenuOpen && (
+      {/* {isMenuOpen && (
         <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto pb-32 bg-background md:hidden">
           <div className="relative z-20 grid gap-6 rounded-md shadow-md">
             <nav className="grid grid-flow-row auto-rows-max text-sm ">
@@ -138,7 +138,7 @@ export function NavBar() {
             </nav>
           </div>
         </div>
-      )}
+      )} */}
     </header>
   );
 }
