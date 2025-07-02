@@ -15,10 +15,52 @@ import {
   DotIcon,
   SunIcon,
   MoonIcon,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
 } from "lucide-react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
 import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
+
+// Custom hook for localStorage that handles SSR
+function useLocalStorage(key: string, initialValue: boolean) {
+  const [storedValue, setStoredValue] = useState(initialValue);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      if (item) {
+        setStoredValue(JSON.parse(item));
+      }
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, [key]);
+
+  const setValue = (value: boolean) => {
+    try {
+      setStoredValue(value);
+      if (isLoaded) {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch (error) {
+      console.error(`Error setting localStorage key "${key}":`, error);
+    }
+  };
+
+  return [storedValue, setValue, isLoaded] as const;
+}
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type NavItem = {
   title: string;
@@ -30,6 +72,10 @@ type NavItem = {
 
 export function DashboardNav() {
   const { theme, setTheme } = useTheme();
+  const [isCollapsed, setIsCollapsed, isLoaded] = useLocalStorage(
+    "navbar-collapsed",
+    false
+  );
 
   const pathname = usePathname();
 
@@ -59,66 +105,156 @@ export function DashboardNav() {
     },
   ];
 
-  return (
-    <div className="hidden border-r bg-muted/40 lg:block sticky top-0 left-0 w-64 h-screen">
-      <div className="flex h-screen flex-col gap-2">
-        <div className="flex h-14 items-center border-b px-4 justify-between">
-          <Link href="/dashboard" className="flex items-center space-x-2 w-24">
-            <LucidaLogo />
-          </Link>
-          <UserButton>
-            <UserButton.MenuItems>
-              <UserButton.Action
-                label={theme === "dark" ? "Light Mode" : "Dark Mode"}
-                labelIcon={
-                  theme === "dark" ? (
-                    <SunIcon className="w-4 h-4" />
-                  ) : (
-                    <MoonIcon className="w-4 h-4" />
-                  )
-                }
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              />
-            </UserButton.MenuItems>
-          </UserButton>
-        </div>
-        <div className="flex-1 overflow-y-auto py-2">
-          <nav className="grid items-start px-2 text-sm font-medium gap-1">
-            {navItems.map((item, index) => (
-              <Button
-                key={index}
-                disabled={item.disabled}
-                size="sm"
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3",
-                  pathname === item.href && "bg-muted text-primary"
-                )}
-              >
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    item.disabled && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {item.icon}
-                  {item.title}
-                </Link>
-              </Button>
-            ))}
-          </nav>
-        </div>
-        <div className="mt-auto p-4">
-          <div className="flex items-center gap-2"></div>
-          <SignOutButton>
-            <Button variant="outline" className="w-full justify-start gap-3">
-              <LogOut className="h-5 w-5" />
-              Sair
-            </Button>
-          </SignOutButton>
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  // Prevent hydration issues by not rendering until localStorage is loaded
+  if (!isLoaded) {
+    return (
+      <div className="hidden border-r bg-muted/40 lg:block sticky top-0 left-0 w-64 h-screen">
+        <div className="flex h-screen flex-col gap-2">
+          <div className="flex h-14 items-center border-b px-4">
+            <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
+          </div>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <TooltipProvider>
+      <div
+        className={cn(
+          "hidden border-r bg-muted/40 lg:block sticky top-0 left-0 h-screen transition-all duration-300 ease-in-out",
+          isCollapsed ? "w-16" : "w-64"
+        )}
+      >
+        <div className="flex h-screen flex-col gap-2">
+          <div className="flex h-14 items-center border-b px-4 justify-between">
+            {!isCollapsed && (
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-2 w-24"
+              >
+                <LucidaLogo />
+              </Link>
+            )}
+            <div className="flex items-center gap-2">
+              {!isCollapsed && (
+                <UserButton>
+                  <UserButton.MenuItems>
+                    <UserButton.Action
+                      label={theme === "dark" ? "Light Mode" : "Dark Mode"}
+                      labelIcon={
+                        theme === "dark" ? (
+                          <SunIcon className="w-4 h-4" />
+                        ) : (
+                          <MoonIcon className="w-4 h-4" />
+                        )
+                      }
+                      onClick={() =>
+                        setTheme(theme === "dark" ? "light" : "dark")
+                      }
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleCollapse}
+                className="h-8 w-8 p-0"
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto py-2">
+            <nav className="grid items-start px-2 text-sm font-medium gap-1">
+              {navItems.map((item, index) => (
+                <div key={index}>
+                  {isCollapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          disabled={item.disabled}
+                          size="sm"
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-center p-2 h-10",
+                            pathname === item.href && "bg-muted text-primary"
+                          )}
+                          asChild
+                        >
+                          <Link href={item.href}>{item.icon}</Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{item.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Button
+                      disabled={item.disabled}
+                      size="sm"
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-3",
+                        pathname === item.href && "bg-muted text-primary"
+                      )}
+                      asChild
+                    >
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                          item.disabled && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        {item.icon}
+                        {item.title}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
+          <div className="mt-auto p-4">
+            <div className="flex items-center gap-2"></div>
+            <SignOutButton>
+              {isCollapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-center p-2 h-10"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Sair</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Sair
+                </Button>
+              )}
+            </SignOutButton>
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }

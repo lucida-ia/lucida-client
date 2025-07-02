@@ -75,7 +75,7 @@ export function OverviewStats() {
             {stat.icon}
           </CardHeader>
           <CardContent className="flex flex-col justify-between">
-            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-2xl font-medium">{stat.value}</div>
             <p className="text-xs text-muted-foreground">{stat.description}</p>
           </CardContent>
         </Card>
