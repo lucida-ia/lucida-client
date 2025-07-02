@@ -15,9 +15,10 @@ export function NavBar() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Planos", href: "/pricing" },
-    { name: "Como Funciona", href: "/how-it-works" },
-    { name: "FAQ", href: "/faq" },
+    { name: "Planos", href: "#precos" },
+    { name: "Como Funciona", href: "#como-funciona" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Contato", href: "#contato" },
   ];
 
   return (
@@ -36,6 +37,18 @@ export function NavBar() {
             className={`text-sm font-medium transition-colors hover:text-primary ${
               pathname === item.href ? "text-primary" : "text-muted-foreground"
             }`}
+            onClick={(e) => {
+              if (item.href.startsWith("#")) {
+                e.preventDefault();
+                const element = document.querySelector(item.href);
+                if (element) {
+                  element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }
+              }
+            }}
           >
             {item.name}
           </Link>
@@ -43,6 +56,27 @@ export function NavBar() {
       </nav>
 
       <div className="flex items-center gap-4">
+        {/* Mobile menu button */}
+        <Button
+          variant="ghost"
+          className="md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </Button>
+
         {isSignedIn ? (
           <UserButton />
         ) : (
@@ -64,7 +98,21 @@ export function NavBar() {
                   className={`flex w-full items-center rounded-md p-2 text-sm font-medium ${
                     pathname === item.href ? "bg-accent" : "hover:bg-accent"
                   }`}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(e) => {
+                    setIsMenuOpen(false);
+                    if (item.href.startsWith("#")) {
+                      e.preventDefault();
+                      setTimeout(() => {
+                        const element = document.querySelector(item.href);
+                        if (element) {
+                          element.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
+                        }
+                      }, 100);
+                    }
+                  }}
                 >
                   {item.name}
                 </Link>
