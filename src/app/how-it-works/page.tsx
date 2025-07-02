@@ -38,7 +38,7 @@ export default function HowItWorksPage() {
   ];
 
   return (
-    <div className="flex flex-col w-full px-16 py-8 h-full relative bg-black">
+    <div className="flex flex-col w-full px-16 py-8 h-screen relative bg-black">
       <NavBar />
       <div className="absolute top-20 right-40 w-[400px] h-[400px] bg-pink-900 rounded-full mix-blend-screen filter blur-3xl opacity-80 animate-blob"></div>
       <div className="absolute top-20 right-30 w-[400px] h-[400px] bg-yellow-900 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-blob animation-delay-2000 "></div>
