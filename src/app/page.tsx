@@ -714,8 +714,8 @@ export default function Home() {
             Pronto para Revolucionar suas Avaliações?
           </h2>
           <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de educadores que já estão criando provas
-            incríveis com nossa IA
+            Junte-se à nossa comunidade de educadores que já estão criando
+            provas incríveis com nossa IA
           </p>
           <Link href="https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F">
             <Button
@@ -734,7 +734,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center text-white/70">
             <p className="text-sm">
-              © 2024 Lucida. Todos os direitos reservados.
+              © 2025 Lucida. Todos os direitos reservados.
             </p>
           </div>
         </div>
