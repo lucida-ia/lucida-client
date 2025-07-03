@@ -74,11 +74,18 @@ export async function DELETE(request: NextRequest) {
 
     const { id } = await request.json();
 
+    // Delete related results first (they reference both examId and classId)
+    await Result.deleteMany({ classId: id });
+
+    // Delete related exams
+    await Exam.deleteMany({ classId: id });
+
+    // Finally delete the class
     await Class.findByIdAndDelete(id);
 
     return NextResponse.json({
       status: "success",
-      message: "Successfully deleted class",
+      message: "Successfully deleted class and all related data",
     });
   } catch (error) {
     console.error("[CLASS_DELETE_ERROR]", error);
