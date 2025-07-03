@@ -10,13 +10,26 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Download, Clock, Loader2 } from "lucide-react";
-import Link from "next/link";
+import {
+  FileText,
+  Clock,
+  Loader2,
+  Settings,
+  Target,
+  CheckCircle,
+  Timer,
+  FileCheck,
+  Zap,
+  HelpCircle,
+  BookOpen,
+  Users,
+  Hash,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
-// import { ExamEditForm } from "@/components/exam/exam-edit-form";
 
 interface ExamConfig {
   title: string;
@@ -36,19 +49,17 @@ interface CreateExamPreviewProps {
   files: File[];
   config: ExamConfig;
   onBack: () => void;
+  onExamGenerated: (exam: any) => void;
 }
 
 export function CreateExamPreview({
   files,
   config,
   onBack,
+  onExamGenerated,
 }: CreateExamPreviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [examGenerated, setExamGenerated] = useState(false);
-  const [generatedExam, setGeneratedExam] = useState<any>(null);
-  const [isSavingExam, setIsSavingExam] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
 
   const handleUploadFilesAndGenerateQuestions = async (files: File[]) => {
     try {
@@ -98,285 +109,293 @@ export function CreateExamPreview({
           (result: any) => result.questions
         );
       }
-      setIsGenerating(false);
-      setExamGenerated(true);
-      setGeneratedExam(data);
+
+      // Call the callback with the generated exam data
+      onExamGenerated(data);
     } catch (error) {
-      setIsGenerating(false);
       toast({
         variant: "destructive",
         title: "Erro",
         description:
           "Falha ao processar os arquivos. Por favor, tente novamente.",
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  const handleCreateExam = async () => {
-    setIsSavingExam(true);
-    await axios("/api/exam", {
-      method: "POST",
-      data: generatedExam,
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "easy":
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800";
+      case "hard":
+        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
+      case "mixed":
+        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700";
+    }
+  };
+
+  const getDifficultyIcon = (difficulty: string) => {
+    switch (difficulty) {
+      case "easy":
+        return <Target className="h-4 w-4" />;
+      case "medium":
+        return <Settings className="h-4 w-4" />;
+      case "hard":
+        return <Zap className="h-4 w-4" />;
+      case "mixed":
+        return <HelpCircle className="h-4 w-4" />;
+      default:
+        return <Target className="h-4 w-4" />;
+    }
+  };
+
+  const getQuestionTypeIcon = (type: string) => {
+    switch (type) {
+      case "multipleChoice":
+        return <CheckCircle className="h-4 w-4" />;
+      case "trueFalse":
+        return <HelpCircle className="h-4 w-4" />;
+      case "shortAnswer":
+        return <FileText className="h-4 w-4" />;
+      case "essay":
+        return <BookOpen className="h-4 w-4" />;
+      default:
+        return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const activeQuestionTypes = Object.entries(config.questionTypes)
+    .filter(([_, enabled]) => enabled)
+    .map(([type]) => {
+      if (type === "multipleChoice")
+        return { key: type, label: "Múltipla Escolha" };
+      if (type === "trueFalse") return { key: type, label: "Verdadeiro/Falso" };
+      if (type === "shortAnswer") return { key: type, label: "Resposta Curta" };
+      if (type === "essay") return { key: type, label: "Dissertativa" };
+      return { key: type, label: type };
     });
 
-    router.push("/dashboard/exams");
-    setIsSavingExam(false);
-  };
-
-  const handleExamUpdated = (updatedExam: any) => {
-    setGeneratedExam(updatedExam);
-  };
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Visualização da Prova</CardTitle>
-          <CardDescription>
-            Revise a configuração da sua prova antes da geração.
-          </CardDescription>
+    <div className="space-y-8">
+      {/* Exam Details Card */}
+      <Card className="hover:border-primary/20 transition-colors">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Detalhes da Prova</CardTitle>
+              <CardDescription>
+                Informações gerais sobre a prova que será gerada.
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold">Detalhes da Prova</h3>
-              <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Título
-                  </dt>
-                  <dd className="mt-1">{config.title}</dd>
-                </div>
-                {config.description && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Descrição
-                    </dt>
-                    <dd className="mt-1">{config.description}</dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Tempo Limite
-                  </dt>
-                  <dd className="mt-1 flex items-center">
-                    <Clock className="mr-1 h-4 w-4" />
-                    {config.timeLimit} minutos
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Dificuldade
-                  </dt>
-                  <dd className="mt-1 capitalize">
-                    {config.difficulty === "easy" && "Fácil"}
-                    {config.difficulty === "medium" && "Médio"}
-                    {config.difficulty === "hard" && "Difícil"}
-                    {config.difficulty === "mixed" && "Misto"}
-                  </dd>
-                </div>
-              </dl>
+        <CardContent className="space-y-6">
+          <div className="p-4 bg-muted/50 rounded-lg border transition-colors">
+            <h4 className="font-semibold text-lg mb-1">{config.title}</h4>
+            {config.description && (
+              <p className="text-muted-foreground text-sm">
+                {config.description}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                <Timer className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Tempo Limite
+                </p>
+                <p className="text-lg font-semibold">
+                  {config.timeLimit} minutos
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold">
-                Configuração das Questões
-              </h3>
-              <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Total de Questões
-                  </dt>
-                  <dd className="mt-1">{config.questionCount}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Tipos de Questões
-                  </dt>
-                  <dd className="mt-1">
-                    {Object.entries(config.questionTypes)
-                      .filter(([_, enabled]) => enabled)
-                      .map(([type]) => {
-                        if (type === "multipleChoice")
-                          return "Múltipla Escolha";
-                        if (type === "trueFalse") return "Verdadeiro/Falso";
-                        if (type === "shortAnswer") return "Resposta Curta";
-                        if (type === "essay") return "Dissertativa";
-                        return type;
-                      })
-                      .join(", ")}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold">Materiais de Origem</h3>
-              <ul className="mt-2 space-y-1">
-                {files.map((file, index) => (
-                  <li key={index} className="flex items-center text-sm">
-                    <FileText className="mr-2 h-4 w-4" />
-                    {file.name}
-                  </li>
-                ))}
-              </ul>
+            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                {getDifficultyIcon(config.difficulty)}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Dificuldade
+                </p>
+                <Badge
+                  className={`${getDifficultyColor(
+                    config.difficulty
+                  )} font-medium`}
+                >
+                  {config.difficulty === "easy" && "Fácil"}
+                  {config.difficulty === "medium" && "Médio"}
+                  {config.difficulty === "hard" && "Difícil"}
+                  {config.difficulty === "mixed" && "Misto"}
+                </Badge>
+              </div>
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={onBack} disabled={isGenerating}>
-            Voltar para Personalização
-          </Button>
-          {examGenerated ? (
-            <Button
-              onClick={() => handleUploadFilesAndGenerateQuestions(files)}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Gerando Prova...
-                </>
-              ) : (
-                "Gerar Prova Novamente"
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => handleUploadFilesAndGenerateQuestions(files)}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Gerando Prova...
-                </>
-              ) : (
-                "Gerar Prova"
-              )}
-            </Button>
-          )}
-        </CardFooter>
       </Card>
 
-      {examGenerated && generatedExam && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{generatedExam.config.title}</CardTitle>
-            <CardDescription className="flex flex-col gap-1">
-              <span>{generatedExam.config.description}</span>
-              <div className="flex items-center gap-2">
-                <span>{generatedExam.config.timeLimit} minutos</span>
-                <span>
-                  {generatedExam.config.difficulty === "easy" && "Fácil"}
-                  {generatedExam.config.difficulty === "medium" && "Médio"}
-                  {generatedExam.config.difficulty === "hard" && "Difícil"}
-                  {generatedExam.config.difficulty === "mixed" && "Misto"}
-                </span>
-              </div>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="exam">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="exam">Visualização da Prova</TabsTrigger>
-                <TabsTrigger value="answers">Gabarito</TabsTrigger>
-              </TabsList>
-              <TabsContent value="exam" className="space-y-4 mt-4">
-                <div className="rounded-md border p-4">
-                  <div className="mt-6 space-y-6">
-                    {generatedExam.questions.map(
-                      (question: any, index: number) => (
-                        <div key={index} className="space-y-2">
-                          <h3 className="font-medium whitespace-pre-wrap">
-                            {index + 1}. {question.context || question.question}
-                            {question.context && `\n${question.question}`}
-                          </h3>
+      {/* Question Configuration Card */}
+      <Card className="hover:border-primary/20 transition-colors">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Settings className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">
+                Configuração das Questões
+              </CardTitle>
+              <CardDescription>
+                Detalhes sobre os tipos e quantidade de questões.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+              <Hash className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-muted-foreground">
+                Total de Questões
+              </p>
+              <p className="text-2xl font-bold">{config.questionCount}</p>
+            </div>
+            <Badge variant="secondary" className="px-3 py-1">
+              {config.questionCount} questões
+            </Badge>
+          </div>
 
-                          <div className="ml-6 space-y-1">
-                            {question.type === "multipleChoice" ? (
-                              question.options.map(
-                                (option: string, optionIndex: number) => (
-                                  <div
-                                    key={optionIndex}
-                                    className="flex items-center space-x-2"
-                                  >
-                                    <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                    <span>{option}</span>
-                                  </div>
-                                )
-                              )
-                            ) : (
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                  <span>Verdadeiro</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <div className="h-4 w-4 rounded-full border border-primary"></div>
-                                  <span>Falso</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    )}
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Tipos de Questões Habilitados</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {activeQuestionTypes.map(({ key, label }) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="p-1 bg-muted rounded">
+                    {getQuestionTypeIcon(key)}
                   </div>
+                  <span className="text-sm font-medium">{label}</span>
+                  <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
                 </div>
-                {/* <ExamEditForm
-                  exam={generatedExam}
-                  onExamUpdated={handleExamUpdated}
-                /> */}
-              </TabsContent>
-              <TabsContent value="answers" className="space-y-4 mt-4">
-                <div className="rounded-md border p-4">
-                  <h2 className="text-xl font-bold">
-                    Gabarito: {generatedExam.config.title}
-                  </h2>
-                  <div className="mt-6 space-y-4">
-                    {generatedExam.questions.map(
-                      (question: any, index: number) => (
-                        <div key={index} className="space-y-1">
-                          <h3 className="font-medium whitespace-pre-wrap">
-                            {index + 1}. {question.context || question.question}
-                            {question.context && `\n${question.question}`}
-                          </h3>
-                          <div className="ml-6">
-                            <span className="text-sm font-medium">
-                              Resposta:{" "}
-                            </span>
-                            <span>
-                              {question.type === "multipleChoice"
-                                ? question.options[question.correctAnswer]
-                                : question.correctAnswer
-                                ? "Verdadeiro"
-                                : "Falso"}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Source Materials Card */}
+      <Card className="hover:border-primary/20 transition-colors">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Materiais de Origem</CardTitle>
+              <CardDescription>
+                Arquivos que serão processados para gerar as questões.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {files.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="p-2 bg-muted rounded-lg">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-          <CardFooter className="justify-end">
-            <Button onClick={handleCreateExam}>
-              <Download className="mr-2 h-4 w-4" />
-              {isSavingExam ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                "Salvar Prova"
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+                <div className="flex-1">
+                  <p className="font-medium">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Generation Card */}
+      <Card className="hover:border-primary/20 transition-colors border-2 border-dashed">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Zap className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Gerar Prova</CardTitle>
+              <CardDescription>
+                Tudo pronto! Clique no botão para processar os materiais e gerar
+                as questões.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <div className="space-y-4">
+            <div className="p-4 bg-primary/5 rounded-full w-fit mx-auto">
+              <Zap className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Pronto para Gerar!</h3>
+              <p className="text-muted-foreground text-sm">
+                Processaremos seus arquivos e criaremos questões personalizadas
+              </p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between pt-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            disabled={isGenerating}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para Personalização
+          </Button>
+          <Button
+            onClick={() => handleUploadFilesAndGenerateQuestions(files)}
+            disabled={isGenerating}
+            className="gap-2"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Gerando Prova...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4" />
+                Gerar Prova
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

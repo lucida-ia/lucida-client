@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateExamUpload } from "@/components/create-exam/create-exam-upload";
 import { CreateExamCustomize } from "@/components/create-exam/create-exam-customize";
 import { CreateExamPreview } from "@/components/create-exam/create-exam-preview";
+import { CreateExamGenerated } from "@/components/create-exam/create-exam-generated";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CreateExamPage() {
@@ -17,7 +18,7 @@ export default function CreateExamPage() {
     title: "",
     description: "",
     questionStyle: "simples" as "simples" | "enem",
-    questionCount: 20,
+    questionCount: 10,
     class: {
       _id: "",
       name: "",
@@ -31,6 +32,7 @@ export default function CreateExamPage() {
     difficulty: "mixed",
     timeLimit: 60,
   });
+  const [generatedExam, setGeneratedExam] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -62,12 +64,21 @@ export default function CreateExamPage() {
     setActiveTab("preview");
   };
 
+  const handleExamGenerated = (exam: any) => {
+    setGeneratedExam(exam);
+    setActiveTab("generated");
+  };
+
   const handleBackToUpload = () => {
     setActiveTab("upload");
   };
 
   const handleBackToCustomize = () => {
     setActiveTab("customize");
+  };
+
+  const handleBackToPreview = () => {
+    setActiveTab("preview");
   };
 
   return (
@@ -77,13 +88,16 @@ export default function CreateExamPage() {
         text="Envie conteúdo, personalize configurações e gere sua prova."
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="upload">1. Enviar Conteúdo</TabsTrigger>
           <TabsTrigger value="customize" disabled={uploadedFiles.length === 0}>
             2. Personalizar
           </TabsTrigger>
           <TabsTrigger value="preview" disabled={!examConfig.title}>
             3. Visualizar e Gerar
+          </TabsTrigger>
+          <TabsTrigger value="generated" disabled={!generatedExam}>
+            4. Prova Gerada
           </TabsTrigger>
         </TabsList>
 
@@ -108,7 +122,17 @@ export default function CreateExamPage() {
             files={uploadedFiles}
             config={examConfig}
             onBack={handleBackToCustomize}
+            onExamGenerated={handleExamGenerated}
           />
+        </TabsContent>
+
+        <TabsContent value="generated">
+          {generatedExam && (
+            <CreateExamGenerated
+              generatedExam={generatedExam}
+              onBack={handleBackToPreview}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </DashboardShell>

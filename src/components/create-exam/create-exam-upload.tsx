@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { File, X, CheckCircle } from "lucide-react";
+import { File, X, CheckCircle, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UploadArea from "../ui/upload-area";
@@ -155,16 +155,19 @@ export function CreateExamUpload({
         </Card>
       )}
 
-      <Alert>
-        <CheckCircle className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="bg-blue-50 border-blue-200 items-center dark:bg-blue-950 dark:border-blue-800">
+        <CheckCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-600 dark:text-blue-400">
           Seus arquivos serão usados apenas para gerar questões da prova e não
           serão compartilhados ou armazenados permanentemente.
         </AlertDescription>
       </Alert>
 
       <div className="flex justify-end">
-        <Button onClick={handleContinue}>Continuar para Personalização</Button>
+        <Button onClick={handleContinue}>
+          Continuar para Personalização
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

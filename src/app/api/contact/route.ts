@@ -13,14 +13,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Debug environment variables
-    console.log("Environment check:");
-    console.log("GMAIL_USER:", process.env.GMAIL_USER ? "✓ Set" : "✗ Missing");
-    console.log(
-      "GMAIL_APP_PASSWORD:",
-      process.env.GMAIL_APP_PASSWORD ? "✓ Set" : "✗ Missing"
-    );
-
     // Check if environment variables are set
     if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
       return NextResponse.json(
