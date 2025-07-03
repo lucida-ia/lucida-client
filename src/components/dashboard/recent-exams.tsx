@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Edit, Trash, Copy, Link } from "lucide-react";
+import { FileText, Edit, Trash, Copy, Link, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DBExam } from "@/types/exam";
@@ -28,15 +28,19 @@ import { Tooltip } from "@radix-ui/react-tooltip";
 import { ExamShareButton } from "../exam/exam-share-button";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "../ui/skeleton";
 
 export function RecentExams() {
   const [exams, setExams] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const router = useRouter();
 
   const fetchExams = async () => {
+    setLoading(true);
     const response = await axios.get("/api/exam/recent");
 
     setExams(response.data.data);
+    setLoading(false);
   };
 
   React.useEffect(() => {
@@ -70,7 +74,9 @@ export function RecentExams() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {exams?.length > 0 ? (
+        {loading ? (
+          <Skeleton className="h-48 w-full" />
+        ) : exams?.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
