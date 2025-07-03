@@ -2,6 +2,7 @@ import { connectToDB } from "@/lib/mongodb";
 import { Exam as ExamModel } from "@/models/Exam";
 import { User } from "@/models/User";
 import { Exam, Question } from "@/types/exam";
+import { Result } from "@/models/Result";
 import { auth } from "@clerk/nextjs/server";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
@@ -64,6 +65,10 @@ export async function DELETE(request: NextRequest) {
 
     const { examId } = await request.json();
 
+    // Delete related results first (they reference the examId)
+    await Result.deleteMany({ examId: examId });
+
+    // Then delete the exam
     const deletedExam = await ExamModel.findByIdAndDelete(examId);
 
     return NextResponse.json({
