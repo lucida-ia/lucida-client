@@ -449,10 +449,10 @@ export default function Home() {
                     ))}
                   </ul>
                   <Button
-                    className={`w-full ${
+                    className={`w-full text-white ${
                       plan.popular
                         ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
-                        : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                        : "bg-white/10 hover:bg-white/20 border border-white/20"
                     }`}
                     asChild
                   >
