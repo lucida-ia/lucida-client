@@ -34,9 +34,7 @@ export function NavBar() {
           <Link
             key={item.name}
             href={item.href}
-            className={`text-sm font-medium transition-colors hover:text-primary ${
-              pathname === item.href ? "text-primary" : "text-muted-foreground"
-            }`}
+            className="text-sm font-medium transition-colors hover:text-primary"
             onClick={(e) => {
               if (item.href.startsWith("#")) {
                 e.preventDefault();
