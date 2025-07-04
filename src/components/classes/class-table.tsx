@@ -31,7 +31,7 @@ export function ClassTable({ results }: { results: any[] }) {
             <TableCell>
               {result.score}/{result.examQuestionCount}
             </TableCell>
-            <TableCell>{result.percentage * 100}%</TableCell>
+            <TableCell>{(result.percentage * 100).toFixed(2)}%</TableCell>
             <TableCell>{format(result.createdAt, "dd/MM/yyyy")}</TableCell>
           </TableRow>
         ))}
