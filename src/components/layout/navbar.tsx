@@ -58,9 +58,9 @@ export function NavBar() {
         {isSignedIn ? (
           <UserButton />
         ) : (
-          <SignInButton>
+          <Link href="/sign-in">
             <Button>Entrar</Button>
-          </SignInButton>
+          </Link>
         )}
       </div>
 
@@ -98,18 +98,18 @@ export function NavBar() {
               {!user && (
                 <>
                   <Link
-                    href="/login"
+                    href="/sign-in"
                     className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:bg-accent"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Log in
+                    Entrar
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/sign-up"
                     className="flex w-full items-center rounded-md bg-primary p-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Sign up
+                    Criar conta
                   </Link>
                 </>
               )}
