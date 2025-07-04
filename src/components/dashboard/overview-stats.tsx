@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Zap, Clock } from "lucide-react";
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserData {
   user: any;
@@ -16,20 +18,57 @@ export function OverviewStats() {
     classes: [],
     exams: [],
   });
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get("/api/user");
+
+      if (response.data.status === "success") {
+        setUserData(response.data.data);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Falha ao carregar dados do usuário",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Falha ao carregar dados do usuário",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedClasses = localStorage.getItem("classes");
-    const storedExams = localStorage.getItem("exams");
-
-    if (storedUser && storedClasses && storedExams) {
-      setUserData({
-        user: JSON.parse(storedUser),
-        classes: JSON.parse(storedClasses),
-        exams: JSON.parse(storedExams),
-      });
-    }
+    fetchUserData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 grid-cols-4 w-full">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="w-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+              <div className="h-5 w-5 bg-muted rounded animate-pulse" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
+              <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   const stats = [
     {

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const exams = await Exam.find({
       userId: user?.id,
       createdAt: { $gte: thirtyDaysAgo },
-    });
+    }).sort({ createdAt: -1 });
 
     return NextResponse.json({
       status: "success",

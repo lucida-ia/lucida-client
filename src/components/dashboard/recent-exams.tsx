@@ -70,7 +70,11 @@ export function RecentExams() {
       <CardHeader>
         <CardTitle>Provas Recentes</CardTitle>
         <CardDescription>
-          Você criou {exams?.length} provas no total.
+          {exams?.length > 0
+            ? `Você criou ${exams?.length} prova${
+                exams?.length > 1 ? "s" : ""
+              } nos últimos 30 dias.`
+            : "Nenhuma prova criada nos últimos 30 dias."}
         </CardDescription>
       </CardHeader>
       <CardContent>
