@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Pricing from "@/components/pricing";
 
 export default function Home() {
   const { isSignedIn, user } = useUser();
@@ -151,7 +152,10 @@ export default function Home() {
       ],
       cta: "Entrar na Lista de Espera",
       popular: true,
-      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
+      href:
+        process.env.NODE_ENV === "development"
+          ? "https://buy.stripe.com/test_cNifZa6Zs99UgbZfiwcV201"
+          : "",
     },
     {
       name: "Personalizado",
@@ -394,6 +398,7 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
+      <Pricing />
       <section id="precos" className="relative z-10 px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
