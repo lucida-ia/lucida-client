@@ -1,4 +1,64 @@
 export const localization = {
+  formFieldLabel__emailAddress: "Endereço de email",
+  formFieldLabel__emailAddress_username: "Email ou nome de usuário",
+  formFieldLabel__password: "Senha",
+  formFieldInputPlaceholder__emailAddress: "Digite seu email",
+  formFieldInputPlaceholder__emailAddress_username: "Digite email ou nome de usuário",
+  formFieldInputPlaceholder__password: "Digite sua senha",
+  formFieldAction__signIn: "Entrar",
+  formFieldAction__signUp: "Criar conta",
+  formFieldAction__forgotPassword: "Esqueceu a senha?",
+  formButtonPrimary: "Continuar",
+  footerActionLink__signIn: "Entrar",
+  footerActionLink__signUp: "Criar conta",
+  dividerText: "ou",
+  socialButtonsBlockButton: "Continuar com {{provider|titleize}}",
+  signIn: {
+    start: {
+      title: "Entre na sua conta",
+      subtitle: "para continuar para Lucida",
+      actionText: "Não tem uma conta?",
+      actionLink: "Criar conta",
+    },
+    emailLink: {
+      title: "Verifique seu email",
+      subtitle: "para continuar para {{applicationName}}",
+      formTitle: "Link de verificação",
+      formSubtitle: "Use o link de verificação enviado para seu email",
+      resendButton: "Não recebeu o link? Reenviar",
+      verified: {
+        title: "Login realizado com sucesso",
+      },
+      loading: {
+        title: "Fazendo login...",
+      },
+      verifiedSwitchTab: {
+        title: "Email verificado com sucesso",
+        subtitle: "Volte para a aba recém aberta para continuar",
+        subtitleNewTab: "Volte para a aba anterior para continuar",
+      },
+    },
+    emailCode: {
+      title: "Verifique seu email",
+      subtitle: "para continuar para {{applicationName}}",
+      formTitle: "Código de verificação",
+      formSubtitle: "Digite o código de verificação enviado para seu email",
+      resendButton: "Não recebeu o código? Reenviar",
+    },
+    phoneCode: {
+      title: "Verifique seu telefone",
+      subtitle: "para continuar para {{applicationName}}",
+      formTitle: "Código de verificação",
+      formSubtitle: "Digite o código de verificação enviado para seu telefone",
+      resendButton: "Não recebeu o código? Reenviar",
+    },
+    continue: {
+      title: "Preencha os campos faltantes",
+      subtitle: "para continuar para {{applicationName}}",
+      actionText: "Não tem uma conta?",
+      actionLink: "Criar conta",
+    },
+  },
   signUp: {
     start: {
       title: "Crie sua conta",
