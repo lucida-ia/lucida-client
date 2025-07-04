@@ -136,7 +136,7 @@ export default function Home() {
       ],
       cta: "Entrar na Lista de Espera",
       popular: false,
-      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
+      href: "/waitlist",
     },
     {
       name: "Pro",
@@ -151,7 +151,7 @@ export default function Home() {
       ],
       cta: "Entrar na Lista de Espera",
       popular: true,
-      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
+      href: "/waitlist",
     },
     {
       name: "Personalizado",
@@ -161,7 +161,7 @@ export default function Home() {
       features: [],
       cta: "Entrar na Lista de Espera",
       popular: false,
-      href: "https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F",
+      href: "/waitlist",
     },
   ];
 
@@ -312,7 +312,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Link href="https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F">
+            <Link href="/waitlist">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-2xl"
@@ -717,7 +717,7 @@ export default function Home() {
             Junte-se à nossa comunidade de educadores que já estão criando
             provas incríveis com nossa IA
           </p>
-          <Link href="https://accounts.lucidaexam.com/waitlist#/?redirect_url=https%3A%2F%2Fwww.lucidaexam.com%2F">
+          <Link href="/waitlist">
             <Button
               size="lg"
               className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-2xl"
