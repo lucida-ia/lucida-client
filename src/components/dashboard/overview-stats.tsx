@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Zap, Clock } from "lucide-react";
-import axios from "axios";
-import { useToast } from "@/hooks/use-toast";
 
 interface UserData {
   user: any;
@@ -12,45 +9,12 @@ interface UserData {
   exams: any[];
 }
 
-export function OverviewStats() {
-  const [userData, setUserData] = useState<UserData>({
-    user: null,
-    classes: [],
-    exams: [],
-  });
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+interface OverviewStatsProps {
+  userData: UserData;
+  loading: boolean;
+}
 
-  const fetchUserData = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get("/api/user");
-
-      if (response.data.status === "success") {
-        setUserData(response.data.data);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro",
-          description: "Falha ao carregar dados do usuário",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao carregar dados do usuário",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
+export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   if (loading) {
     return (
       <div className="grid gap-4 grid-cols-4 w-full">

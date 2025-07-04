@@ -30,7 +30,11 @@ import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "../ui/skeleton";
 
-export function RecentExams() {
+interface RecentExamsProps {
+  onExamDeleted?: () => void;
+}
+
+export function RecentExams({ onExamDeleted }: RecentExamsProps) {
   const [exams, setExams] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const router = useRouter();
@@ -56,6 +60,8 @@ export function RecentExams() {
       toast({
         title: "Prova deletada com sucesso",
       });
+      // Call the callback to refresh user data
+      onExamDeleted?.();
     } else {
       toast({
         title: "Falha ao deletar prova",
