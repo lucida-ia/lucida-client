@@ -123,6 +123,13 @@ export default function PublicExamPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isSubmitted, isStarted]);
 
+  // Scroll to top when question changes
+  useEffect(() => {
+    if (isStarted) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentQuestion, isStarted]);
+
   const handleStartExam = () => {
     setIsStarted(true);
   };
@@ -467,7 +474,7 @@ export default function PublicExamPage() {
         </div>
       </div>
 
-      <div className="container mx-auto py-6 px-4 max-w-4xl">
+      <div className="container mx-auto py-6 px-4 max-w-5xl">
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Question Navigation */}
           <div className="lg:col-span-1">
@@ -476,7 +483,7 @@ export default function PublicExamPage() {
                 <CardTitle className="text-base">Navegação</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-5 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 lg:grid-cols-5 gap-2">
                   {exam.questions.map((_, index) => (
                     <button
                       key={index}
@@ -514,7 +521,7 @@ export default function PublicExamPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  <p className="text-[12-pt] whitespace-pre-wrap">
                     {exam.questions[currentQuestion].context ||
                       exam.questions[currentQuestion].question}
                     {exam.questions[currentQuestion].context &&
