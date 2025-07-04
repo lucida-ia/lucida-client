@@ -206,16 +206,23 @@ export function CreateExamCustomize({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const validateConfig = () => {
     if (!config.title.trim()) {
       toast({
         variant: "destructive",
         title: "Título obrigatório",
         description: "Por favor, forneça um título para sua prova.",
       });
-      return;
+      return false;
+    }
+
+    if (!config.class._id) {
+      toast({
+        variant: "destructive",
+        title: "Turma obrigatória",
+        description: "Por favor, selecione uma turma para sua prova.",
+      });
+      return false;
     }
 
     const hasQuestionType = Object.values(config.questionTypes).some(
@@ -227,7 +234,23 @@ export function CreateExamCustomize({
         title: "Tipo de questão obrigatório",
         description: "Por favor, selecione pelo menos um tipo de questão.",
       });
-      return;
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (validateConfig()) {
+      onConfigured(config);
+    }
+  };
+
+  const handleReviewConfig = () => {
+    if (validateConfig()) {
+      onConfigured(config);
     }
   };
 
@@ -278,7 +301,7 @@ export function CreateExamCustomize({
                 className="text-sm font-medium flex items-center gap-2"
               >
                 <Users className="h-4 w-4" />
-                Turma
+                Turma <span className="text-red-500">*</span>
               </Label>
               {!showCreateClass ? (
                 <Select
@@ -346,7 +369,7 @@ export function CreateExamCustomize({
 
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-medium">
-              Descrição (Opcional)
+              Descrição
             </Label>
             <Textarea
               id="description"
@@ -597,7 +620,7 @@ export function CreateExamCustomize({
           Voltar para Upload
         </Button>
 
-        <Button onClick={() => onConfigured(config)} className="gap-2">
+        <Button onClick={handleReviewConfig} className="gap-2">
           Revisar Configurações
           <ArrowRight className="h-4 w-4" />
         </Button>

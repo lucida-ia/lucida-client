@@ -28,13 +28,19 @@ import {
   Hash,
   ArrowLeft,
   ArrowRight,
+  GraduationCap,
 } from "lucide-react";
 import axios from "axios";
 
 interface ExamConfig {
   title: string;
   description: string;
+  questionStyle: "simples" | "enem";
   questionCount: number;
+  class: {
+    _id: string;
+    name: string;
+  };
   questionTypes: {
     multipleChoice: boolean;
     trueFalse: boolean;
@@ -208,6 +214,34 @@ export function CreateExamPreview({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Turma
+                </p>
+                <p className="text-lg font-semibold">{config.class.name}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                <GraduationCap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Tipo de Prova
+                </p>
+                <Badge variant="secondary" className="font-medium">
+                  {config.questionStyle === "simples"
+                    ? "Simples"
+                    : "Estilo ENEM"}
+                </Badge>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
               <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
                 <Timer className="h-4 w-4 text-green-600 dark:text-green-400" />
