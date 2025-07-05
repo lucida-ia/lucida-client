@@ -50,6 +50,13 @@ export default function Home() {
   // Navbar scroll state
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isSignedIn && user) {
+      redirect("/dashboard");
+    }
+  }, [isSignedIn, user]);
+
   // Scroll event listener to detect when user scrolls past hero section
   useEffect(() => {
     const handleScroll = () => {
@@ -67,8 +74,9 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (user) {
-    redirect("/dashboard");
+  // Show loading state while checking authentication
+  if (isSignedIn && user) {
+    return null; // Don't render anything while redirecting
   }
 
   const features = [
