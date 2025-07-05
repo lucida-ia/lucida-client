@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -35,6 +35,11 @@ export default function CreateExamPage() {
   const [generatedExam, setGeneratedExam] = useState<any>(null);
 
   const { toast } = useToast();
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
 
   const handleFilesUploaded = (files: File[]) => {
     setUploadedFiles(files);
