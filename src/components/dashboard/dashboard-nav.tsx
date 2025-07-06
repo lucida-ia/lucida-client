@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,6 +78,7 @@ export function DashboardNav() {
   );
 
   const pathname = usePathname();
+  const router = useRouter();
 
   const navItems: NavItem[] = [
     {
@@ -156,6 +157,13 @@ export function DashboardNav() {
                       onClick={() =>
                         setTheme(theme === "dark" ? "light" : "dark")
                       }
+                    />
+                  </UserButton.MenuItems>
+                  <UserButton.MenuItems>
+                    <UserButton.Action
+                      label="Billing"
+                      labelIcon={<CreditCard className="w-4 h-4" />}
+                      onClick={() => router.push("/dashboard/billing")}
                     />
                   </UserButton.MenuItems>
                 </UserButton>

@@ -7,13 +7,66 @@ import { auth } from "@clerk/nextjs/server";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
+// Plan limits
+const PLAN_LIMITS = {
+  free: 3,
+  pro: 50,
+  custom: -1, // unlimited
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { status: "unauthorized", message: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
     await connectToDB();
 
     if (!mongoose.connection.db) {
       throw new Error("Database connection not established");
+    }
+
+    // Get user and check subscription/usage
+    const user = await User.findOne({ id: userId });
+
+    if (!user) {
+      return NextResponse.json(
+        { status: "error", message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if user has reached their limit
+    const planLimit =
+      PLAN_LIMITS[user.subscription.plan as keyof typeof PLAN_LIMITS];
+
+    if (planLimit !== -1 && user.usage.examsThisMonth >= planLimit) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: `You have reached your monthly limit of ${planLimit} exams for the ${user.subscription.plan} plan. Please upgrade to create more exams.`,
+          code: "USAGE_LIMIT_REACHED",
+        },
+        { status: 402 } // Payment required
+      );
+    }
+
+    // Check if usage count needs to be reset (monthly reset)
+    const now = new Date();
+    const lastReset = new Date(user.usage.examsThisMonthResetDate);
+
+    if (
+      now.getMonth() !== lastReset.getMonth() ||
+      now.getFullYear() !== lastReset.getFullYear()
+    ) {
+      user.usage.examsThisMonth = 0;
+      user.usage.examsThisMonthResetDate = now;
+      await user.save();
     }
 
     const examPayload: Exam = await request.json();
@@ -41,17 +94,29 @@ export async function POST(request: NextRequest) {
 
     const savedExam = await newExam.save();
 
+    // Increment usage count
+    user.usage.examsThisMonth += 1;
+    await user.save();
+
     return NextResponse.json({
       status: "success",
       message: "Exam created successfully",
       exam: savedExam,
+      usage: {
+        examsThisMonth: user.usage.examsThisMonth,
+        limit: planLimit === -1 ? "unlimited" : planLimit,
+        plan: user.subscription.plan,
+      },
     });
   } catch (error) {
     console.error("[EXAM_CREATE_ERROR]", error);
-    return NextResponse.json({
-      status: "error",
-      message: "Failed to create exam",
-    });
+    return NextResponse.json(
+      {
+        status: "error",
+        message: "Failed to create exam",
+      },
+      { status: 500 }
+    );
   }
 }
 

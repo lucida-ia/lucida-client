@@ -17,7 +17,7 @@ interface OverviewStatsProps {
 export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   if (loading) {
     return (
-      <div className="grid gap-4 grid-cols-4 w-full">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="w-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -62,15 +62,80 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
       description: "Em todas as provas",
     },
     {
-      title: "Assinatura",
-      value: userData.user?.subscription || "Ativo",
+      title: "Provas Restantes",
+      value: (() => {
+        const plan = userData.user?.subscription?.plan || "free";
+        const usage = userData.user?.usage?.examsThisMonth || 0;
+
+        const limits = {
+          free: 3,
+          pro: 50,
+          custom: -1, // unlimited
+        };
+
+        const limit = limits[plan as keyof typeof limits] || 3;
+
+        if (limit === -1) {
+          return "Ilimitado";
+        }
+
+        const remaining = Math.max(0, limit - usage);
+        return `${remaining}/${limit}`;
+      })(),
+      icon: <FileText className="h-5 w-5 text-muted-foreground" />,
+      description: (() => {
+        const plan = userData.user?.subscription?.plan || "free";
+        const planNames = {
+          free: "Plano Grátis",
+          pro: "Plano Pro",
+          custom: "Plano Personalizado",
+        };
+        return planNames[plan as keyof typeof planNames] || "Plano Grátis";
+      })(),
+    },
+    {
+      title: "Status da Assinatura",
+      value: (() => {
+        const plan = userData.user?.subscription?.plan || "free";
+        const status = userData.user?.subscription?.status || "active";
+
+        if (plan === "free") {
+          return "Grátis";
+        }
+
+        switch (status) {
+          case "active":
+            return "Ativa";
+          case "canceled":
+            return "Cancelada";
+          case "past_due":
+            return "Vencida";
+          default:
+            return "Inativa";
+        }
+      })(),
       icon: <Users className="h-5 w-5 text-muted-foreground" />,
-      description: userData.user?.subscription || "Sua assinatura está ativa",
+      description: (() => {
+        const plan = userData.user?.subscription?.plan || "free";
+        const status = userData.user?.subscription?.status || "active";
+
+        if (plan === "free") {
+          return "Sem cobrança";
+        }
+
+        const cancelAtPeriodEnd =
+          userData.user?.subscription?.cancelAtPeriodEnd;
+        if (cancelAtPeriodEnd) {
+          return "Cancela ao fim do período";
+        }
+
+        return status === "active" ? "Pagamento em dia" : "Requer ação";
+      })(),
     },
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-4 w-full">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
       {stats.map((stat, i) => (
         <Card key={i} className="w-full hover:bg-muted/50 transition-all ">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
