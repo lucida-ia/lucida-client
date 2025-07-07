@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Plan limits
 const PLAN_LIMITS = {
   free: 3,
-  pro: 50,
+  pro: 30,
   custom: -1, // unlimited
 };
 

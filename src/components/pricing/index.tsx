@@ -29,21 +29,15 @@ export const PRICING_PLANS = [
     name: "Pro",
     description: "Para quem precisa de mais flexibilidade e recursos.",
     features: [
-      "Até 50 provas por mês",
+      "Até 30 provas por mês",
       "Todos os formatos de questões",
       "Geração avançada com IA",
       "Suporte prioritário por email",
     ],
     cta: "Entrar na Lista de Espera",
     period: "por mês",
-    href:
-      process.env.NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_cNifZa6Zs99UgbZfiwcV201"
-        : "",
-    priceId:
-      process.env.NODE_ENV === "development"
-        ? "price_1RgrOp4RuS8yGC3wQUwTYx90"
-        : "",
+    href: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO,
     price: "R$ 27,90",
     duration: "month",
     popular: true,

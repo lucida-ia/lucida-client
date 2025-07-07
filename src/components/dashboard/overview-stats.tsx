@@ -69,7 +69,7 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
 
         const limits = {
           free: 3,
-          pro: 50,
+          pro: 30,
           custom: -1, // unlimited
         };
 
