@@ -45,6 +45,8 @@ export function CreateExamUpload({
       if (e.target.files) {
         const selectedFiles = Array.from(e.target.files);
         validateAndAddFiles(selectedFiles);
+        // Clear the input value to allow re-uploading the same file
+        e.target.value = '';
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,16 +64,23 @@ export function CreateExamUpload({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ];
-    const maxFileSize = 50 * 1024 * 1024; // 50MB - increased limit for larger files
+    const maxFileSize = 100 * 1024 * 1024; // 100MB - increased limit for larger files
+    const TOKEN_LIMIT = 500000; // máximo aproximado de tokens permitido por arquivo
+
+    // Função utilitária simples para estimar tokens a partir do tamanho do arquivo
+    // Assume-se ~4 bytes por token como aproximação
+    const estimateTokens = (file: File) => Math.ceil(file.size / 4);
 
     const invalidFiles: string[] = [];
     const validFiles: File[] = [];
 
     newFiles.forEach((file) => {
       if (!validFileTypes.includes(file.type)) {
-        invalidFiles.push(`${file.name} (tipo de arquivo inválido)`);
+        invalidFiles.push(`${file.name} (tipo de arquivo inválido - aceita PDF, DOC, DOCX, TXT)`);
       } else if (file.size > maxFileSize) {
-        invalidFiles.push(`${file.name} (excede o limite de 50MB)`);
+        invalidFiles.push(`${file.name} (excede o limite de 100MB)`);
+      } else if (estimateTokens(file) > TOKEN_LIMIT) {
+        invalidFiles.push(`${file.name} (excede o limite de tokens – aprox. ${estimateTokens(file)} tokens > ${TOKEN_LIMIT})`);
       } else {
         validFiles.push(file);
       }
