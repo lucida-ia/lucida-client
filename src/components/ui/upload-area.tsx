@@ -47,7 +47,7 @@ const UploadArea = ({
                   Arraste e solte seus arquivos
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Faça upload de PDF, Word ou arquivos de texto
+                  Faça upload de PDF, DOC, DOCX ou arquivos de texto (TXT)
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Tamanho máximo do arquivo: 100MB
