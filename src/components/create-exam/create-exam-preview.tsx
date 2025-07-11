@@ -79,7 +79,9 @@ export function CreateExamPreview({
       formData.append("config", JSON.stringify(config));
 
       const response = await axios(
+        // "http://localhost:8080/ai-ops/generate-exam",
         "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
+      
         {
           method: "POST",
           data: formData,
