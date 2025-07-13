@@ -1,4 +1,8 @@
+import { ptBR } from "@clerk/localizations";
+
 export const localization = {
+  ...ptBR,
+  // Override specific strings with custom Portuguese translations
   formFieldLabel__emailAddress: "Endereço de email",
   formFieldLabel__emailAddress_username: "Email ou nome de usuário",
   formFieldLabel__password: "Senha",
@@ -23,157 +27,10 @@ export const localization = {
   footerActionLink__signUp: "Criar conta",
   dividerText: "ou",
   socialButtonsBlockButton: "Continuar com {{provider|titleize}}",
-  // UserButton and profile related strings
-  userButton: {
-    action__manageAccount: "Gerenciar conta",
-    action__signOut: "Sair",
-    action__signOutAll: "Sair de todas as contas",
-    action__addAccount: "Adicionar conta",
-    action__switchAccount: "Trocar conta",
-  },
-  userProfile: {
-    navbar: {
-      title: "Perfil",
-      description: "Gerencie as informações da sua conta",
-      account: "Conta",
-      security: "Segurança",
-    },
-    profilePage: {
-      title: "Atualizar perfil",
-      imageFormTitle: "Imagem do perfil",
-      imageFormSubtitle: "Adicionar imagem",
-      imageFormDestructiveActionTitle: "Remover imagem",
-      fileDropAreaTitle: "Arraste o arquivo aqui ou...",
-      fileDropAreaAction: "Selecionar arquivo",
-      fileDropAreaHint: "Envie uma imagem JPG, PNG, GIF ou WEBP menor que 10 MB",
-      successMessage: "Seu perfil foi atualizado.",
-    },
-    emailAddressPage: {
-      title: "Adicionar endereço de email",
-      emailCode: {
-        formHint: "Um email com um código de verificação será enviado para este endereço de email.",
-        formTitle: "Código de verificação",
-        formSubtitle: "Digite o código de verificação enviado para {{identifier}}",
-        resendButton: "Não recebeu o código? Reenviar",
-        successMessage: "O endereço de email {{identifier}} foi adicionado à sua conta.",
-      },
-      emailLink: {
-        formHint: "Um email com um link de verificação será enviado para este endereço de email.",
-        formTitle: "Link de verificação",
-        formSubtitle: "Clique no link de verificação no email enviado para {{identifier}}",
-        resendButton: "Não recebeu o link? Reenviar",
-        successMessage: "O endereço de email {{identifier}} foi adicionado à sua conta.",
-      },
-    },
-    phoneNumberPage: {
-      title: "Adicionar número de telefone",
-      successMessage: "O número de telefone {{identifier}} foi adicionado à sua conta.",
-    },
-    connectedAccountPage: {
-      title: "Contas conectadas",
-      subtitle: "Gerencie suas contas conectadas",
-      successMessage: "A conta foi adicionada à sua conta.",
-      actionLabel__connectionFailed: "Tentar novamente",
-      actionLabel__reauthorize: "Autorizar agora",
-      removeResource: {
-        title: "Remover conta conectada",
-        messageLine1: "{{identifier}} será removido da sua conta.",
-        messageLine2: "Você não poderá mais usar esta conta conectada e quaisquer recursos dependentes não funcionarão mais.",
-        successMessage: "{{connectedAccount}} foi removido da sua conta.",
-      },
-    },
-    passwordPage: {
-      title: "Definir senha",
-      successMessage: "Sua senha foi definida.",
-    },
-    mfaPage: {
-      title: "Autenticação de dois fatores",
-      subtitle: "Adicione uma camada extra de segurança à sua conta",
-    },
-    deletePage: {
-      title: "Excluir conta",
-      messageLine1: "Tem certeza de que deseja excluir sua conta?",
-      messageLine2: "Esta ação é permanente e irreversível.",
-      actionDescription: "Digite \"Excluir conta\" abaixo para confirmar.",
-      confirm: "Excluir conta",
-    },
-  },
-  // Organization related strings (if you plan to use organizations)
-  organizationSwitcher: {
-    action__createOrganization: "Criar organização",
-    action__manageOrganization: "Gerenciar organização",
-    action__inviteMembers: "Convidar membros",
-    action__suggestionsAccepted: "Sugestões aceitas",
-    notSelected: "Nenhuma organização selecionada",
-    personalWorkspace: "Espaço pessoal",
-  },
-  // Common UI strings
-  badge__default: "Padrão",
-  badge__primary: "Principal",
-  badge__requiresAction: "Requer ação",
-  badge__unverified: "Não verificado",
-  badge__verified: "Verificado",
-  formFieldError__matchingPasswords: "As senhas devem ser iguais.",
-  formFieldError__notMatchingPasswords: "As senhas não coincidem.",
-  formFieldHintText__optional: "Opcional",
-  formFieldHintText__slug: "Um slug é um identificador legível que deve ser único. É frequentemente usado em URLs.",
-  waitlist: {
-    start: {
-      title: "Entrar na Lista de Espera",
-      subtitle: "Seja um dos primeiros a ter acesso ao Lucida",
-      actionText: "Já está na lista de espera?",
-      actionLink: "Entrar",
-      formTitle: "Entrar na Lista de Espera",
-      formSubtitle: "Digite seu email para se inscrever",
-      formButtonPrimary: "Entrar na Lista de Espera",
-    },
-    success: {
-      title: "Você está na lista!",
-      subtitle: "Obrigado por se inscrever. Entraremos em contato em breve.",
-    },
-  },
   signIn: {
     start: {
       title: "Entre na sua conta",
       subtitle: "para continuar para Lucida",
-      actionText: "Não tem uma conta?",
-      actionLink: "Criar conta",
-    },
-    emailLink: {
-      title: "Verifique seu email",
-      subtitle: "para continuar para {{applicationName}}",
-      formTitle: "Link de verificação",
-      formSubtitle: "Use o link de verificação enviado para seu email",
-      resendButton: "Não recebeu o link? Reenviar",
-      verified: {
-        title: "Login realizado com sucesso",
-      },
-      loading: {
-        title: "Fazendo login...",
-      },
-      verifiedSwitchTab: {
-        title: "Email verificado com sucesso",
-        subtitle: "Volte para a aba recém aberta para continuar",
-        subtitleNewTab: "Volte para a aba anterior para continuar",
-      },
-    },
-    emailCode: {
-      title: "Verifique seu email",
-      subtitle: "para continuar para {{applicationName}}",
-      formTitle: "Código de verificação",
-      formSubtitle: "Digite o código de verificação enviado para seu email",
-      resendButton: "Não recebeu o código? Reenviar",
-    },
-    phoneCode: {
-      title: "Verifique seu telefone",
-      subtitle: "para continuar para {{applicationName}}",
-      formTitle: "Código de verificação",
-      formSubtitle: "Digite o código de verificação enviado para seu telefone",
-      resendButton: "Não recebeu o código? Reenviar",
-    },
-    continue: {
-      title: "Preencha os campos faltantes",
-      subtitle: "para continuar para {{applicationName}}",
       actionText: "Não tem uma conta?",
       actionLink: "Criar conta",
     },
@@ -182,44 +39,6 @@ export const localization = {
     start: {
       title: "Crie sua conta",
       subtitle: "para continuar para Lucida",
-      actionText: "Já tem uma conta?",
-      actionLink: "Entrar",
-    },
-    emailLink: {
-      title: "Verifique seu email",
-      subtitle: "para continuar para {{applicationName}}",
-      formTitle: "Link de verificação",
-      formSubtitle: "Use o link de verificação enviado para seu email",
-      resendButton: "Não recebeu o link? Reenviar",
-      verified: {
-        title: "Conta criada com sucesso",
-      },
-      loading: {
-        title: "Criando conta...",
-      },
-      verifiedSwitchTab: {
-        title: "Email verificado com sucesso",
-        subtitle: "Volte para a aba recém aberta para continuar",
-        subtitleNewTab: "Volte para a aba anterior para continuar",
-      },
-    },
-    emailCode: {
-      title: "Verifique seu email",
-      subtitle: "para continuar para {{applicationName}}",
-      formTitle: "Código de verificação",
-      formSubtitle: "Digite o código de verificação enviado para seu email",
-      resendButton: "Não recebeu o código? Reenviar",
-    },
-    phoneCode: {
-      title: "Verifique seu telefone",
-      subtitle: "para continuar para {{applicationName}}",
-      formTitle: "Código de verificação",
-      formSubtitle: "Digite o código de verificação enviado para seu telefone",
-      resendButton: "Não recebeu o código? Reenviar",
-    },
-    continue: {
-      title: "Preencha os campos faltantes",
-      subtitle: "para continuar para {{applicationName}}",
       actionText: "Já tem uma conta?",
       actionLink: "Entrar",
     },
