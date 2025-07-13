@@ -15,6 +15,19 @@ const QuestionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     required: true,
   },
+  difficulty: {
+    type: String,
+    enum: ['fácil', 'médio', 'difícil'],
+    default: 'médio',
+  },
+  subject: {
+    type: String,
+    default: '',
+  },
+  explanation: {
+    type: String,
+    default: '',
+  },
 });
 
 const ExamSchema = new mongoose.Schema({

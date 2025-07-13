@@ -17,7 +17,7 @@ export default function CreateExamPage() {
   const [examConfig, setExamConfig] = useState({
     title: "",
     description: "",
-    questionStyle: "simples" as "simples" | "enem",
+    questionStyle: "simple" as "simple" | "enem",
     questionCount: 10,
     class: {
       _id: "",
@@ -29,7 +29,7 @@ export default function CreateExamPage() {
       shortAnswer: false,
       essay: false,
     },
-    difficulty: "mixed",
+    difficulty: "médio",
     timeLimit: 60,
   });
   const [generatedExam, setGeneratedExam] = useState<any>(null);

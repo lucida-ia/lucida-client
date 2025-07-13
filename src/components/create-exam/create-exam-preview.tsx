@@ -35,7 +35,7 @@ import axios from "axios";
 interface ExamConfig {
   title: string;
   description: string;
-  questionStyle: "simples" | "enem";
+  questionStyle: "simple" | "enem";
   questionCount: number;
   class: {
     _id: string;
@@ -79,8 +79,8 @@ export function CreateExamPreview({
       formData.append("config", JSON.stringify(config));
 
       const response = await axios(
-        // "http://localhost:8080/ai-ops/generate-exam",
-        "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
+        "http://localhost:8080/ai-ops/generate-exam",
+        // "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
       
         {
           method: "POST",
@@ -237,8 +237,8 @@ export function CreateExamPreview({
                   Tipo de Prova
                 </p>
                 <Badge variant="secondary" className="font-medium">
-                  {config.questionStyle === "simples"
-                    ? "Simples"
+                                  {config.questionStyle === "simple"
+                  ? "Simples"
                     : "Estilo ENEM"}
                 </Badge>
               </div>

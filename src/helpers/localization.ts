@@ -23,6 +23,100 @@ export const localization = {
   footerActionLink__signUp: "Criar conta",
   dividerText: "ou",
   socialButtonsBlockButton: "Continuar com {{provider|titleize}}",
+  // UserButton and profile related strings
+  userButton: {
+    action__manageAccount: "Gerenciar conta",
+    action__signOut: "Sair",
+    action__signOutAll: "Sair de todas as contas",
+    action__addAccount: "Adicionar conta",
+    action__switchAccount: "Trocar conta",
+  },
+  userProfile: {
+    navbar: {
+      title: "Perfil",
+      description: "Gerencie as informações da sua conta",
+      account: "Conta",
+      security: "Segurança",
+    },
+    profilePage: {
+      title: "Atualizar perfil",
+      imageFormTitle: "Imagem do perfil",
+      imageFormSubtitle: "Adicionar imagem",
+      imageFormDestructiveActionTitle: "Remover imagem",
+      fileDropAreaTitle: "Arraste o arquivo aqui ou...",
+      fileDropAreaAction: "Selecionar arquivo",
+      fileDropAreaHint: "Envie uma imagem JPG, PNG, GIF ou WEBP menor que 10 MB",
+      successMessage: "Seu perfil foi atualizado.",
+    },
+    emailAddressPage: {
+      title: "Adicionar endereço de email",
+      emailCode: {
+        formHint: "Um email com um código de verificação será enviado para este endereço de email.",
+        formTitle: "Código de verificação",
+        formSubtitle: "Digite o código de verificação enviado para {{identifier}}",
+        resendButton: "Não recebeu o código? Reenviar",
+        successMessage: "O endereço de email {{identifier}} foi adicionado à sua conta.",
+      },
+      emailLink: {
+        formHint: "Um email com um link de verificação será enviado para este endereço de email.",
+        formTitle: "Link de verificação",
+        formSubtitle: "Clique no link de verificação no email enviado para {{identifier}}",
+        resendButton: "Não recebeu o link? Reenviar",
+        successMessage: "O endereço de email {{identifier}} foi adicionado à sua conta.",
+      },
+    },
+    phoneNumberPage: {
+      title: "Adicionar número de telefone",
+      successMessage: "O número de telefone {{identifier}} foi adicionado à sua conta.",
+    },
+    connectedAccountPage: {
+      title: "Contas conectadas",
+      subtitle: "Gerencie suas contas conectadas",
+      successMessage: "A conta foi adicionada à sua conta.",
+      actionLabel__connectionFailed: "Tentar novamente",
+      actionLabel__reauthorize: "Autorizar agora",
+      removeResource: {
+        title: "Remover conta conectada",
+        messageLine1: "{{identifier}} será removido da sua conta.",
+        messageLine2: "Você não poderá mais usar esta conta conectada e quaisquer recursos dependentes não funcionarão mais.",
+        successMessage: "{{connectedAccount}} foi removido da sua conta.",
+      },
+    },
+    passwordPage: {
+      title: "Definir senha",
+      successMessage: "Sua senha foi definida.",
+    },
+    mfaPage: {
+      title: "Autenticação de dois fatores",
+      subtitle: "Adicione uma camada extra de segurança à sua conta",
+    },
+    deletePage: {
+      title: "Excluir conta",
+      messageLine1: "Tem certeza de que deseja excluir sua conta?",
+      messageLine2: "Esta ação é permanente e irreversível.",
+      actionDescription: "Digite \"Excluir conta\" abaixo para confirmar.",
+      confirm: "Excluir conta",
+    },
+  },
+  // Organization related strings (if you plan to use organizations)
+  organizationSwitcher: {
+    action__createOrganization: "Criar organização",
+    action__manageOrganization: "Gerenciar organização",
+    action__inviteMembers: "Convidar membros",
+    action__suggestionsAccepted: "Sugestões aceitas",
+    notSelected: "Nenhuma organização selecionada",
+    personalWorkspace: "Espaço pessoal",
+  },
+  // Common UI strings
+  badge__default: "Padrão",
+  badge__primary: "Principal",
+  badge__requiresAction: "Requer ação",
+  badge__unverified: "Não verificado",
+  badge__verified: "Verificado",
+  formFieldError__matchingPasswords: "As senhas devem ser iguais.",
+  formFieldError__notMatchingPasswords: "As senhas não coincidem.",
+  formFieldHintText__optional: "Opcional",
+  formFieldHintText__slug: "Um slug é um identificador legível que deve ser único. É frequentemente usado em URLs.",
   waitlist: {
     start: {
       title: "Entrar na Lista de Espera",
