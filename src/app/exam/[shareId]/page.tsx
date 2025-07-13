@@ -34,6 +34,9 @@ interface Question {
   options?: string[];
   correctAnswer: number;
   type?: "multipleChoice" | "trueFalse";
+  difficulty?: 'fácil' | 'médio' | 'difícil';
+  subject?: string;
+  explanation?: string;
 }
 
 interface Exam {
@@ -86,6 +89,9 @@ export default function PublicExamPage() {
           correctAnswer:
             typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
           type: q.type || "multipleChoice",
+          difficulty: q.difficulty,
+          subject: q.subject,
+          explanation: q.explanation,
         }));
 
         setExam({

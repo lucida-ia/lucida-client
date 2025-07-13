@@ -32,6 +32,9 @@ export async function GET(
         (Array.isArray(q.options) && q.options.length > 0
           ? "multipleChoice"
           : "trueFalse"),
+      difficulty: q.difficulty,
+      subject: q.subject,
+      explanation: q.explanation,
     }));
 
     // Remove sensitive information and ensure proper structure
