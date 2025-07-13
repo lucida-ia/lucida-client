@@ -207,10 +207,11 @@ export function CreateExamGenerated({
                     examData.config.difficulty
                   )} font-medium text-xs`}
                 >
-                  {examData.config.difficulty === "fácil" && "Fácil"}
-                  {examData.config.difficulty === "médio" && "Médio"}
-                  {examData.config.difficulty === "difícil" && "Difícil"}
-                  {examData.config.difficulty === "misto" && "Misto"}
+                  {examData.config.difficulty === "fácil" ? "Fácil" :
+                   examData.config.difficulty === "médio" ? "Médio" :
+                   examData.config.difficulty === "difícil" ? "Difícil" :
+                   examData.config.difficulty === "misto" ? "Misto" :
+                   examData.config.difficulty || "Não definido"}
                 </Badge>
               </div>
             </div>
