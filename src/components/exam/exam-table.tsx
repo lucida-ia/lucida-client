@@ -20,7 +20,7 @@ import { ptBR } from "date-fns/locale";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { exportExamToPDF } from "@/lib/pdf-export";
+import { exportExamToWord } from "@/lib/word-export";
 import { useState } from "react";
 
 export function ExamTable({
@@ -52,19 +52,19 @@ export function ExamTable({
     fetchExams();
   };
 
-  const handleExportPDF = async (exam: DBExam) => {
+  const handleExportWord = async (exam: DBExam) => {
     try {
       setExportingExamId(exam._id);
-      await exportExamToPDF(exam, false);
+      await exportExamToWord(exam, false);
       toast({
-        title: "PDF exportado com sucesso!",
+        title: "Documento Word exportado com sucesso!",
         description: "A prova foi salva no seu dispositivo.",
       });
     } catch (error) {
-      console.error("Error exporting PDF:", error);
+      console.error("Error exporting Word document:", error);
       toast({
-        title: "Erro ao exportar PDF",
-        description: "Ocorreu um erro ao gerar o PDF. Tente novamente.",
+        title: "Erro ao exportar documento",
+        description: "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -145,17 +145,17 @@ export function ExamTable({
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => handleExportPDF(exam)}
+                        onClick={() => handleExportWord(exam)}
                         disabled={exportingExamId === exam._id}
                       >
                         <Download className="h-4 w-4" />
-                        <span className="sr-only">Download PDF</span>
+                        <span className="sr-only">Download Word</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       {exportingExamId === exam._id
-                        ? "Gerando PDF..."
-                        : "Download PDF"}
+                        ? "Gerando Word..."
+                        : "Download Word"}
                     </TooltipContent>
                   </Tooltip>
 

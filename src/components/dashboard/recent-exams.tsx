@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Edit, Trash, Copy, Link, Loader2 } from "lucide-react";
+import { FileText, Download, Trash, Copy, Link, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DBExam } from "@/types/exam";
@@ -29,22 +29,28 @@ import { ExamShareButton } from "../exam/exam-share-button";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "../ui/skeleton";
+import { exportExamToWord } from "@/lib/word-export";
 
 interface RecentExamsProps {
   onExamDeleted?: () => void;
 }
 
 export function RecentExams({ onExamDeleted }: RecentExamsProps) {
-  const [exams, setExams] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [exams, setExams] = React.useState<DBExam[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [downloadingExamId, setDownloadingExamId] = React.useState<string | null>(null);
   const router = useRouter();
 
   const fetchExams = async () => {
-    setLoading(true);
-    const response = await axios.get("/api/exam/recent");
-
-    setExams(response.data.data);
-    setLoading(false);
+    try {
+      setIsLoading(true);
+      const response = await axios.get("/api/exam/recent");
+      setExams(response.data.data);
+    } catch (error) {
+      console.error("Error fetching exams:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   React.useEffect(() => {
@@ -52,23 +58,42 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
   }, []);
 
   const handleDeleteExam = async (examId: string) => {
-    const response = await axios.delete("/api/exam", {
-      data: { examId },
-    });
-
-    if (response.status === 200) {
+    try {
+      await axios.delete("/api/exam", {
+        data: { examId },
+      });
+      setExams(exams.filter((exam) => exam._id !== examId));
       toast({
         title: "Prova deletada com sucesso",
       });
-      // Call the callback to refresh user data
       onExamDeleted?.();
-    } else {
+    } catch (error) {
       toast({
-        title: "Falha ao deletar prova",
-        description: response.data.message,
+        title: "Erro ao deletar prova",
+        description: "Não foi possível deletar a prova. Tente novamente.",
+        variant: "destructive",
       });
     }
-    fetchExams();
+  };
+
+  const handleDownloadExam = async (exam: DBExam) => {
+    try {
+      setDownloadingExamId(exam._id);
+      await exportExamToWord(exam, false);
+      toast({
+        title: "Documento Word exportado com sucesso!",
+        description: "A prova foi salva no seu dispositivo.",
+      });
+    } catch (error) {
+      console.error("Error exporting Word document:", error);
+      toast({
+        title: "Erro ao exportar documento",
+        description: "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingExamId(null);
+    }
   };
 
   return (
@@ -84,7 +109,7 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {isLoading ? (
           <Skeleton className="h-48 w-full" />
         ) : exams?.length > 0 ? (
           <Table>
@@ -134,12 +159,19 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Editar</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDownloadExam(exam)}
+                            disabled={downloadingExamId === exam._id}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download</span>
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Editar Prova</TooltipContent>
+                        <TooltipContent>
+                          {downloadingExamId === exam._id ? "Baixando..." : "Baixar Prova"}
+                        </TooltipContent>
                       </Tooltip>
 
                       {/* <Tooltip>
