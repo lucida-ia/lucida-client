@@ -86,8 +86,8 @@ export function CreateExamPreview({
       formData.append("config", JSON.stringify(config));
 
       const response = await axios(
-        // "http://localhost:8080/ai-ops/generate-exam",
-        "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
+        "http://localhost:8080/ai-ops/generate-exam",
+        // "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
       
         {
           method: "POST",
@@ -110,7 +110,9 @@ export function CreateExamPreview({
       }
 
       if (data.results) {
-        const errors = data.results.filter((result: any) => result.error);
+        const errors = data.results.filter((result: any) => !result.success);
+        const successes = data.results.filter((result: any) => result.success);
+        
         if (errors.length > 0) {
           errors.forEach((error: any) => {
             toast({
@@ -120,9 +122,20 @@ export function CreateExamPreview({
             });
           });
         }
-        const successfulResults = data.results.filter(
-          (result: any) => result.questions
-        );
+        
+        if (successes.length > 0) {
+          const totalTokens = successes.reduce((sum: number, result: any) => sum + result.extractedTokens, 0);
+          toast({
+            variant: "default",
+            title: "Arquivos processados com sucesso",
+            description: `${successes.length} arquivo(s) processado(s) (≈${totalTokens} tokens)`,
+          });
+        }
+        
+        // If no files were successfully processed, don't proceed
+        if (successes.length === 0) {
+          return;
+        }
       }
 
       // Call the callback with the generated exam data
