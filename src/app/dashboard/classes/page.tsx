@@ -16,7 +16,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ClassTable } from "@/components/classes/class-table";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, Download } from "lucide-react";
+import { exportResultsToCSV } from "@/lib/csv-export";
 import {
   Select,
   SelectContent,
@@ -123,6 +124,43 @@ export default function ClassesPage() {
     }
   };
 
+  const handleExportCSV = (classItem: Class, selectedExam: string) => {
+    try {
+      const resultsToExport = selectedExam === "all" || !selectedExam
+        ? classItem.results
+        : classItem.results.filter(result => result.examId === selectedExam);
+
+      if (resultsToExport.length === 0) {
+        toast({
+          title: "Nenhum resultado para exportar",
+          description: "Esta turma não possui resultados de provas para exportar.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const examTitle = selectedExam === "all" || !selectedExam
+        ? "todos_os_resultados"
+        : resultsToExport[0]?.examTitle || "resultados";
+
+      const filename = `${classItem.name}_${examTitle}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+      
+      exportResultsToCSV(resultsToExport, filename);
+      
+      toast({
+        title: "CSV exportado com sucesso!",
+        description: "Os resultados foram salvos no seu dispositivo.",
+      });
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      toast({
+        title: "Erro ao exportar CSV",
+        description: "Ocorreu um erro ao gerar o arquivo CSV. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   React.useEffect(() => {
     fetchClasses();
   }, []);
@@ -200,6 +238,16 @@ export default function ClassesPage() {
                     </Select>
 
                     <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="gap-2"
+                        onClick={() => handleExportCSV(classItem, selectedExams[classItem.id] || "all")}
+                        disabled={!classItem.results || classItem.results.length === 0}
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Exportar CSV</span>
+                      </Button>
+
                       <Button variant="outline" className="gap-2">
                         <Pencil className="h-4 w-4" />
                         <span>Editar Turma</span>
