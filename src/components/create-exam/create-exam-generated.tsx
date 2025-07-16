@@ -55,12 +55,28 @@ export function CreateExamGenerated({
         data: examData,
       });
       router.push("/dashboard/exams");
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Falha ao salvar a prova. Tente novamente.",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      if (
+        error.response?.status === 402 &&
+        error.response?.data?.code === "USAGE_LIMIT_REACHED"
+      ) {
+        toast({
+          title: "Limite de Provas Atingido",
+          description:
+            "Você atingiu o limite de provas do seu plano. Faça upgrade para criar mais provas.",
+          variant: "destructive",
+        });
+        // Redirect to billing page after a short delay
+        setTimeout(() => {
+          router.push("/dashboard/billing");
+        }, 2000);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao salvar a prova. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSavingExam(false);
     }
@@ -229,8 +245,8 @@ export function CreateExamGenerated({
             <div>
               <CardTitle className="text-xl">Prova Completa</CardTitle>
               <CardDescription>
-                Questões com respostas corretas destacadas - Clique em "Editar"
-                para modificar
+                Questões com respostas corretas destacadas - Clique em
+                &ldquo;Editar&rdquo; para modificar
               </CardDescription>
             </div>
           </div>

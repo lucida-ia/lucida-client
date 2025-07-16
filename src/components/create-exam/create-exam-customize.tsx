@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/use-subscription";
 import axios from "axios";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
@@ -85,12 +86,17 @@ export function CreateExamCustomize({
   const [isCreatingClass, setIsCreatingClass] = React.useState(false);
   const [newClassName, setNewClassName] = React.useState("");
   const [showCreateClass, setShowCreateClass] = React.useState(false);
-  const [difficultyDistribution, setDifficultyDistribution] = useState<DifficultyDistribution>({
-    fácil: Math.floor(config.questionCount / 3),
-    médio: Math.floor(config.questionCount / 3),
-    difícil: config.questionCount - 2 * Math.floor(config.questionCount / 3),
-  });
+  const [difficultyDistribution, setDifficultyDistribution] =
+    useState<DifficultyDistribution>({
+      fácil: Math.floor(config.questionCount / 3),
+      médio: Math.floor(config.questionCount / 3),
+      difícil: config.questionCount - 2 * Math.floor(config.questionCount / 3),
+    });
   const { toast } = useToast();
+  const { subscription } = useSubscription();
+
+  // Determine max questions based on subscription plan
+  const maxQuestions = subscription?.plan === "trial" ? 10 : 50;
 
   useEffect(() => {
     if (config.questionStyle === "enem") {
@@ -115,8 +121,20 @@ export function CreateExamCustomize({
 
   const handleQuestionCountChange = (value: number[]) => {
     const newCount = value[0];
+
+    // Check trial user question limit
+    if (subscription?.plan === "trial" && newCount > 10) {
+      toast({
+        variant: "destructive",
+        title: "Limite de questões para usuários Trial",
+        description:
+          "Usuários Trial podem criar provas com no máximo 10 questões. Faça upgrade para criar provas com mais questões.",
+      });
+      return;
+    }
+
     setConfig((prev) => ({ ...prev, questionCount: newCount }));
-    
+
     // Update difficulty distribution proportionally
     const newDistribution = {
       fácil: Math.floor(newCount / 3),
@@ -124,13 +142,13 @@ export function CreateExamCustomize({
       difícil: newCount - 2 * Math.floor(newCount / 3),
     };
     setDifficultyDistribution(newDistribution);
-    
+
     // Update config if misto is selected
     if (config.difficulty === "misto") {
-      setConfig((prev) => ({ 
-        ...prev, 
+      setConfig((prev) => ({
+        ...prev,
         questionCount: newCount,
-        difficultyDistribution: newDistribution 
+        difficultyDistribution: newDistribution,
       }));
     }
   };
@@ -153,21 +171,25 @@ export function CreateExamCustomize({
   };
 
   const handleDifficultyChange = (value: string) => {
-    setConfig((prev) => ({ 
-      ...prev, 
+    setConfig((prev) => ({
+      ...prev,
       difficulty: value,
-      difficultyDistribution: value === "misto" ? difficultyDistribution : undefined
+      difficultyDistribution:
+        value === "misto" ? difficultyDistribution : undefined,
     }));
   };
 
-  const handleDifficultyDistributionChange = (difficulty: keyof DifficultyDistribution, value: number) => {
+  const handleDifficultyDistributionChange = (
+    difficulty: keyof DifficultyDistribution,
+    value: number
+  ) => {
     const newDistribution = { ...difficultyDistribution, [difficulty]: value };
     setDifficultyDistribution(newDistribution);
-    
+
     if (config.difficulty === "misto") {
-      setConfig((prev) => ({ 
-        ...prev, 
-        difficultyDistribution: newDistribution 
+      setConfig((prev) => ({
+        ...prev,
+        difficultyDistribution: newDistribution,
       }));
     }
   };
@@ -289,12 +311,16 @@ export function CreateExamCustomize({
         toast({
           variant: "destructive",
           title: "Distribuição de dificuldade obrigatória",
-          description: "Por favor, defina a distribuição de dificuldade para questões mistas.",
+          description:
+            "Por favor, defina a distribuição de dificuldade para questões mistas.",
         });
         return false;
       }
 
-      const total = config.difficultyDistribution.fácil + config.difficultyDistribution.médio + config.difficultyDistribution.difícil;
+      const total =
+        config.difficultyDistribution.fácil +
+        config.difficultyDistribution.médio +
+        config.difficultyDistribution.difícil;
       if (total > config.questionCount) {
         toast({
           variant: "destructive",
@@ -308,7 +334,8 @@ export function CreateExamCustomize({
         toast({
           variant: "destructive",
           title: "Distribuição inválida",
-          description: "Pelo menos uma questão deve ser definida na distribuição de dificuldade.",
+          description:
+            "Pelo menos uma questão deve ser definida na distribuição de dificuldade.",
         });
         return false;
       }
@@ -484,8 +511,8 @@ export function CreateExamCustomize({
             className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
           >
             <ToggleGroupItem
-                              value="simple"
-                aria-label="Toggle simple"
+              value="simple"
+              aria-label="Toggle simple"
               className="h-auto p-6 border data-[state=on]:border-primary/20 data-[state=on]:bg-primary/5"
             >
               <div className="text-left space-y-2">
@@ -549,15 +576,23 @@ export function CreateExamCustomize({
               <Slider
                 value={[config.questionCount]}
                 min={1}
-                max={50}
+                max={maxQuestions}
                 step={1}
                 onValueChange={handleQuestionCountChange}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 <span>1</span>
-                <span>50</span>
+                <span>{maxQuestions}</span>
               </div>
+              {subscription?.plan === "trial" && (
+                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
+                  <p className="text-xs text-orange-600">
+                    <strong>Limitação Trial:</strong> Máximo 10 questões por
+                    prova. Faça upgrade para criar provas com até 50 questões.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -663,9 +698,10 @@ export function CreateExamCustomize({
                 Distribuição de Dificuldade
               </Label>
               <p className="text-sm text-blue-600">
-                Defina quantas questões de cada nível de dificuldade você deseja.
+                Defina quantas questões de cada nível de dificuldade você
+                deseja.
               </p>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-green-700">
@@ -676,11 +712,16 @@ export function CreateExamCustomize({
                     min="0"
                     max={config.questionCount}
                     value={difficultyDistribution.fácil}
-                    onChange={(e) => handleDifficultyDistributionChange("fácil", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleDifficultyDistributionChange(
+                        "fácil",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
                     className="border-green-300 focus:border-green-500"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-yellow-700">
                     Médio
@@ -690,11 +731,16 @@ export function CreateExamCustomize({
                     min="0"
                     max={config.questionCount}
                     value={difficultyDistribution.médio}
-                    onChange={(e) => handleDifficultyDistributionChange("médio", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleDifficultyDistributionChange(
+                        "médio",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
                     className="border-yellow-300 focus:border-yellow-500"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-red-700">
                     Difícil
@@ -704,22 +750,34 @@ export function CreateExamCustomize({
                     min="0"
                     max={config.questionCount}
                     value={difficultyDistribution.difícil}
-                    onChange={(e) => handleDifficultyDistributionChange("difícil", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleDifficultyDistributionChange(
+                        "difícil",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
                     className="border-red-300 focus:border-red-500"
                   />
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between text-sm">
                 <span className="text-blue-600">
-                  Total: {difficultyDistribution.fácil + difficultyDistribution.médio + difficultyDistribution.difícil} questões
+                  Total:{" "}
+                  {difficultyDistribution.fácil +
+                    difficultyDistribution.médio +
+                    difficultyDistribution.difícil}{" "}
+                  questões
                 </span>
                 <span className="text-blue-600">
                   Máximo: {config.questionCount} questões
                 </span>
               </div>
-              
-              {(difficultyDistribution.fácil + difficultyDistribution.médio + difficultyDistribution.difícil) > config.questionCount && (
+
+              {difficultyDistribution.fácil +
+                difficultyDistribution.médio +
+                difficultyDistribution.difícil >
+                config.questionCount && (
                 <div className="text-red-600 text-sm bg-red-50 p-2 rounded border border-red-200">
                   ⚠️ O total de questões não pode exceder {config.questionCount}
                 </div>

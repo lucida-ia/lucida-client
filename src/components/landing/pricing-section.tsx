@@ -24,7 +24,7 @@ export function PricingSection() {
       price: "R$27,90",
       period: "por mês",
       features: [
-        "Até 50 provas por mês",
+        "Até 30 provas por mês",
         "Todos os formatos de questões",
         "Geração avançada com IA",
         "Suporte prioritário por email",

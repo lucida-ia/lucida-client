@@ -10,42 +10,41 @@ import { Button } from "../ui/button";
 
 export const PRICING_PLANS = [
   {
-    name: "Grátis",
+    name: "Semestral",
     description: "Para quem quer testar o produto",
     features: [
-      "Até 3 provas por mês",
-      "Apenas formato simples de questão",
-      "Geração padrão com IA",
-    ],
-    cta: "Testar Agora!",
-    period: "-",
-    href: "#",
-    priceId: "",
-    price: "R$ 0,00",
-    duration: "",
-    popular: false,
-  },
-  {
-    name: "Pro",
-    description: "Para quem precisa de mais flexibilidade e recursos.",
-    features: [
-      "Até 50 provas por mês",
+      "Até 10 provas por semestre",
       "Todos os formatos de questões",
       "Geração avançada com IA",
       "Suporte prioritário por email",
+      "Histórico de provas",
+      "Exportação em PDF",
     ],
-    cta: "Entrar na Lista de Espera",
-    period: "por mês",
-    href:
-      process.env.NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_cNifZa6Zs99UgbZfiwcV201"
-        : "",
-    priceId:
-      process.env.NODE_ENV === "development"
-        ? "price_1RgrOp4RuS8yGC3wQUwTYx90"
-        : "",
-    price: "R$ 27,90",
-    duration: "month",
+    cta: "Assinar Agora!",
+    period: "por 6 meses",
+    href: "#",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL,
+    price: "R$ 189,90",
+    duration: "6months",
+    popular: false,
+  },
+  {
+    name: "Anual",
+    description: "Para quem precisa de mais flexibilidade e recursos.",
+    features: [
+      "Até 30 provas por ano",
+      "Todos os formatos de questões",
+      "Geração avançada com IA",
+      "Suporte prioritário por email",
+      "Histórico de provas",
+      "Exportação em PDF",
+    ],
+    cta: "Assinar Agora!",
+    period: "por ano",
+    href: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_ANNUAL,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL,
+    price: "R$ 334,80",
+    duration: "year",
     popular: true,
   },
   {

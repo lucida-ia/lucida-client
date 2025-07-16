@@ -7,13 +7,85 @@ import { auth } from "@clerk/nextjs/server";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
+// Plan limits
+const PLAN_LIMITS = {
+  trial: 3,
+  "semi-annual": 10,
+  annual: 30,
+  custom: -1, // unlimited
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { status: "unauthorized", message: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
     await connectToDB();
 
     if (!mongoose.connection.db) {
       throw new Error("Database connection not established");
+    }
+
+    // Get user and check subscription/usage
+    const user = await User.findOne({ id: userId });
+
+    if (!user) {
+      return NextResponse.json(
+        { status: "error", message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if user has reached their limit
+    const planLimit =
+      PLAN_LIMITS[user.subscription.plan as keyof typeof PLAN_LIMITS];
+
+    if (planLimit !== -1 && user.usage.examsThisPeriod >= planLimit) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: `You have reached your limit of ${planLimit} exams for the ${user.subscription.plan} plan. Please upgrade to create more exams.`,
+          code: "USAGE_LIMIT_REACHED",
+        },
+        { status: 402 } // Payment required
+      );
+    }
+
+    // Check if usage count needs to be reset based on plan duration
+    const now = new Date();
+    const lastReset = new Date(user.usage.examsThisPeriodResetDate);
+    let shouldReset = false;
+
+    if (user.subscription.plan === "trial") {
+      // Reset every 30 days for trial users
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      shouldReset = lastReset < thirtyDaysAgo;
+    } else if (user.subscription.plan === "semi-annual") {
+      // Reset every 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      shouldReset = lastReset < sixMonthsAgo;
+    } else if (user.subscription.plan === "annual") {
+      // Reset every year
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      shouldReset = lastReset < oneYearAgo;
+    } else {
+      // For custom plan, no reset needed (unlimited)
+      shouldReset = false;
+    }
+
+    if (shouldReset) {
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = now;
+      await user.save();
     }
 
     const examPayload: Exam = await request.json();
@@ -44,17 +116,29 @@ export async function POST(request: NextRequest) {
 
     const savedExam = await newExam.save();
 
+    // Increment usage count
+    user.usage.examsThisPeriod += 1;
+    await user.save();
+
     return NextResponse.json({
       status: "success",
       message: "Exam created successfully",
       exam: savedExam,
+      usage: {
+        examsThisPeriod: user.usage.examsThisPeriod,
+        limit: planLimit === -1 ? "unlimited" : planLimit,
+        plan: user.subscription.plan,
+      },
     });
   } catch (error) {
     console.error("[EXAM_CREATE_ERROR]", error);
-    return NextResponse.json({
-      status: "error",
-      message: "Failed to create exam",
-    });
+    return NextResponse.json(
+      {
+        status: "error",
+        message: "Failed to create exam",
+      },
+      { status: 500 }
+    );
   }
 }
 

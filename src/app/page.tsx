@@ -145,7 +145,7 @@ export default function Home() {
       ],
       cta: "Entrar na Lista de Espera",
       popular: false,
-      href: "/waitlist",
+      href: "/sign-up",
     },
     {
       name: "Pro",
@@ -153,14 +153,14 @@ export default function Home() {
       price: "R$27,90",
       period: "por mês",
       features: [
-        "Até 50 provas por mês",
+        "Até 30 provas por mês",
         "Todos os formatos de questões",
         "Geração avançada com IA",
         "Suporte prioritário por email",
       ],
       cta: "Entrar na Lista de Espera",
       popular: true,
-      href: "/waitlist",
+      href: "/sign-up",
     },
     {
       name: "Personalizado",
@@ -170,7 +170,7 @@ export default function Home() {
       features: [],
       cta: "Entrar na Lista de Espera",
       popular: false,
-      href: "/waitlist",
+      href: "/sign-up",
     },
   ];
 
