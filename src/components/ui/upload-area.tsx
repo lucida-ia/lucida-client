@@ -47,10 +47,10 @@ const UploadArea = ({
                   Arraste e solte seus arquivos
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Faça upload de PDF, Word ou arquivos de texto
+                  Faça upload de múltiplos arquivos PDF, DOC, DOCX ou TXT
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Tamanho máximo do arquivo: 100MB
+                  Tamanho máximo: 100MB por arquivo • Limite total: ~500.000 tokens
                 </p>
               </div>
               <div>

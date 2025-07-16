@@ -11,7 +11,7 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Lucida - Crie Provas Profissionais em Segundos com IA",
+  title: "Lucida - Crie Provas em Segundos com IA",
   description: "Economize horas de preparação e crie avaliações melhores.",
 };
 

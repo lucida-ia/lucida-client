@@ -1,3 +1,9 @@
+type DifficultyDistribution = {
+  fácil: number;
+  médio: number;
+  difícil: number;
+};
+
 type Exam = {
   questions: Question[];
   config: Config;
@@ -8,6 +14,9 @@ type Question = {
   context?: string;
   options: string[];
   correctAnswer: number;
+  difficulty?: 'fácil' | 'médio' | 'difícil';
+  subject?: string;
+  explanation?: string;
 };
 
 type Config = {
@@ -16,6 +25,7 @@ type Config = {
   questionCount: number;
   questionTypes: QuestionType;
   difficulty: string;
+  difficultyDistribution?: DifficultyDistribution;
   timeLimit: number;
   class: {
     _id: string;
@@ -45,4 +55,4 @@ type DBClass = {
   exams: DBExam[];
 };
 
-export type { Exam, Question, Config, QuestionType, DBExam, DBClass };
+export type { Exam, Question, Config, QuestionType, DBExam, DBClass, DifficultyDistribution };

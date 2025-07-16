@@ -142,13 +142,13 @@ export default function ExamPreviewPage() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy":
+      case "fácil":
         return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
-      case "medium":
+      case "médio":
         return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800";
-      case "hard":
+      case "difícil":
         return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
-      case "mixed":
+      case "misto":
         return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700";
@@ -316,7 +316,29 @@ export default function ExamPreviewPage() {
                         >
                           {index + 1}
                         </Badge>
-                        <div className="flex-1">
+                        <div className="flex-1 space-y-2">
+                          {/* Question metadata */}
+                          {!editingQuestion && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {question.difficulty && (
+                                <Badge
+                                  variant="secondary"
+                                  className={`text-xs ${
+                                    question.difficulty === "fácil" ? "bg-green-100 text-green-800" :
+                                    question.difficulty === "médio" ? "bg-yellow-100 text-yellow-800" :
+                                    "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {question.difficulty}
+                                </Badge>
+                              )}
+                              {question.subject && (
+                                <Badge variant="outline" className="text-xs">
+                                  {question.subject}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                           {editingQuestion === index ? (
                             <div className="space-y-4">
                               {editedQuestion.context && (
@@ -619,6 +641,18 @@ export default function ExamPreviewPage() {
                                   </Badge>
                                 )}
                               </div>
+                            </div>
+                          )}
+                          
+                          {/* Explanation section */}
+                          {question.explanation && (
+                            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                                Explicação:
+                              </h4>
+                              <p className="text-sm text-blue-700 dark:text-blue-200">
+                                {question.explanation}
+                              </p>
                             </div>
                           )}
                         </>

@@ -96,6 +96,9 @@ export async function POST(request: NextRequest) {
         context: question.context,
         options: question.options,
         correctAnswer: question.correctAnswer,
+        difficulty: question.difficulty,
+        subject: question.subject,
+        explanation: question.explanation,
       })
     );
 

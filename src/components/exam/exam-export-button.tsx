@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, FileText, CheckCircle } from "lucide-react";
 import { DBExam } from "@/types/exam";
-import { exportExamToPDF } from "@/lib/pdf-export";
+import { exportExamToWord } from "@/lib/word-export";
 import { useToast } from "@/hooks/use-toast";
 
 interface ExamExportButtonProps {
@@ -24,18 +24,18 @@ export function ExamExportButton({ exam }: ExamExportButtonProps) {
   const handleExport = async (includeAnswers: boolean) => {
     try {
       setIsExporting(true);
-      await exportExamToPDF(exam, includeAnswers);
+      await exportExamToWord(exam, includeAnswers);
       toast({
-        title: "PDF exportado com sucesso!",
+        title: "Documento Word exportado com sucesso!",
         description: includeAnswers
           ? "O gabarito foi salvo no seu dispositivo."
           : "A prova foi salva no seu dispositivo.",
       });
     } catch (error) {
-      console.error("Error exporting PDF:", error);
+      console.error("Error exporting Word document:", error);
       toast({
-        title: "Erro ao exportar PDF",
-        description: "Ocorreu um erro ao gerar o PDF. Tente novamente.",
+        title: "Erro ao exportar documento",
+        description: "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
         variant: "destructive",
       });
     } finally {
