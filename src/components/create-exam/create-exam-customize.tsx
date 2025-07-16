@@ -815,19 +815,21 @@ export function CreateExamCustomize({
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-between pt-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3 pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto touch-manipulation"
         >
           <ArrowLeft className="h-4 w-4" />
-          Voltar para Upload
+          <span className="hidden sm:inline">Voltar para Upload</span>
+          <span className="sm:hidden">Voltar</span>
         </Button>
 
-        <Button onClick={handleReviewConfig} className="gap-2">
-          Revisar Configurações
+        <Button onClick={handleReviewConfig} className="gap-2 w-full sm:w-auto touch-manipulation">
+          <span className="hidden sm:inline">Revisar Configurações</span>
+          <span className="sm:hidden">Revisar</span>
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>

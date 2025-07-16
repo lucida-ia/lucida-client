@@ -182,7 +182,7 @@ export function CreateExamUpload({
 
       {files.length > 0 && (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 md:pt-6">
             <h3 className="text-lg font-medium mb-2">
               Arquivos Enviados ({files.length})
             </h3>
@@ -191,24 +191,27 @@ export function CreateExamUpload({
               {files.reduce((sum, file) => sum + Math.ceil(file.size / 4), 0)}{" "}
               tokens de {TOTAL_TOKEN_LIMIT} permitidos
             </p>
-            <ul className="space-y-3">
+            <ul className="space-y-2 md:space-y-3">
               {files.map((file, index) => (
                 <li
                   key={index}
-                  className="flex items-center justify-between rounded-md border p-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-md border p-3 gap-3 sm:gap-0"
                 >
-                  <div className="flex items-center space-x-3">
-                    <File className="h-5 w-5 text-muted-foreground" />
-                    <span className="font-medium">{file.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {(file.size / 1024 / 1024).toFixed(1)} MB • ≈
-                      {Math.ceil(file.size / 4)} tokens
-                    </span>
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <File className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">{file.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {(file.size / 1024 / 1024).toFixed(1)} MB • ≈
+                        {Math.ceil(file.size / 4)} tokens
+                      </div>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => removeFile(index)}
+                    className="self-end sm:self-center flex-shrink-0 touch-manipulation"
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Remover arquivo</span>
@@ -221,8 +224,8 @@ export function CreateExamUpload({
       )}
 
       {subscription?.plan === "trial" && (
-        <Alert className="bg-orange-50 border-orange-200 items-center dark:bg-orange-950 dark:border-orange-800">
-          <CheckCircle className="h-4 w-4 text-orange-600" />
+        <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">
+          <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
           <AlertDescription className="text-orange-600 dark:text-orange-400">
             <strong>Limitação Trial:</strong> Você pode enviar apenas 1 arquivo.
             Faça upgrade para enviar múltiplos arquivos e ter acesso completo à
@@ -231,8 +234,8 @@ export function CreateExamUpload({
         </Alert>
       )}
 
-      <Alert className="bg-blue-50 border-blue-200 items-center dark:bg-blue-950 dark:border-blue-800">
-        <CheckCircle className="h-4 w-4 text-blue-600" />
+      <Alert className="bg-blue-50 border-blue-200 items-start dark:bg-blue-950 dark:border-blue-800">
+        <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
         <AlertDescription className="text-blue-600 dark:text-blue-400">
           Seus arquivos serão usados apenas para gerar questões da prova e não
           serão compartilhados ou armazenados permanentemente.
@@ -240,8 +243,9 @@ export function CreateExamUpload({
       </Alert>
 
       <div className="flex justify-end">
-        <Button onClick={handleContinue}>
-          Continuar para Personalização
+        <Button onClick={handleContinue} className="w-full sm:w-auto touch-manipulation">
+          <span className="hidden sm:inline">Continuar para Personalização</span>
+          <span className="sm:hidden">Continuar</span>
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

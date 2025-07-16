@@ -93,16 +93,18 @@ export default function CreateExamPage() {
         text="Envie conteúdo, personalize configurações e gere sua prova."
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="upload">1. Enviar Conteúdo</TabsTrigger>
-          <TabsTrigger value="customize" disabled={uploadedFiles.length === 0}>
-            2. Personalizar
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 h-auto p-1">
+          <TabsTrigger value="upload" className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2">
+            <span className="hidden sm:inline">1. </span>Enviar Conteúdo
           </TabsTrigger>
-          <TabsTrigger value="preview" disabled={!examConfig.title}>
-            3. Visualizar e Gerar
+          <TabsTrigger value="customize" disabled={uploadedFiles.length === 0} className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2">
+            <span className="hidden sm:inline">2. </span>Personalizar
           </TabsTrigger>
-          <TabsTrigger value="generated" disabled={!generatedExam}>
-            4. Prova Gerada
+          <TabsTrigger value="preview" disabled={!examConfig.title} className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2">
+            <span className="hidden sm:inline">3. </span>Visualizar e Gerar
+          </TabsTrigger>
+          <TabsTrigger value="generated" disabled={!generatedExam} className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2">
+            <span className="hidden sm:inline">4. </span>Prova Gerada
           </TabsTrigger>
         </TabsList>
 
