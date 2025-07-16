@@ -762,14 +762,14 @@ export function CreateExamCustomize({
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-blue-600">
+                <span className="text-blue-600 dark:text-white">
                   Total:{" "}
                   {difficultyDistribution.fácil +
                     difficultyDistribution.médio +
                     difficultyDistribution.difícil}{" "}
                   questões
                 </span>
-                <span className="text-blue-600">
+                <span className="text-blue-600 dark:text-white">
                   Máximo: {config.questionCount} questões
                 </span>
               </div>

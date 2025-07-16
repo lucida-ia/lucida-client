@@ -171,6 +171,21 @@ export function CreateExamPreview({
     }
   };
 
+  const capitalizeDifficulty = (difficulty: string) => {
+    switch (difficulty) {
+      case "fácil":
+        return "Fácil";
+      case "médio":
+        return "Médio";
+      case "difícil":
+        return "Difícil";
+      case "misto":
+        return "Misto";
+      default:
+        return difficulty || "Não definido";
+    }
+  };
+
   const getDifficultyIcon = (difficulty: string) => {
     switch (difficulty) {
       case "fácil":
@@ -326,17 +341,9 @@ export function CreateExamPreview({
                 <Badge
                   className={`${getDifficultyColor(
                     config.difficulty
-                  )} font-medium`}
+                  )} font-medium border`}
                 >
-                  {config.difficulty === "fácil"
-                    ? "Fácil"
-                    : config.difficulty === "médio"
-                    ? "Médio"
-                    : config.difficulty === "difícil"
-                    ? "Difícil"
-                    : config.difficulty === "misto"
-                    ? "Misto"
-                    : config.difficulty || "Não definido"}
+                  {capitalizeDifficulty(config.difficulty)}
                 </Badge>
               </div>
             </div>

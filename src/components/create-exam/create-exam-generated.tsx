@@ -163,6 +163,21 @@ export function CreateExamGenerated({
     }
   };
 
+  const capitalizeDifficulty = (difficulty: string) => {
+    switch (difficulty) {
+      case "fácil":
+        return "Fácil";
+      case "médio":
+        return "Médio";
+      case "difícil":
+        return "Difícil";
+      case "misto":
+        return "Misto";
+      default:
+        return difficulty || "Não definido";
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Exam Header Card */}
@@ -221,13 +236,9 @@ export function CreateExamGenerated({
                 <Badge
                   className={`${getDifficultyColor(
                     examData.config.difficulty
-                  )} font-medium text-xs`}
+                  )} font-medium text-xs border`}
                 >
-                  {examData.config.difficulty === "fácil" ? "Fácil" :
-                   examData.config.difficulty === "médio" ? "Médio" :
-                   examData.config.difficulty === "difícil" ? "Difícil" :
-                   examData.config.difficulty === "misto" ? "Misto" :
-                   examData.config.difficulty || "Não definido"}
+                  {capitalizeDifficulty(examData.config.difficulty)}
                 </Badge>
               </div>
             </div>
@@ -276,14 +287,11 @@ export function CreateExamGenerated({
                         <div className="flex items-center gap-2 flex-wrap">
                           {question.difficulty && (
                             <Badge
-                              variant="secondary"
-                              className={`text-xs ${
-                                question.difficulty === "fácil" ? "bg-green-100 text-green-800" :
-                                question.difficulty === "médio" ? "bg-yellow-100 text-yellow-800" :
-                                "bg-red-100 text-red-800"
-                              }`}
+                              className={`${getDifficultyColor(
+                                question.difficulty
+                              )} text-xs border`}
                             >
-                              {question.difficulty}
+                              {capitalizeDifficulty(question.difficulty)}
                             </Badge>
                           )}
                           {question.subject && (
