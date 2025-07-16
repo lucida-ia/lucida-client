@@ -19,13 +19,13 @@ const UploadArea = ({
 }: UploadAreaProps) => {
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className="pt-4 md:pt-6">
         <label htmlFor="file-upload" className="block w-full cursor-pointer">
           <div
             role="button"
             tabIndex={0}
             aria-label="Drop files here or click to select files"
-            className={`rounded-lg border-2 border-dashed p-10 ${
+            className={`rounded-lg border-2 border-dashed p-6 md:p-10 transition-all duration-200 ${
               isDragging
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/25"
@@ -40,16 +40,16 @@ const UploadArea = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <Upload className="h-12 w-12 text-muted-foreground" />
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">
+            <div className="flex flex-col items-center justify-center space-y-3 md:space-y-4 text-center">
+              <Upload className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />
+              <div className="space-y-1 md:space-y-2">
+                <h3 className="text-lg md:text-xl font-semibold">
                   Arraste e solte seus arquivos
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground px-2">
                   Faça upload de múltiplos arquivos PDF, DOC, DOCX ou TXT
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground px-2">
                   Tamanho máximo: 100MB por arquivo • Limite total: ~500.000 tokens
                 </p>
               </div>
@@ -58,7 +58,8 @@ const UploadArea = ({
                   <Button
                     type="button"
                     variant="outline"
-                    className="cursor-pointer"
+                    className="cursor-pointer touch-manipulation"
+                    size="default"
                   >
                     Selecionar arquivos
                   </Button>

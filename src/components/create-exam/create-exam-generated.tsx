@@ -252,26 +252,26 @@ export function CreateExamGenerated({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             {examData.questions.map((question: any, index: number) => (
               <div
                 key={index}
-                className={`p-4 border rounded-lg transition-colors ${
+                className={`p-3 md:p-4 border rounded-lg transition-colors ${
                   editingQuestion === index
                     ? "border-primary bg-primary/5"
                     : "hover:bg-muted/50"
                 }`}
               >
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1">
+                <div className="space-y-3 md:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
                       <Badge
                         variant="outline"
-                        className="px-2 py-1 text-xs font-medium"
+                        className="px-2 py-1 text-xs font-medium flex-shrink-0"
                       >
                         {index + 1}
                       </Badge>
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1 space-y-2 min-w-0">
                         {/* Question metadata */}
                         <div className="flex items-center gap-2 flex-wrap">
                           {question.difficulty && (
@@ -330,39 +330,41 @@ export function CreateExamGenerated({
                             </div>
                           </div>
                         ) : (
-                          <h3 className="font-medium text-base leading-relaxed whitespace-pre-wrap">
+                          <div className="space-y-3">
                             {question.context && (
-                              <div className="mb-3 p-3 bg-muted/50 rounded border-l-4 border-primary">
+                              <div className="p-3 bg-muted/50 rounded border-l-4 border-primary">
                                 <p className="text-sm text-muted-foreground font-medium mb-1">
                                   Contexto:
                                 </p>
-                                <p className="text-sm">{question.context}</p>
+                                <p className="text-sm leading-relaxed break-words">{question.context}</p>
                               </div>
                             )}
-                            {question.question}
-                          </h3>
+                            <h3 className="font-medium text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words">
+                              {question.question}
+                            </h3>
+                          </div>
                         )}
                       </div>
                     </div>
 
                     {editingQuestion === index ? (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-shrink-0">
                         <Button
                           size="sm"
                           onClick={saveEditedQuestion}
-                          className="gap-1"
+                          className="gap-1 touch-manipulation"
                         >
                           <Save className="h-3 w-3" />
-                          Salvar
+                          <span className="hidden sm:inline">Salvar</span>
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={cancelEditingQuestion}
-                          className="gap-1"
+                          className="gap-1 touch-manipulation"
                         >
                           <X className="h-3 w-3" />
-                          Cancelar
+                          <span className="hidden sm:inline">Cancelar</span>
                         </Button>
                       </div>
                     ) : (
@@ -370,7 +372,7 @@ export function CreateExamGenerated({
                         size="sm"
                         variant="outline"
                         onClick={() => startEditingQuestion(index)}
-                        className="gap-1"
+                        className="gap-1 w-full sm:w-auto touch-manipulation"
                       >
                         <Edit className="h-3 w-3" />
                         Editar
@@ -378,12 +380,12 @@ export function CreateExamGenerated({
                     )}
                   </div>
 
-                  <div className="ml-8 space-y-2">
+                  <div className="ml-4 md:ml-8 space-y-2">
                     {editingQuestion === index ? (
                       <div className="space-y-4">
                         {editedQuestion.type === "multipleChoice" ? (
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <label className="text-sm font-medium">
                                 Opções:
                               </label>
@@ -391,7 +393,7 @@ export function CreateExamGenerated({
                                 size="sm"
                                 variant="outline"
                                 onClick={addOption}
-                                className="gap-1"
+                                className="gap-1 w-full sm:w-auto"
                               >
                                 <Plus className="h-3 w-3" />
                                 Adicionar Opção
@@ -401,23 +403,25 @@ export function CreateExamGenerated({
                               (option: string, optionIndex: number) => (
                                 <div
                                   key={optionIndex}
-                                  className="flex items-center gap-2 p-2 border rounded"
+                                  className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2 border rounded"
                                 >
-                                  <input
-                                    type="radio"
-                                    name={`correct-${index}`}
-                                    checked={
-                                      editedQuestion.correctAnswer ===
-                                      optionIndex
-                                    }
-                                    onChange={() =>
-                                      updateEditedQuestion(
-                                        "correctAnswer",
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <input
+                                      type="radio"
+                                      name={`correct-${index}`}
+                                      checked={
+                                        editedQuestion.correctAnswer ===
                                         optionIndex
-                                      )
-                                    }
-                                    className="mr-2"
-                                  />
+                                      }
+                                      onChange={() =>
+                                        updateEditedQuestion(
+                                          "correctAnswer",
+                                          optionIndex
+                                        )
+                                      }
+                                      className="touch-manipulation"
+                                    />
+                                  </div>
                                   <Input
                                     value={option}
                                     onChange={(e) =>
@@ -434,7 +438,7 @@ export function CreateExamGenerated({
                                       size="sm"
                                       variant="outline"
                                       onClick={() => removeOption(optionIndex)}
-                                      className="px-2"
+                                      className="px-2 touch-manipulation"
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
@@ -457,6 +461,7 @@ export function CreateExamGenerated({
                                   onChange={() =>
                                     updateEditedQuestion("correctAnswer", 0)
                                   }
+                                  className="touch-manipulation"
                                 />
                                 <span className="text-sm">Verdadeiro</span>
                               </div>
@@ -468,6 +473,7 @@ export function CreateExamGenerated({
                                   onChange={() =>
                                     updateEditedQuestion("correctAnswer", 1)
                                   }
+                                  className="touch-manipulation"
                                 />
                                 <span className="text-sm">Falso</span>
                               </div>
@@ -486,34 +492,36 @@ export function CreateExamGenerated({
                                 return (
                                   <div
                                     key={optionIndex}
-                                    className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                                    className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded transition-colors ${
                                       isCorrect
                                         ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
                                         : "hover:bg-muted/30"
                                     }`}
                                   >
-                                    <div
-                                      className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
-                                        isCorrect
-                                          ? "border-green-500 bg-green-500"
-                                          : "border-muted-foreground"
-                                      }`}
-                                    >
-                                      {isCorrect && (
-                                        <CheckCircle className="h-3 w-3 text-white" />
-                                      )}
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                      <div
+                                        className={`h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                          isCorrect
+                                            ? "border-green-500 bg-green-500"
+                                            : "border-muted-foreground"
+                                        }`}
+                                      >
+                                        {isCorrect && (
+                                          <CheckCircle className="h-3 w-3 text-white" />
+                                        )}
+                                      </div>
+                                      <span
+                                        className={`text-sm break-words min-w-0 ${
+                                          isCorrect
+                                            ? "font-medium text-green-700 dark:text-green-300"
+                                            : ""
+                                        }`}
+                                      >
+                                        {option}
+                                      </span>
                                     </div>
-                                    <span
-                                      className={`text-sm ${
-                                        isCorrect
-                                          ? "font-medium text-green-700 dark:text-green-300"
-                                          : ""
-                                      }`}
-                                    >
-                                      {option}
-                                    </span>
                                     {isCorrect && (
-                                      <Badge className="ml-auto bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                      <Badge className="self-start sm:self-center bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
                                         Resposta Correta
                                       </Badge>
                                     )}
@@ -525,68 +533,72 @@ export function CreateExamGenerated({
                         ) : (
                           <div className="space-y-2">
                             <div
-                              className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                              className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded transition-colors ${
                                 question.correctAnswer === 0
                                   ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
                                   : "hover:bg-muted/30"
                               }`}
                             >
-                              <div
-                                className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
-                                  question.correctAnswer === 0
-                                    ? "border-green-500 bg-green-500"
-                                    : "border-muted-foreground"
-                                }`}
-                              >
-                                {question.correctAnswer === 0 && (
-                                  <CheckCircle className="h-3 w-3 text-white" />
-                                )}
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  className={`h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                    question.correctAnswer === 0
+                                      ? "border-green-500 bg-green-500"
+                                      : "border-muted-foreground"
+                                  }`}
+                                >
+                                  {question.correctAnswer === 0 && (
+                                    <CheckCircle className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                                <span
+                                  className={`text-sm ${
+                                    question.correctAnswer === 0
+                                      ? "font-medium text-green-700 dark:text-green-300"
+                                      : ""
+                                  }`}
+                                >
+                                  Verdadeiro
+                                </span>
                               </div>
-                              <span
-                                className={`text-sm ${
-                                  question.correctAnswer === 0
-                                    ? "font-medium text-green-700 dark:text-green-300"
-                                    : ""
-                                }`}
-                              >
-                                Verdadeiro
-                              </span>
                               {question.correctAnswer === 0 && (
-                                <Badge className="ml-auto bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                <Badge className="self-start sm:self-center bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
                                   Resposta Correta
                                 </Badge>
                               )}
                             </div>
 
                             <div
-                              className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                              className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded transition-colors ${
                                 question.correctAnswer === 1
                                   ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
                                   : "hover:bg-muted/30"
                               }`}
                             >
-                              <div
-                                className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
-                                  question.correctAnswer === 1
-                                    ? "border-green-500 bg-green-500"
-                                    : "border-muted-foreground"
-                                }`}
-                              >
-                                {question.correctAnswer === 1 && (
-                                  <CheckCircle className="h-3 w-3 text-white" />
-                                )}
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  className={`h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                    question.correctAnswer === 1
+                                      ? "border-green-500 bg-green-500"
+                                      : "border-muted-foreground"
+                                  }`}
+                                >
+                                  {question.correctAnswer === 1 && (
+                                    <CheckCircle className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                                <span
+                                  className={`text-sm ${
+                                    question.correctAnswer === 1
+                                      ? "font-medium text-green-700 dark:text-green-300"
+                                      : ""
+                                  }`}
+                                >
+                                  Falso
+                                </span>
                               </div>
-                              <span
-                                className={`text-sm ${
-                                  question.correctAnswer === 1
-                                    ? "font-medium text-green-700 dark:text-green-300"
-                                    : ""
-                                }`}
-                              >
-                                Falso
-                              </span>
                               {question.correctAnswer === 1 && (
-                                <Badge className="ml-auto bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                <Badge className="self-start sm:self-center bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
                                   Resposta Correta
                                 </Badge>
                               )}
@@ -596,11 +608,11 @@ export function CreateExamGenerated({
                         
                         {/* Explanation section */}
                         {question.explanation && (
-                          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="mt-3 md:mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
                               Explicação:
                             </h4>
-                            <p className="text-sm text-blue-700 dark:text-blue-200">
+                            <p className="text-sm leading-relaxed text-blue-700 dark:text-blue-200 break-words">
                               {question.explanation}
                             </p>
                           </div>
@@ -613,30 +625,33 @@ export function CreateExamGenerated({
             ))}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between pt-6">
+        <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-3 pt-6">
           <Button
             type="button"
             variant="outline"
             onClick={onBack}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto touch-manipulation"
           >
             <ArrowLeft className="h-4 w-4" />
-            Voltar para Visualização
+            <span className="hidden sm:inline">Voltar para Visualização</span>
+            <span className="sm:hidden">Voltar</span>
           </Button>
           <Button
             onClick={handleCreateExam}
             disabled={isSavingExam}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto touch-manipulation"
           >
             {isSavingExam ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Salvando...
+                <span className="hidden sm:inline">Salvando...</span>
+                <span className="sm:hidden">Salvando...</span>
               </>
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                Salvar Prova
+                <span className="hidden sm:inline">Salvar Prova</span>
+                <span className="sm:hidden">Salvar</span>
               </>
             )}
           </Button>

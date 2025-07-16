@@ -514,31 +514,34 @@ export function CreateExamPreview({
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between pt-0">
+        <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-3 pt-0">
           <Button
             type="button"
             variant="outline"
             onClick={onBack}
             disabled={isGenerating}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto touch-manipulation"
           >
             <ArrowLeft className="h-4 w-4" />
-            Voltar para Personalização
+            <span className="hidden sm:inline">Voltar para Personalização</span>
+            <span className="sm:hidden">Voltar</span>
           </Button>
           <Button
             onClick={() => handleUploadFilesAndGenerateQuestions(files)}
             disabled={isGenerating}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto touch-manipulation"
           >
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Gerando Prova...
+                <span className="hidden sm:inline">Gerando Prova...</span>
+                <span className="sm:hidden">Gerando...</span>
               </>
             ) : (
               <>
                 <Zap className="h-4 w-4" />
-                Gerar Prova
+                <span className="hidden sm:inline">Gerar Prova</span>
+                <span className="sm:hidden">Gerar</span>
               </>
             )}
           </Button>
