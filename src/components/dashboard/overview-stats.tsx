@@ -88,7 +88,7 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
         const plan = userData.user?.subscription?.plan || "trial";
         const planNames = {
           trial: "Plano Trial",
-          "semi-annual": "Plano Semi-Anual",
+          "semi-annual": "Plano Semestral",
           annual: "Plano Anual",
           custom: "Plano Personalizado",
         };

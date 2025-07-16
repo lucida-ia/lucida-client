@@ -84,6 +84,8 @@ const PRICING_PLANS: PricingPlan[] = [
     period: "por 30 dias",
     features: [
       "Até 3 provas gratuitas",
+      "Máximo 10 questões por prova",
+      "Apenas 1 arquivo por upload",
       "Todos os formatos de questões",
       "Geração avançada com IA",
       "Suporte por email",
@@ -99,7 +101,7 @@ const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: "semi-annual",
-    name: "Semi-Anual",
+    name: "Semestral",
     price: "R$ 189,90",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
     period: "por 6 meses",
@@ -699,7 +701,7 @@ export default function BillingPage() {
                             "Plano Atual"
                           )
                         ) : plan.id === "semi-annual" ? (
-                          "Usar Semi-Anual"
+                          "Usar Semestral"
                         ) : plan.id === "custom" ? (
                           "Entre em contato agora!"
                         ) : (

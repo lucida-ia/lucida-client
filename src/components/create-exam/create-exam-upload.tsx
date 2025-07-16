@@ -7,6 +7,7 @@ import { File, X, CheckCircle, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UploadArea from "../ui/upload-area";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todos os arquivos
 
@@ -22,6 +23,102 @@ export function CreateExamUpload({
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+  const { subscription, loading: subscriptionLoading } = useSubscription();
+
+  React.useEffect(() => {
+    setFiles(uploadedFiles);
+  }, [uploadedFiles]);
+
+  const validateAndAddFiles = useCallback(
+    (newFiles: File[]) => {
+      const validFileTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+      ];
+      const maxFileSize = 100 * 1024 * 1024; // 100MB - increased limit for larger files
+
+      // Função utilitária simples para estimar tokens a partir do tamanho do arquivo
+      // Assume-se ~4 bytes por token como aproximação
+      const estimateTokens = (file: File) => Math.ceil(file.size / 4);
+
+      const invalidFiles: string[] = [];
+      const validFiles: File[] = [];
+
+      // Calculate current tokens from existing files
+      const currentTokens = files.reduce(
+        (sum, file) => sum + estimateTokens(file),
+        0
+      );
+
+      // Check trial user file limit FIRST
+      const isTrialUser = subscription?.plan === "trial";
+      if (isTrialUser && files.length >= 1) {
+        toast({
+          variant: "destructive",
+          title: "Limite de arquivos para usuários Trial",
+          description:
+            "Usuários Trial podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
+        });
+        return;
+      }
+
+      if (isTrialUser && files.length + newFiles.length > 1) {
+        toast({
+          variant: "destructive",
+          title: "Limite de arquivos para usuários Trial",
+          description:
+            "Usuários Trial podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
+        });
+        return;
+      }
+
+      newFiles.forEach((file) => {
+        if (!validFileTypes.includes(file.type)) {
+          invalidFiles.push(
+            `${file.name} (tipo de arquivo inválido - aceita PDF, DOC, DOCX, TXT)`
+          );
+        } else if (file.size > maxFileSize) {
+          invalidFiles.push(`${file.name} (excede o limite de 100MB)`);
+        } else {
+          validFiles.push(file);
+        }
+      });
+
+      // Check if adding new files would exceed token limit
+      const newTokens = validFiles.reduce(
+        (sum, file) => sum + estimateTokens(file),
+        0
+      );
+      if (currentTokens + newTokens > TOTAL_TOKEN_LIMIT) {
+        toast({
+          variant: "destructive",
+          title: "Limite de tokens excedido",
+          description: `Adicionando estes arquivos excederia o limite de ${TOTAL_TOKEN_LIMIT} tokens (atual: ${currentTokens}, novo: ${newTokens})`,
+        });
+        return;
+      }
+
+      if (invalidFiles.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Arquivos inválidos",
+          description: `Não foi possível adicionar: ${invalidFiles.join(", ")}`,
+        });
+      }
+
+      if (validFiles.length > 0) {
+        setFiles((prev) => [...prev, ...validFiles]);
+        const totalTokens = currentTokens + newTokens;
+        toast({
+          title: "Arquivos adicionados",
+          description: `${validFiles.length} arquivo(s) adicionado(s) (≈${totalTokens} tokens total)`,
+        });
+      }
+    },
+    [subscription, files, toast]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -33,14 +130,16 @@ export function CreateExamUpload({
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
 
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    validateAndAddFiles(droppedFiles);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      validateAndAddFiles(droppedFiles);
+    },
+    [validateAndAddFiles]
+  );
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,74 +147,11 @@ export function CreateExamUpload({
         const selectedFiles = Array.from(e.target.files);
         validateAndAddFiles(selectedFiles);
         // Clear the input value to allow re-uploading the same file
-        e.target.value = '';
+        e.target.value = "";
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [validateAndAddFiles]
   );
-
-  React.useEffect(() => {
-    setFiles(uploadedFiles);
-  }, [uploadedFiles]);
-
-  const validateAndAddFiles = (newFiles: File[]) => {
-    const validFileTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain",
-    ];
-    const maxFileSize = 100 * 1024 * 1024; // 100MB - increased limit for larger files
-
-    // Função utilitária simples para estimar tokens a partir do tamanho do arquivo
-    // Assume-se ~4 bytes por token como aproximação
-    const estimateTokens = (file: File) => Math.ceil(file.size / 4);
-
-    const invalidFiles: string[] = [];
-    const validFiles: File[] = [];
-
-    // Calculate current tokens from existing files
-    const currentTokens = files.reduce((sum, file) => sum + estimateTokens(file), 0);
-
-    newFiles.forEach((file) => {
-      if (!validFileTypes.includes(file.type)) {
-        invalidFiles.push(`${file.name} (tipo de arquivo inválido - aceita PDF, DOC, DOCX, TXT)`);
-      } else if (file.size > maxFileSize) {
-        invalidFiles.push(`${file.name} (excede o limite de 100MB)`);
-      } else {
-        validFiles.push(file);
-      }
-    });
-
-    // Check if adding new files would exceed token limit
-    const newTokens = validFiles.reduce((sum, file) => sum + estimateTokens(file), 0);
-    if (currentTokens + newTokens > TOTAL_TOKEN_LIMIT) {
-      toast({
-        variant: "destructive",
-        title: "Limite de tokens excedido",
-        description: `Adicionando estes arquivos excederia o limite de ${TOTAL_TOKEN_LIMIT} tokens (atual: ${currentTokens}, novo: ${newTokens})`,
-      });
-      return;
-    }
-
-    if (invalidFiles.length > 0) {
-      toast({
-        variant: "destructive",
-        title: "Arquivos inválidos",
-        description: `Não foi possível adicionar: ${invalidFiles.join(", ")}`,
-      });
-    }
-
-    if (validFiles.length > 0) {
-      setFiles((prev) => [...prev, ...validFiles]);
-      const totalTokens = currentTokens + newTokens;
-      toast({
-        title: "Arquivos adicionados",
-        description: `${validFiles.length} arquivo(s) adicionado(s) (≈${totalTokens} tokens total)`,
-      });
-    }
-  };
 
   const removeFile = (indexToRemove: number) => {
     setFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
@@ -151,7 +187,9 @@ export function CreateExamUpload({
               Arquivos Enviados ({files.length})
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Total: ≈{files.reduce((sum, file) => sum + Math.ceil(file.size / 4), 0)} tokens de {TOTAL_TOKEN_LIMIT} permitidos
+              Total: ≈
+              {files.reduce((sum, file) => sum + Math.ceil(file.size / 4), 0)}{" "}
+              tokens de {TOTAL_TOKEN_LIMIT} permitidos
             </p>
             <ul className="space-y-3">
               {files.map((file, index) => (
@@ -163,7 +201,8 @@ export function CreateExamUpload({
                     <File className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium">{file.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {(file.size / 1024 / 1024).toFixed(1)} MB • ≈{Math.ceil(file.size / 4)} tokens
+                      {(file.size / 1024 / 1024).toFixed(1)} MB • ≈
+                      {Math.ceil(file.size / 4)} tokens
                     </span>
                   </div>
                   <Button
@@ -179,6 +218,17 @@ export function CreateExamUpload({
             </ul>
           </CardContent>
         </Card>
+      )}
+
+      {subscription?.plan === "trial" && (
+        <Alert className="bg-orange-50 border-orange-200 items-center dark:bg-orange-950 dark:border-orange-800">
+          <CheckCircle className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-600 dark:text-orange-400">
+            <strong>Limitação Trial:</strong> Você pode enviar apenas 1 arquivo.
+            Faça upgrade para enviar múltiplos arquivos e ter acesso completo à
+            plataforma.
+          </AlertDescription>
+        </Alert>
       )}
 
       <Alert className="bg-blue-50 border-blue-200 items-center dark:bg-blue-950 dark:border-blue-800">

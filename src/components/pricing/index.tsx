@@ -10,7 +10,7 @@ import { Button } from "../ui/button";
 
 export const PRICING_PLANS = [
   {
-    name: "Semi-Anual",
+    name: "Semestral",
     description: "Para quem quer testar o produto",
     features: [
       "Até 10 provas por semestre",

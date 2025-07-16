@@ -171,15 +171,6 @@ export function DashboardNav() {
                       }
                     />
                   </UserButton.MenuItems>
-                  {!shouldHideBilling && (
-                    <UserButton.MenuItems>
-                      <UserButton.Action
-                        label="Billing"
-                        labelIcon={<CreditCard className="w-4 h-4" />}
-                        onClick={() => router.push("/dashboard/billing")}
-                      />
-                    </UserButton.MenuItems>
-                  )}
                 </UserButton>
               )}
               <Button
