@@ -34,7 +34,7 @@ interface Question {
   options?: string[];
   correctAnswer: number;
   type?: "multipleChoice" | "trueFalse";
-  difficulty?: 'fácil' | 'médio' | 'difícil';
+  difficulty?: "fácil" | "médio" | "difícil";
   subject?: string;
   explanation?: string;
 }
@@ -317,18 +317,12 @@ export default function PublicExamPage() {
               <p className="text-muted-foreground">
                 {result.score} de {result.totalQuestions} questões corretas
               </p>
-              <Badge
-                variant={result.percentage >= 70 ? "default" : "secondary"}
-                className="mt-2"
-              >
-                {result.percentage >= 70 ? "Aprovado" : "Reprovado"}
-              </Badge>
             </div>
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Revisão das Respostas</h3>
               {exam.questions.map((question, index) => (
-                <Card key={index} className="border-l-4 border-l-primary">
+                <Card key={index} className="">
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
                       <Badge variant="outline" className="text-sm">
@@ -345,9 +339,9 @@ export default function PublicExamPage() {
                               <div
                                 className={`p-2 rounded ${
                                   1 === question.correctAnswer
-                                    ? "bg-green-100 text-green-800"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                     : answers[index] === 1
-                                    ? "bg-red-100 text-red-800"
+                                    ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
                                     : "bg-muted"
                                 }`}
                               >
@@ -360,16 +354,16 @@ export default function PublicExamPage() {
                                   />
                                   <span>Verdadeiro</span>
                                   {1 === question.correctAnswer && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                   )}
                                 </div>
                               </div>
                               <div
                                 className={`p-2 rounded ${
                                   0 === question.correctAnswer
-                                    ? "bg-green-100 text-green-800"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                     : answers[index] === 0
-                                    ? "bg-red-100 text-red-800"
+                                    ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
                                     : "bg-muted"
                                 }`}
                               >
@@ -382,7 +376,7 @@ export default function PublicExamPage() {
                                   />
                                   <span>Falso</span>
                                   {0 === question.correctAnswer && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                   )}
                                 </div>
                               </div>
@@ -393,9 +387,9 @@ export default function PublicExamPage() {
                                 key={optionIndex}
                                 className={`p-2 rounded ${
                                   optionIndex === question.correctAnswer
-                                    ? "bg-green-100 text-green-800"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                     : answers[index] === optionIndex
-                                    ? "bg-red-100 text-red-800"
+                                    ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
                                     : "bg-muted"
                                 }`}
                               >
@@ -408,7 +402,7 @@ export default function PublicExamPage() {
                                   />
                                   <span>{option}</span>
                                   {optionIndex === question.correctAnswer && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                   )}
                                 </div>
                               </div>
@@ -498,7 +492,7 @@ export default function PublicExamPage() {
                         currentQuestion === index
                           ? "bg-primary text-primary-foreground border-primary"
                           : answers[index] !== -1
-                          ? "bg-muted text-muted-foreground border-muted hover:bg-muted/80"
+                          ? "dark:bg-blue-500/60 bg-blue-500/60 text-white dark:text-white border-muted hover:bg-muted/80"
                           : "bg-background border-border hover:bg-muted/50"
                       }`}
                     >
