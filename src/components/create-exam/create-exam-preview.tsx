@@ -10,6 +10,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -88,7 +89,7 @@ export function CreateExamPreview({
       const response = await axios(
         // "http://localhost:8080/ai-ops/generate-exam",
         "https://lucida-api-production.up.railway.app/ai-ops/generate-exam",
-      
+
         {
           method: "POST",
           data: formData,
@@ -112,7 +113,7 @@ export function CreateExamPreview({
       if (data.results) {
         const errors = data.results.filter((result: any) => !result.success);
         const successes = data.results.filter((result: any) => result.success);
-        
+
         if (errors.length > 0) {
           errors.forEach((error: any) => {
             toast({
@@ -122,16 +123,19 @@ export function CreateExamPreview({
             });
           });
         }
-        
+
         if (successes.length > 0) {
-          const totalTokens = successes.reduce((sum: number, result: any) => sum + result.extractedTokens, 0);
+          const totalTokens = successes.reduce(
+            (sum: number, result: any) => sum + result.extractedTokens,
+            0
+          );
           toast({
             variant: "default",
             title: "Arquivos processados com sucesso",
             description: `${successes.length} arquivo(s) processado(s) (≈${totalTokens} tokens)`,
           });
         }
-        
+
         // If no files were successfully processed, don't proceed
         if (successes.length === 0) {
           return;
@@ -210,6 +214,39 @@ export function CreateExamPreview({
 
   return (
     <div className="space-y-8">
+      {/* Loading Modal */}
+      <Dialog open={isGenerating} onOpenChange={() => {}}>
+        <DialogContent
+          className="sm:max-w-md [&>button]:hidden"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogTitle className="sr-only">Gerando Prova</DialogTitle>
+          <div className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="relative">
+              <div className="p-4 bg-primary/10 rounded-full mb-6">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              </div>
+              <div className="absolute -top-1 -right-1">
+                <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <div className="text-center space-y-3">
+              <h3 className="text-xl font-semibold">Gerando Prova</h3>
+              <p className="text-muted-foreground text-sm max-w-sm">
+                Estamos processando seus arquivos e criando questões
+                personalizadas. Isso leva somente alguns segundos.
+              </p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-2 w-2 bg-primary rounded-full animate-bounce"></div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Exam Details Card */}
       <Card className="hover:border-primary/20 transition-colors">
         <CardHeader className="pb-4">
@@ -257,8 +294,8 @@ export function CreateExamPreview({
                   Tipo de Prova
                 </p>
                 <Badge variant="secondary" className="font-medium">
-                                  {config.questionStyle === "simple"
-                  ? "Simples"
+                  {config.questionStyle === "simple"
+                    ? "Simples"
                     : "Estilo ENEM"}
                 </Badge>
               </div>
@@ -291,11 +328,15 @@ export function CreateExamPreview({
                     config.difficulty
                   )} font-medium`}
                 >
-                  {config.difficulty === "fácil" ? "Fácil" :
-                   config.difficulty === "médio" ? "Médio" :
-                   config.difficulty === "difícil" ? "Difícil" :
-                   config.difficulty === "misto" ? "Misto" :
-                   config.difficulty || "Não definido"}
+                  {config.difficulty === "fácil"
+                    ? "Fácil"
+                    : config.difficulty === "médio"
+                    ? "Médio"
+                    : config.difficulty === "difícil"
+                    ? "Difícil"
+                    : config.difficulty === "misto"
+                    ? "Misto"
+                    : config.difficulty || "Não definido"}
                 </Badge>
               </div>
             </div>
@@ -364,31 +405,37 @@ export function CreateExamPreview({
                     <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-green-800 dark:text-green-300">Fácil</p>
+                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                      Fácil
+                    </p>
                     <p className="text-lg font-bold text-green-900 dark:text-green-200">
                       {config.difficultyDistribution.fácil}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
                   <div className="p-1 bg-yellow-100 dark:bg-yellow-800 rounded">
                     <Settings className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Médio</p>
+                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                      Médio
+                    </p>
                     <p className="text-lg font-bold text-yellow-900 dark:text-yellow-200">
                       {config.difficultyDistribution.médio}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-3 border rounded-lg bg-red-50 dark:bg-red-900/20">
                   <div className="p-1 bg-red-100 dark:bg-red-800 rounded">
                     <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-red-800 dark:text-red-300">Difícil</p>
+                    <p className="text-sm font-medium text-red-800 dark:text-red-300">
+                      Difícil
+                    </p>
                     <p className="text-lg font-bold text-red-900 dark:text-red-200">
                       {config.difficultyDistribution.difícil}
                     </p>
@@ -397,7 +444,6 @@ export function CreateExamPreview({
               </div>
             </div>
           )}
-
         </CardContent>
       </Card>
 
