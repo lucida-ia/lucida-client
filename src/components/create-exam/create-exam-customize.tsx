@@ -586,8 +586,8 @@ export function CreateExamCustomize({
                 <span>{maxQuestions}</span>
               </div>
               {subscription?.plan === "trial" && (
-                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
-                  <p className="text-xs text-orange-600">
+                <div className="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
+                  <p className="text-xs text-orange-600 dark:text-orange-400">
                     <strong>Limitação Trial:</strong> Máximo 10 questões por
                     prova. Faça upgrade para criar provas com até 50 questões.
                   </p>
@@ -643,7 +643,7 @@ export function CreateExamCustomize({
               </div>
             </div>
             {config.questionStyle === "enem" && (
-              <p className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <p className="text-xs text-muted-foreground bg-blue-50 dark:bg-muted/50 p-3 rounded-lg border border-blue-200 dark:border-muted">
                 📝 No estilo ENEM, apenas questões de múltipla escolha são
                 permitidas.
               </p>
@@ -693,11 +693,11 @@ export function CreateExamCustomize({
 
           {/* Difficulty Distribution - Only shown when "misto" is selected */}
           {config.difficulty === "misto" && (
-            <div className="space-y-4 border border-blue-200 rounded-lg p-4 bg-blue-50">
-              <Label className="text-base font-medium text-blue-800">
+            <div className="space-y-4 border border-blue-200 dark:border-muted rounded-lg p-4 bg-blue-50 dark:bg-muted/30">
+              <Label className="text-base font-medium text-blue-800 dark:text-foreground">
                 Distribuição de Dificuldade
               </Label>
-              <p className="text-sm text-blue-600">
+              <p className="text-sm text-blue-600 dark:text-muted-foreground">
                 Defina quantas questões de cada nível de dificuldade você
                 deseja.
               </p>
@@ -778,7 +778,7 @@ export function CreateExamCustomize({
                 difficultyDistribution.médio +
                 difficultyDistribution.difícil >
                 config.questionCount && (
-                <div className="text-red-600 text-sm bg-red-50 p-2 rounded border border-red-200">
+                <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-200 dark:border-red-800">
                   ⚠️ O total de questões não pode exceder {config.questionCount}
                 </div>
               )}

@@ -4,19 +4,34 @@ import * as React from "react";
 import { useTheme } from "next-themes";
 
 const LucidaLogo = ({ isDark }: { isDark?: boolean }) => {
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   let fillColor: string;
   let strokeColor: string;
 
-  const { theme } = useTheme();
-
-  // Always use dark mode colors for landing page
-
+  // Force dark mode colors for landing page
   if (isDark) {
-    fillColor = "#fcfcfc";
-    strokeColor = "#111111";
+    fillColor = "#fcfcfc"; // Light background
+    strokeColor = "#111111"; // Dark text/icon
+  } else if (!mounted) {
+    // Default to light mode colors during SSR/hydration
+    fillColor = "#111111"; // Dark background
+    strokeColor = "#fcfcfc"; // Light text/icon
   } else {
-    fillColor = theme === "dark" ? "#fcfcfc" : "#111111";
-    strokeColor = theme === "dark" ? "#111111" : "#fcfcfc";
+    // Use theme-based colors after mounting
+    const currentTheme = resolvedTheme || theme;
+    if (currentTheme === "dark") {
+      fillColor = "#fcfcfc"; // Light background for dark mode
+      strokeColor = "#111111"; // Dark text/icon for dark mode
+    } else {
+      fillColor = "#111111"; // Dark background for light mode
+      strokeColor = "#fcfcfc"; // Light text/icon for light mode
+    }
   }
 
   return (
@@ -24,7 +39,7 @@ const LucidaLogo = ({ isDark }: { isDark?: boolean }) => {
       width="100%"
       height="100%"
       viewBox="0 0 430.5 127"
-      className="max-w-full h-auto"
+      className="max-w-full h-auto transition-colors duration-200"
     >
       <defs id="SvgjsDefs1135" />
       <g id="SvgjsG1136" transform="matrix(1,0,0,1,0,0)" fill={fillColor}>
