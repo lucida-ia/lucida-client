@@ -175,12 +175,20 @@ export default function BillingPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [isTrialDowngrade, setIsTrialDowngrade] = useState(false);
+  const [redirectingToPortal, setRedirectingToPortal] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchSubscription();
     }
   }, [user]);
+
+  // Redirect users with custom subscription away from billing page
+  useEffect(() => {
+    if (subscription && subscription.plan === "custom") {
+      router.push("/dashboard");
+    }
+  }, [subscription, router]);
 
   const fetchSubscription = async () => {
     try {
@@ -303,6 +311,38 @@ export default function BillingPage() {
     }
   };
 
+  const handleCustomerPortal = async () => {
+    if (!user) return;
+
+    setRedirectingToPortal(true);
+
+    try {
+      const response = await fetch("/api/subscription/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to create customer portal session"
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("No portal URL received");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setRedirectingToPortal(false);
+    }
+  };
+
   const getCurrentPlan = () => {
     if (!subscription) return PRICING_PLANS[0]; // Default to trial plan
     return (
@@ -351,6 +391,11 @@ export default function BillingPage() {
         </div>
       </div>
     );
+  }
+
+  // Don't render billing page for custom subscription users
+  if (subscription && subscription.plan === "custom") {
+    return null; // Return null while redirecting
   }
 
   const currentPlan = getCurrentPlan();
@@ -689,16 +734,21 @@ export default function BillingPage() {
                   <div className="space-y-6">
                     <Button
                       variant="outline"
-                      onClick={() =>
-                        window.open(
-                          "https://billing.stripe.com/p/login/test_bIY8wUey0fhq6aY288",
-                          "_blank"
-                        )
-                      }
+                      onClick={handleCustomerPortal}
+                      disabled={redirectingToPortal}
                       className="w-full sm:w-auto h-12 text-base hover:bg-slate-100 transition-colors"
                     >
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Gerenciar Pagamentos
+                      {redirectingToPortal ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Redirecionando...
+                        </div>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Gerenciar Pagamentos
+                        </>
+                      )}
                     </Button>
 
                     <Separator className="my-6" />
@@ -758,13 +808,9 @@ export default function BillingPage() {
                           Após esta data, você voltará automaticamente para o
                           plano Trial
                         </li>
+                        <li>No plano Trial você terá até 3 provas gratuitas</li>
                         <li>
-                          No plano Trial você terá até 3 provas gratuitas por
-                          mês
-                        </li>
-                        <li>
-                          Você pode reativar sua assinatura premium a qualquer
-                          momento
+                          Você pode reativar sua assinatura a qualquer momento
                         </li>
                       </ul>
                     </>

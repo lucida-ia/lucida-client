@@ -23,6 +23,7 @@ import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { useSubscription } from "@/hooks/use-subscription";
 
 // Custom hook for localStorage that handles SSR
 function useLocalStorage(key: string, initialValue: boolean) {
@@ -76,11 +77,12 @@ export function DashboardNav() {
     "navbar-collapsed",
     false
   );
+  const { shouldHideBilling } = useSubscription();
 
   const pathname = usePathname();
   const router = useRouter();
 
-  const navItems: NavItem[] = [
+  const allNavItems: NavItem[] = [
     {
       title: "Dashboard",
       href: "/dashboard",
@@ -104,7 +106,17 @@ export function DashboardNav() {
       href: "/dashboard/classes",
       icon: <UsersRound className="h-5 w-5" />,
     },
+    {
+      title: "Gerenciar Assinatura",
+      href: "/dashboard/billing",
+      icon: <CreditCard className="h-5 w-5" />,
+    },
   ];
+
+  // Filter out billing item for custom subscription users
+  const navItems = shouldHideBilling
+    ? allNavItems.filter((item) => item.href !== "/dashboard/billing")
+    : allNavItems;
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -159,13 +171,15 @@ export function DashboardNav() {
                       }
                     />
                   </UserButton.MenuItems>
-                  <UserButton.MenuItems>
-                    <UserButton.Action
-                      label="Billing"
-                      labelIcon={<CreditCard className="w-4 h-4" />}
-                      onClick={() => router.push("/dashboard/billing")}
-                    />
-                  </UserButton.MenuItems>
+                  {!shouldHideBilling && (
+                    <UserButton.MenuItems>
+                      <UserButton.Action
+                        label="Billing"
+                        labelIcon={<CreditCard className="w-4 h-4" />}
+                        onClick={() => router.push("/dashboard/billing")}
+                      />
+                    </UserButton.MenuItems>
+                  )}
                 </UserButton>
               )}
               <Button
