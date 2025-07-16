@@ -77,7 +77,7 @@ export function DashboardNav() {
     "navbar-collapsed",
     false
   );
-  const { shouldHideBilling } = useSubscription();
+  const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
 
   const pathname = usePathname();
   const router = useRouter();
@@ -110,6 +110,7 @@ export function DashboardNav() {
       title: "Gerenciar Assinatura",
       href: "/dashboard/billing",
       icon: <CreditCard className="h-5 w-5" />,
+      disabled: shouldHideBilling,
     },
   ];
 
@@ -122,8 +123,8 @@ export function DashboardNav() {
     setIsCollapsed(!isCollapsed);
   };
 
-  // Prevent hydration issues by not rendering until localStorage is loaded
-  if (!isLoaded) {
+  // Prevent hydration issues and billing button flash by not rendering until both localStorage and subscription are loaded
+  if (!isLoaded || subscriptionLoading) {
     return (
       <div className="hidden border-r bg-muted/40 lg:block sticky top-0 left-0 w-64 h-screen">
         <div className="flex h-screen flex-col gap-2">

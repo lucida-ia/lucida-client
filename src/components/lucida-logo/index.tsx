@@ -1,11 +1,23 @@
 "use client";
 
 import * as React from "react";
+import { useTheme } from "next-themes";
 
 const LucidaLogo = ({ isDark }: { isDark?: boolean }) => {
+  let fillColor: string;
+  let strokeColor: string;
+
+  const { theme } = useTheme();
+
   // Always use dark mode colors for landing page
-  const fillColor = "#fcfcfc";
-  const strokeColor = "#111111";
+
+  if (isDark) {
+    fillColor = "#fcfcfc";
+    strokeColor = "#111111";
+  } else {
+    fillColor = theme === "dark" ? "#fcfcfc" : "#111111";
+    strokeColor = theme === "dark" ? "#111111" : "#fcfcfc";
+  }
 
   return (
     <svg
