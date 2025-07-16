@@ -29,10 +29,15 @@ import {
   Clock,
   Users,
   Shield,
+  Star,
+  ArrowUpRight,
+  Plus,
+  Brain,
+  Lightbulb,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import Pricing from "@/components/pricing";
 
 export default function Home() {
   const { isSignedIn, user } = useUser();
@@ -57,17 +62,10 @@ export default function Home() {
     }
   }, [isSignedIn, user]);
 
-  // Scroll event listener to detect when user scrolls past hero section
+  // Scroll event listener
   useEffect(() => {
     const handleScroll = () => {
-      const heroSection = document.querySelector(
-        "#hero-section"
-      ) as HTMLElement;
-      if (heroSection) {
-        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
-        const scrollPosition = window.scrollY + 100; // Add some offset for smooth transition
-        setIsScrolled(scrollPosition > heroBottom);
-      }
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -76,99 +74,117 @@ export default function Home() {
 
   // Show loading state while checking authentication
   if (isSignedIn && user) {
-    return null; // Don't render anything while redirecting
+    return null;
   }
 
   const features = [
     {
-      icon: <Clock className="w-6 h-6" />,
-      title: "Criação em Segundos",
-      description: "Nossa IA gera provas completas em segundos, não horas",
+      icon: <Clock className="w-5 h-5" />,
+      title: "Geração Instantânea",
+      description: "Provas prontas em segundos",
+      size: "small",
     },
     {
-      icon: <Sparkles className="w-6 h-6" />,
-      title: "Qualidade Profissional",
+      icon: <Shield className="w-5 h-5" />,
+      title: "100% Seguro",
       description:
-        "Questões elaboradas com base em técnicas pedagógicas modernas",
+        "Seus dados e materiais protegidos com criptografia avançada",
+      size: "large",
     },
     {
       icon: <Users className="w-6 h-6" />,
       title: "Para Todos os Níveis",
-      description: "Do ensino fundamental ao superior, todas as disciplinas",
+      description:
+        "Desde fundamental até superior, todas as disciplinas com adaptação automática de dificuldade",
+      size: "large",
     },
     {
-      icon: <Shield className="w-6 h-6" />,
-      title: "100% Seguro",
-      description:
-        "Seus dados e materiais protegidos com criptografia avançada",
+      icon: <Lightbulb className="w-5 h-5" />,
+      title: "Personalizável",
+      description: "Ajuste formato e estilo",
+      size: "small",
     },
   ];
 
   const steps = [
     {
-      icon: <FileText className="w-8 h-8 text-blue-400" />,
-      title: "Envie seu material",
+      icon: <FileText className="w-6 h-6 sm:w-8 sm:h-8" />,
+      title: "Upload Inteligente",
       description:
-        "Faça upload de arquivos PDF ou DOCX com o conteúdo que deseja transformar em prova.",
+        "Envie PDFs, DOCs ou texto. Nossa IA analisa automaticamente o conteúdo.",
+      gradient: "from-blue-500 to-cyan-500",
     },
     {
-      icon: <Settings className="w-8 h-8 text-green-400" />,
-      title: "Personalize a prova",
+      icon: <Settings className="w-6 h-6 sm:w-8 sm:h-8" />,
+      title: "Configuração Rápida",
       description:
-        "Escolha o número de questões, formato (simples ou ENEM), nível de dificuldade e tipos de questões.",
+        "Escolha formato, dificuldade e tipos de questões em poucos cliques.",
+      gradient: "from-purple-500 to-pink-500",
     },
     {
-      icon: <Zap className="w-8 h-8 text-yellow-400" />,
-      title: "Gere e revise",
+      icon: <Zap className="w-6 h-6 sm:w-8 sm:h-8" />,
+      title: "Geração Instantânea",
       description:
-        "A IA gera as questões automaticamente. Revise, ajuste se necessário e salve sua prova.",
+        "IA cria questões contextualizadas e pedagogicamente estruturadas.",
+      gradient: "from-amber-500 to-orange-500",
     },
     {
-      icon: <Share2 className="w-8 h-8 text-purple-400" />,
-      title: "Compartilhe ou aplique",
+      icon: <Share2 className="w-6 h-6 sm:w-8 sm:h-8" />,
+      title: "Compartilhamento Fácil",
       description:
-        "Compartilhe o link da prova com seus alunos ou aplique diretamente pela plataforma.",
+        "Publique online ou exporte em múltiplos formatos profissionais.",
+      gradient: "from-green-500 to-emerald-500",
     },
   ];
 
   const plans = [
     {
-      name: "Básico",
-      description: "Para quem está começando ou tem poucas demandas.",
+      name: "Starter",
+      description: "Perfeito para começar",
       price: "R$17,90",
-      period: "por mês",
+      period: "/mês",
       features: [
-        "Até 10 provas por mês",
-        "Apenas formato simples de questão",
-        "Geração padrão com IA",
+        "10 provas por mês",
+        "Formato simples",
+        "IA básica",
         "Suporte por email",
+        "Exportação PDF",
       ],
-      cta: "Entrar na Lista de Espera",
+      cta: "Começar Grátis",
       popular: false,
       href: "/sign-up",
     },
     {
-      name: "Pro",
-      description: "Para quem precisa de mais flexibilidade e recursos.",
+      name: "Professional",
+      description: "Para educadores dedicados",
       price: "R$27,90",
-      period: "por mês",
+      period: "/mês",
       features: [
-        "Até 30 provas por mês",
-        "Todos os formatos de questões",
-        "Geração avançada com IA",
-        "Suporte prioritário por email",
+        "30 provas por mês",
+        "Todos os formatos",
+        "IA avançada",
+        "Suporte prioritário",
+        "Múltiplos formatos",
+        "Analytics avançado",
+        "Banco de questões",
       ],
-      cta: "Entrar na Lista de Espera",
+      cta: "Mais Popular",
       popular: true,
       href: "/sign-up",
     },
     {
-      name: "Personalizado",
-      description: "Soluções sob medida para grandes demandas ou instituições.",
-      price: "",
-      period: "Fale com vendas para um plano personalizado",
-      features: [],
-      cta: "Entrar na Lista de Espera",
+      name: "Enterprise",
+      description: "Para instituições",
+      price: "Personalizado",
+      period: "",
+      features: [
+        "Provas ilimitadas",
+        "API dedicada",
+        "Suporte 24/7",
+        "Integração personalizada",
+        "Treinamento incluso",
+      ],
+      cta: "Falar com Vendas",
       popular: false,
       href: "/sign-up",
     },
@@ -183,7 +199,7 @@ export default function Home() {
     {
       question: "Quais formatos de arquivo posso enviar?",
       answer:
-        "O Lucida suporta vários formatos de arquivo, incluindo PDF, DOC/DOCX (Microsoft Word), TXT. Você pode enviar anotações de aula, capítulos de livros, guias de estudo ou qualquer outro material de aprendizado baseado em texto.",
+        "O Lucida suporta vários formatos de arquivo, incluindo PDF, DOC/DOCX (Microsoft Word), TXT e RTF. Você pode enviar anotações de aula, capítulos de livros, guias de estudo ou qualquer outro material de aprendizado baseado em texto.",
     },
     {
       question: "Posso personalizar os tipos de questões geradas?",
@@ -213,344 +229,255 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-900">
-      {/* Animated Background */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-x-hidden text-white dark">
+      {/* Enhanced Background Effects - Optimized for mobile */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Moving Gradient Blob 1 - Horizontal drift */}
-        <div
-          className="absolute top-20 left-20 w-80 h-80 rounded-full mix-blend-multiply filter blur-2xl opacity-70"
-          style={{
-            animation: "float-horizontal 25s ease-in-out infinite",
-          }}
-        ></div>
+        {/* Animated Orbs - Smaller on mobile */}
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-48 h-48 sm:w-96 sm:h-96 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-2000"></div>
 
-        {/* Moving Gradient Blob 2 - Vertical float */}
-        <div
-          className="absolute top-40 right-20 w-96 h-96 rounded-full mix-blend-multiply filter blur-2xl opacity-60"
-          style={{
-            animation: "float-vertical 30s ease-in-out infinite 2s",
-          }}
-        ></div>
-
-        {/* Moving Gradient Blob 3 - Diagonal movement */}
-        <div
-          className="absolute bottom-32 left-40 w-72 h-72 rounded-full mix-blend-multiply filter blur-2xl opacity-75"
-          style={{
-            animation: "float-diagonal 35s ease-in-out infinite 4s",
-          }}
-        ></div>
-
-        {/* Moving Gradient Blob 4 - Circular motion */}
-        <div
-          className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full mix-blend-multiply filter blur-xl opacity-50"
-          style={{
-            animation: "float-circular 40s linear infinite 6s",
-          }}
-        ></div>
-
-        {/* Moving Gradient Blob 5 - Slow drift */}
-        <div
-          className="absolute bottom-20 right-32 w-88 h-88 rounded-full mix-blend-multiply filter blur-3xl opacity-65"
-          style={{
-            animation: "float-slow-drift 45s ease-in-out infinite 8s",
-          }}
-        ></div>
-
-        {/* Moving Gradient Blob 6 - Gentle pulse with movement */}
-        <div
-          className="absolute top-1/3 right-1/4 w-48 h-48 rounded-full mix-blend-multiply filter blur-xl opacity-55"
-          style={{
-            animation: "float-pulse-move 20s ease-in-out infinite 10s",
-          }}
-        ></div>
+        {/* Grid Pattern - Responsive sizing */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px] sm:bg-[size:24px_24px]"></div>
       </div>
 
-      {/* Navigation */}
+      {/* Modern Floating Navigation - Mobile optimized */}
       <div
-        className={`${
-          isScrolled ? "fixed top-0 left-0 right-0 z-50" : "relative z-10"
-        } px-4 sm:px-6 lg:px-32 navbar-transition`}
+        className={`fixed top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-50 transition-all duration-500 ${
+          isScrolled
+            ? "translate-y-0 opacity-100"
+            : "translate-y-1 sm:translate-y-2 opacity-90"
+        }`}
       >
-        {/* Animated background overlay */}
-        <div
-          className={`absolute inset-0 navbar-background-transition ${
-            isScrolled
-              ? "bg-black/80 backdrop-blur-md border-b border-white/10 shadow-lg opacity-100 transform scale-100"
-              : "bg-transparent opacity-0 transform scale-95 blur-sm"
-          }`}
-        ></div>
-
-        {/* Content wrapper with smooth animations */}
-        <div
-          className={`relative z-10 navbar-transition transform ${
-            isScrolled
-              ? "py-3 translate-y-0 scale-100"
-              : "py-4 translate-y-0 scale-100"
-          }`}
-        >
-          <div
-            className={`navbar-transition ${
-              isScrolled ? "opacity-100" : "opacity-100"
-            }`}
-          >
-            <NavBar />
-          </div>
+        <div className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-xl sm:rounded-2xl py-2 shadow-2xl max-w-5xl mx-auto px-2 sm:px-4">
+          <NavBar />
         </div>
       </div>
 
-      {/* Hero Section */}
-      <section
-        id="hero-section"
-        className="relative z-10 px-4 sm:px-6 lg:px-8 py-20 lg:py-32"
-      >
-        <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-8 bg-white/10 text-white border-white/20 hover:bg-white/20">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Exams with AI
-          </Badge>
+      {/* Hero Section - Mobile optimized */}
+      <section className="relative z-10 min-h-screen flex items-center justify-center px-3 sm:px-4 lg:px-8 pt-20 sm:pt-0">
+        <div className="max-w-7xl mx-auto text-center">
+          {/* Badge with Modern Design - Mobile optimized */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full px-4 sm:px-6 py-2 mb-6 sm:mb-8 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-blue-400" />
+            <span className="text-blue-300 text-xs sm:text-sm font-medium">
+              Powered by AI
+            </span>
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-            Crie Provas com IA em{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
-              Segundos
+          {/* Main Headline - Mobile responsive typography */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight px-2">
+            Crie Provas com
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+              IA em Segundos
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-3xl mx-auto leading-relaxed">
+          {/* Subtitle - Mobile optimized */}
+          <p className="text-base sm:text-xl lg:text-2xl text-slate-300 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-4">
             Transforme seu material didático em provas com IA.
+            <br />
+            <span className="text-slate-400">
+              Rápido, inteligente e personalizado.
+            </span>
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Link href="/waitlist">
+          {/* Modern CTA Buttons - Mobile optimized */}
+          <div className="flex flex-col md:flex-row	 gap-3 sm:gap-4 justify-center items-center mb-16 sm:mb-20 px-4">
+            <Link href="/sign-up" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-2xl"
+                className="group bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-2xl shadow-blue-500/25 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[44px]"
               >
-                Entrar na Lista de Espera
-                <ArrowRight className="w-5 h-5 ml-2" />
+                Começar Agora!
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
 
-            <Link href="#como-funciona">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/20 text-white bg-white/10 hover:bg-white/20 px-8 py-6 text-lg"
-              >
-                Como Funciona
-              </Button>
-            </Link>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="text-center">
-                <div className="bg-white/10 rounded-2xl p-4 w-fit mx-auto mb-4 border border-white/20 text-white">
-                  {feature.icon}
-                </div>
-                <h3 className="text-white font-semibold mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-white/70 text-sm">{feature.description}</p>
-              </div>
-            ))}
+            <Button
+              disabled
+              size="lg"
+              variant="outline"
+              className="border-slate-700 text-slate-300 bg-slate-800/50 hover:bg-slate-700/50 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg backdrop-blur-sm rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[44px]"
+            >
+              <span>Ver Demo</span>
+              <ArrowUpRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Spacer for sticky navbar */}
-      {isScrolled && <div className="h-20"></div>}
-
-      {/* How It Works Section */}
+      {/* Features - Mobile optimized Bento Grid */}
       <section
-        id="como-funciona"
-        className="relative z-10 px-4 sm:px-6 lg:px-8 py-20"
+        id="features"
+        className="relative z-10 px-3 sm:px-4 lg:px-8 py-16 sm:py-32 w-full"
       >
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-              Como Funciona o Lucida
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-20">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-4">
+              Recursos que Fazem a Diferença
             </h2>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Processo simples para criar avaliações profissionais
+            <p className="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto px-4">
+              Tecnologia de ponta para criar avaliações que realmente importam
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, index) => (
+          {/* Mobile-first Bento Grid Layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-fr">
+            {features.map((feature, index) => (
               <Card
                 key={index}
-                className="bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/20 transition-all duration-300"
-              >
-                <CardHeader className="text-center">
-                  <div className="mx-auto bg-white/10 rounded-full p-4 w-fit mb-4">
-                    {step.icon}
-                  </div>
-                  <CardTitle className="text-white text-lg">
-                    {step.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-white/80 text-sm text-center">
-                    {step.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      {/* <Pricing /> */}
-      <section id="precos" className="relative z-10 px-4 sm:px-6 lg:px-8 py-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-              Planos para Cada Necessidade
-            </h2>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Escolha o plano ideal com tecnologia de IA inclusa.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {plans.map((plan, index) => (
-              <Card
-                key={index}
-                className={`bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/20 transition-all duration-300 relative ${
-                  plan.popular
-                    ? "border-cyan-500/50 shadow-2xl shadow-cyan-500/25"
-                    : ""
+                className={`group bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/10 ${
+                  feature.size === "large" ? "sm:col-span-2 lg:col-span-2" : ""
                 }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-full text-white text-sm font-semibold">
-                    Mais Popular
-                  </div>
-                )}
-                <CardHeader className="text-center">
-                  <CardTitle className="text-white text-2xl">
-                    {plan.name}
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    {plan.description}
-                  </CardDescription>
-                  <div className="mt-4">
-                    {plan.price && (
-                      <div className="text-4xl font-bold text-white">
-                        {plan.price}
-                      </div>
-                    )}
-                    <div className="text-white/60 text-sm">{plan.period}</div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li
-                        key={featureIndex}
-                        className="flex items-center text-white/90"
-                      >
-                        <Check className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className={`w-full text-white ${
-                      plan.popular
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
-                        : "bg-white/10 hover:bg-white/20 border border-white/20"
-                    }`}
-                    asChild
+                <CardHeader className="p-4 sm:p-6 lg:p-8">
+                  <div
+                    className={`w-fit p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 text-blue-400 mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}
                   >
-                    <Link href={plan.href}>{plan.cta}</Link>
-                  </Button>
-                </CardContent>
+                    {feature.icon}
+                  </div>
+                  <CardTitle className="text-white text-lg sm:text-xl mb-2 sm:mb-3 group-hover:text-blue-300 transition-colors">
+                    {feature.title}
+                  </CardTitle>
+                  <CardDescription className="text-slate-400 leading-relaxed text-sm sm:text-base">
+                    {feature.description}
+                  </CardDescription>
+                </CardHeader>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section id="faq" className="relative z-10 px-4 sm:px-6 lg:px-8 py-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-              Perguntas Frequentes
+      {/* How It Works - Mobile optimized */}
+      <section
+        id="how-it-works"
+        className="relative z-10 px-3 sm:px-4 lg:px-8 py-16 sm:py-32"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-20">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-4">
+              Como Funciona
             </h2>
-            <p className="text-lg text-white/80">
-              Principais dúvidas sobre nossa plataforma
+            <p className="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto px-4">
+              Processo simplificado em 4 etapas
             </p>
           </div>
 
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="border-white/20"
-              >
-                <AccordionTrigger className="text-white hover:text-white/80 text-left font-medium">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-white/80 leading-relaxed">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
+          {/* Mobile-optimized grid - Stack on mobile, 2x2 on tablet, 4x1 on desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {steps.map((step, index) => (
+              <div key={index} className="relative group">
+                {/* Connection Line - Only show on desktop */}
+                {index < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-slate-600 to-transparent"></div>
+                )}
+
+                <Card className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/50 transition-all duration-500 group-hover:scale-105 h-full">
+                  <CardHeader className="text-center p-4 sm:p-6 lg:p-8">
+                    <div
+                      className={`mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-r ${step.gradient} p-3 sm:p-4 mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <div className="text-white">{step.icon}</div>
+                    </div>
+                    <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 bg-slate-700 rounded-full flex items-center justify-center text-slate-300 text-xs sm:text-sm font-bold">
+                      {index + 1}
+                    </div>
+                    <CardTitle className="text-white text-base sm:text-lg mb-3 sm:mb-4">
+                      {step.title}
+                    </CardTitle>
+                    <CardDescription className="text-slate-400 leading-relaxed text-sm sm:text-base">
+                      {step.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </div>
             ))}
-          </Accordion>
+          </div>
         </div>
       </section>
 
-      {/* Contact Us Section */}
+      {/* FAQ - Mobile optimized */}
       <section
-        id="contato"
-        className="relative z-10 px-4 sm:px-6 lg:px-8 py-20"
+        id="faq"
+        className="relative z-10 px-3 sm:px-4 lg:px-8 py-16 sm:py-32"
       >
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-              Entre em Contato
+          <div className="text-center mb-12 sm:mb-20">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-4">
+              Perguntas Frequentes
             </h2>
-            <p className="text-lg text-white/80">
-              Tem dúvidas ou precisa de ajuda? Fale conosco!
+            <p className="text-base sm:text-xl text-slate-400 px-4">
+              Tire suas principais dúvidas
             </p>
           </div>
 
-          <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  Envie sua Mensagem
-                </h3>
-                <p className="text-white/70 text-sm">
-                  Preencha o formulário e responderemos em breve
-                </p>
-              </div>
+          <div className="space-y-3 sm:space-y-4">
+            {faqs.map((faq, index) => (
+              <Card
+                key={index}
+                className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border-slate-700/50 backdrop-blur-sm"
+              >
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem
+                    value={`item-${index}`}
+                    className="border-none"
+                  >
+                    <AccordionTrigger className="px-4 sm:px-8 py-4 sm:py-6 text-white hover:text-blue-300 text-left font-medium hover:no-underline text-sm sm:text-base">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 sm:px-8 pb-4 sm:pb-6 text-slate-400 leading-relaxed text-sm sm:text-base">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      Seu Nome
+      {/* Contact - Mobile optimized form */}
+      <section
+        id="contact"
+        className="relative z-10 px-3 sm:px-4 lg:px-8 py-16 sm:py-32"
+      >
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12 sm:mb-20">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-4">
+              Vamos Conversar
+            </h2>
+            <p className="text-base sm:text-xl text-slate-400 px-4">
+              Tem dúvidas? Nossa equipe está pronta para ajudar
+            </p>
+          </div>
+
+          <Card className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border-slate-700/50 backdrop-blur-sm">
+            <CardContent className="p-4 sm:p-8 lg:p-12">
+              {/* Mobile-first form layout */}
+              <div className="space-y-4 sm:space-y-6">
+                {/* Name and Email - Stack on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-white text-sm font-medium">
+                      Nome
                     </label>
                     <input
                       type="text"
-                      placeholder="Digite seu nome"
+                      placeholder="Seu nome"
                       value={formData.name}
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg sm:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base min-h-[44px]"
                     />
                   </div>
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      Seu Email
+                  <div className="space-y-2">
+                    <label className="block text-white text-sm font-medium">
+                      Email
                     </label>
                     <input
                       type="email"
@@ -559,58 +486,62 @@ export default function Home() {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg sm:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base min-h-[44px]"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-white text-sm font-medium mb-2">
-                    WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    value={formData.whatsapp}
-                    onChange={(e) =>
-                      setFormData({ ...formData, whatsapp: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
+                {/* WhatsApp and Subject - Stack on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-white text-sm font-medium">
+                      WhatsApp
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="(11) 99999-9999"
+                      value={formData.whatsapp}
+                      onChange={(e) =>
+                        setFormData({ ...formData, whatsapp: e.target.value })
+                      }
+                      className="w-full px-3 sm:px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg sm:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base min-h-[44px]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-white text-sm font-medium">
+                      Assunto
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Como podemos ajudar?"
+                      value={formData.subject}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject: e.target.value })
+                      }
+                      className="w-full px-3 sm:px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg sm:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base min-h-[44px]"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-white text-sm font-medium mb-2">
-                    Assunto
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Sobre o que você gostaria de falar?"
-                    value={formData.subject}
-                    onChange={(e) =>
-                      setFormData({ ...formData, subject: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white text-sm font-medium mb-2">
+                {/* Message */}
+                <div className="space-y-2">
+                  <label className="block text-white text-sm font-medium">
                     Mensagem
                   </label>
                   <textarea
                     rows={4}
-                    placeholder="Escreva sua mensagem aqui..."
+                    placeholder="Conte-nos mais sobre suas necessidades..."
                     value={formData.message}
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
+                    className="w-full px-3 sm:px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg sm:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all text-sm sm:text-base"
                   ></textarea>
                 </div>
 
+                {/* Submit Button */}
                 <Button
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-4 font-semibold disabled:opacity-50 disabled:cursor-not-allowed rounded-lg sm:rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] min-h-[44px] text-sm sm:text-base"
                   disabled={isSubmitting}
                   onClick={async () => {
                     const { name, email, whatsapp, subject, message } =
@@ -632,9 +563,7 @@ export default function Home() {
                     try {
                       const response = await fetch("/api/contact", {
                         method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                           name: name.trim(),
                           email: email.trim(),
@@ -650,8 +579,6 @@ export default function Home() {
                         alert(
                           "✅ Mensagem enviada com sucesso! Entraremos em contato em breve."
                         );
-
-                        // Clear form
                         setFormData({
                           name: "",
                           email: "",
@@ -674,40 +601,13 @@ export default function Home() {
                 >
                   {isSubmitting ? (
                     <>
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
+                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
                       Enviando...
                     </>
                   ) : (
                     <>
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="mr-2"
-                      >
-                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                      </svg>
                       Enviar Mensagem
+                      <ArrowRight className="w-5 h-5 ml-2" />
                     </>
                   )}
                 </Button>
@@ -717,36 +617,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative z-10 px-4 sm:px-6 lg:px-8 py-20">
+      {/* Final CTA - Mobile optimized */}
+      <section className="relative z-10 px-3 sm:px-4 lg:px-8 py-16 sm:py-32">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
-            Pronto para Revolucionar suas Avaliações?
-          </h2>
-          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Junte-se à nossa comunidade de educadores que já estão criando
-            provas incríveis com nossa IA
-          </p>
-          <Link href="/waitlist">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-2xl"
-            >
-              Entrar na Lista de Espera
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border border-slate-700/50 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-12 lg:p-16">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+              Pronto para o Futuro da Educação?
+            </h2>
+            <p className="text-base sm:text-xl text-slate-400 mb-6 sm:mb-8 max-w-2xl mx-auto">
+              Junte-se à nossa comunidade de educadores que já estão criando
+              provas incríveis com nossa IA
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/waitlist" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-xl shadow-blue-500/25 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[44px]"
+                >
+                  Começar Agora
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 px-4 sm:px-6 lg:px-8 py-12 border-t border-white/20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center text-white/70">
-            <p className="text-sm">
-              © 2025 Lucida. Todos os direitos reservados.
-            </p>
-          </div>
+      {/* Modern Footer - Mobile optimized */}
+      <footer className="relative z-10 px-3 sm:px-4 lg:px-8 py-8 sm:py-12 border-t border-slate-800">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-slate-400 text-xs sm:text-sm">
+            © 2025 Lucida. Transformando educação com inteligência artificial.
+          </p>
         </div>
       </footer>
     </div>

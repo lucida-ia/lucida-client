@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { Menu, X } from "lucide-react";
 
 import LucidaLogo from "../lucida-logo";
 
@@ -14,68 +15,98 @@ export function NavBar() {
   const pathname = usePathname();
 
   const navigation = [
-    { name: "Home", href: "/" },
-    { name: "Planos", href: "#precos" },
-    { name: "Como Funciona", href: "#como-funciona" },
+    { name: "Features", href: "#features" },
+    { name: "Como Funciona", href: "#how-it-works" },
     { name: "FAQ", href: "#faq" },
-    { name: "Contato", href: "#contato" },
+    { name: "Contato", href: "#contact" },
   ];
 
   return (
-    <header className="flex h-16 items-center justify-between w-full dark">
-      <div className="flex items-center gap-6 md:gap-10">
-        <Link href="/" className="flex items-center space-x-2 w-24">
-          <LucidaLogo isDark={true} />
+    <div className="dark">
+      {/* Ensure dark mode for entire navbar */}
+      {/* Desktop Navigation */}
+      <div className="flex items-center justify-between w-full max-w-6xl mx-auto dark">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2">
+          <div className="w-24 h-auto">
+            <LucidaLogo isDark={true} />
+          </div>
         </Link>
-      </div>
 
-      <nav className="hidden gap-6 md:flex">
-        {navigation.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            className="text-sm font-medium transition-colors hover:text-white text-white/60"
-            onClick={(e) => {
-              if (item.href.startsWith("#")) {
-                e.preventDefault();
-                const element = document.querySelector(item.href);
-                if (element) {
-                  element.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  });
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center space-x-6">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="text-sm font-medium text-white/70 hover:text-white transition-colors duration-200 relative group"
+              onClick={(e) => {
+                if (item.href.startsWith("#")) {
+                  e.preventDefault();
+                  const element = document.querySelector(item.href);
+                  if (element) {
+                    element.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                  }
                 }
-              }
-            }}
-          >
-            {item.name}
-          </Link>
-        ))}
-      </nav>
+              }}
+            >
+              {item.name}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-200 group-hover:w-full"></span>
+            </Link>
+          ))}
+        </nav>
 
-      {/* Mobile menu button */}
-      <div className="flex items-center gap-4">
-        {isSignedIn ? (
-          <UserButton />
-        ) : (
-          <Link href="/sign-in">
-            <Button>Entrar</Button>
-          </Link>
-        )}
+        {/* Auth Button */}
+        <div className="flex items-center">
+          {isSignedIn ? (
+            <UserButton />
+          ) : (
+            <Link href="/sign-in">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-200"
+              >
+                Entrar
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        {/* Mobile Menu Button
+        <button
+          className="md:hidden text-white p-2"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {isMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </button> */}
       </div>
 
-      {/* Mobile menu */}
-      {/* {isMenuOpen && (
-        <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto pb-32 bg-background md:hidden">
-          <div className="relative z-20 grid gap-6 rounded-md shadow-md">
-            <nav className="grid grid-flow-row auto-rows-max text-sm ">
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsMenuOpen(false)}
+          ></div>
+
+          {/* Menu Content */}
+          <div className="absolute top-20 left-4 right-4 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
+            <nav className="space-y-4">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex w-full items-center rounded-md p-2 text-sm font-medium ${
-                    pathname === item.href ? "bg-accent" : "hover:bg-accent"
-                  }`}
+                  className="block py-3 px-4 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
                   onClick={(e) => {
                     setIsMenuOpen(false);
                     if (item.href.startsWith("#")) {
@@ -95,28 +126,25 @@ export function NavBar() {
                   {item.name}
                 </Link>
               ))}
-              {!user && (
-                <>
+
+              {/* Mobile Auth */}
+              <div className="pt-4 border-t border-white/10">
+                {!isSignedIn && (
                   <Link
                     href="/sign-in"
-                    className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:bg-accent"
+                    className="block"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Entrar
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
+                      Entrar
+                    </Button>
                   </Link>
-                  <Link
-                    href="/sign-up"
-                    className="flex w-full items-center rounded-md bg-primary p-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Criar conta
-                  </Link>
-                </>
-              )}
+                )}
+              </div>
             </nav>
           </div>
         </div>
-      )} */}
-    </header>
+      )}
+    </div>
   );
 }
