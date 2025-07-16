@@ -71,17 +71,10 @@ type NavItem = {
   disabled?: boolean;
 };
 
-export function DashboardNav() {
-  const { theme, setTheme } = useTheme();
-  const [isCollapsed, setIsCollapsed, isLoaded] = useLocalStorage(
-    "navbar-collapsed",
-    false
-  );
-  const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
-
-  const pathname = usePathname();
-  const router = useRouter();
-
+// Export navigation items for reuse in mobile component
+export function useNavItems() {
+  const { shouldHideBilling } = useSubscription();
+  
   const allNavItems: NavItem[] = [
     {
       title: "Dashboard",
@@ -115,9 +108,22 @@ export function DashboardNav() {
   ];
 
   // Filter out billing item for custom subscription users
-  const navItems = shouldHideBilling
+  return shouldHideBilling
     ? allNavItems.filter((item) => item.href !== "/dashboard/billing")
     : allNavItems;
+}
+
+export function DashboardNav() {
+  const { theme, setTheme } = useTheme();
+  const [isCollapsed, setIsCollapsed, isLoaded] = useLocalStorage(
+    "navbar-collapsed",
+    false
+  );
+  const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const navItems = useNavItems();
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);

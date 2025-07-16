@@ -12,14 +12,18 @@ export function DashboardHeader({
   children,
 }: DashboardHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-2">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
       <div className="grid gap-1">
-        <h1 className="font-heading text-2xl md:text-3xl font-medium">
+        <h1 className="font-heading text-xl md:text-2xl lg:text-3xl font-medium">
           {heading}
         </h1>
-        {text && <p className="text-base text-muted-foreground">{text}</p>}
+        {text && <p className="text-sm md:text-base text-muted-foreground">{text}</p>}
       </div>
-      {children}
+      {children && (
+        <div className="flex-shrink-0">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
