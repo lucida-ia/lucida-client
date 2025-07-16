@@ -629,7 +629,7 @@ export default function Home() {
               provas incríveis com nossa IA
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/waitlist" className="w-full sm:w-auto">
+              <Link href="/sign-up" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-xl shadow-blue-500/25 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[44px]"
