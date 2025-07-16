@@ -9,8 +9,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Plan limits
 const PLAN_LIMITS = {
-  free: 3,
-  pro: 30,
+  trial: 3,
+  "semi-annual": 10,
+  annual: 30,
   custom: -1, // unlimited
 };
 
@@ -45,27 +46,45 @@ export async function POST(request: NextRequest) {
     const planLimit =
       PLAN_LIMITS[user.subscription.plan as keyof typeof PLAN_LIMITS];
 
-    if (planLimit !== -1 && user.usage.examsThisMonth >= planLimit) {
+    if (planLimit !== -1 && user.usage.examsThisPeriod >= planLimit) {
       return NextResponse.json(
         {
           status: "error",
-          message: `You have reached your monthly limit of ${planLimit} exams for the ${user.subscription.plan} plan. Please upgrade to create more exams.`,
+          message: `You have reached your limit of ${planLimit} exams for the ${user.subscription.plan} plan. Please upgrade to create more exams.`,
           code: "USAGE_LIMIT_REACHED",
         },
         { status: 402 } // Payment required
       );
     }
 
-    // Check if usage count needs to be reset (monthly reset)
+    // Check if usage count needs to be reset based on plan duration
     const now = new Date();
-    const lastReset = new Date(user.usage.examsThisMonthResetDate);
+    const lastReset = new Date(user.usage.examsThisPeriodResetDate);
+    let shouldReset = false;
 
-    if (
-      now.getMonth() !== lastReset.getMonth() ||
-      now.getFullYear() !== lastReset.getFullYear()
-    ) {
-      user.usage.examsThisMonth = 0;
-      user.usage.examsThisMonthResetDate = now;
+    if (user.subscription.plan === "trial") {
+      // Reset every 30 days for trial users
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      shouldReset = lastReset < thirtyDaysAgo;
+    } else if (user.subscription.plan === "semi-annual") {
+      // Reset every 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      shouldReset = lastReset < sixMonthsAgo;
+    } else if (user.subscription.plan === "annual") {
+      // Reset every year
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      shouldReset = lastReset < oneYearAgo;
+    } else {
+      // For custom plan, no reset needed (unlimited)
+      shouldReset = false;
+    }
+
+    if (shouldReset) {
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = now;
       await user.save();
     }
 
@@ -95,7 +114,7 @@ export async function POST(request: NextRequest) {
     const savedExam = await newExam.save();
 
     // Increment usage count
-    user.usage.examsThisMonth += 1;
+    user.usage.examsThisPeriod += 1;
     await user.save();
 
     return NextResponse.json({
@@ -103,7 +122,7 @@ export async function POST(request: NextRequest) {
       message: "Exam created successfully",
       exam: savedExam,
       usage: {
-        examsThisMonth: user.usage.examsThisMonth,
+        examsThisPeriod: user.usage.examsThisPeriod,
         limit: planLimit === -1 ? "unlimited" : planLimit,
         plan: user.subscription.plan,
       },

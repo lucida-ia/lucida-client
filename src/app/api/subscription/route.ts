@@ -24,18 +24,20 @@ export async function GET(request: NextRequest) {
     let user = await User.findOne({ id: userId });
 
     if (!user) {
-      // Create user with default free plan
-      user = await User.create({
+      // Create user with default trial plan
+      user = new User({
         id: userId,
-        subscription: {
-          plan: "free",
-          status: "active",
-        },
-        usage: {
-          examsThisMonth: 0,
-          examsThisMonthResetDate: new Date(),
-        },
       });
+
+      // Set subscription properties explicitly
+      user.subscription.plan = "trial";
+      user.subscription.status = "active";
+
+      // Set usage properties explicitly
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = new Date();
+
+      await user.save();
     }
 
     // Check if subscription data needs syncing from Stripe
@@ -141,23 +143,30 @@ export async function POST(request: NextRequest) {
     let user = await User.findOne({ id: userId });
 
     if (!user) {
-      user = await User.create({
+      user = new User({
         id: userId,
-        subscription: {
-          plan: "free",
-          status: "active",
-        },
-        usage: {
-          examsThisMonth: 0,
-          examsThisMonthResetDate: new Date(),
-        },
       });
+
+      // Set subscription properties explicitly
+      user.subscription.plan = "trial";
+      user.subscription.status = "active";
+
+      // Set usage properties explicitly
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = new Date();
+
+      await user.save();
     }
 
     // Create Stripe customer if subscribing to paid plan and customer doesn't exist
     let customerId = stripeCustomerId || user.subscription.stripeCustomerId;
 
-    if (planId !== "free" && !customerId && (customerEmail || customerName)) {
+    if (
+      planId !== "trial" &&
+      planId !== "semi-annual" &&
+      !customerId &&
+      (customerEmail || customerName)
+    ) {
       try {
         const customer = await stripe.customers.create({
           email: customerEmail,
@@ -187,10 +196,15 @@ export async function POST(request: NextRequest) {
       user.subscription.stripeSubscriptionId = stripeSubscriptionId;
     }
 
-    // Reset usage if changing from free to paid plan
-    if (user.subscription.plan === "free" && planId !== "free") {
-      user.usage.examsThisMonth = 0;
-      user.usage.examsThisMonthResetDate = new Date();
+    // Reset usage if changing from trial or semi-annual to paid plan
+    if (
+      (user.subscription.plan === "trial" ||
+        user.subscription.plan === "semi-annual") &&
+      planId !== "trial" &&
+      planId !== "semi-annual"
+    ) {
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = new Date();
     }
 
     await user.save();

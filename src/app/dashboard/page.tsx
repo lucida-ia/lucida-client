@@ -71,7 +71,7 @@ export default function DashboardPage() {
       toast({
         title: "Sucesso!",
         description:
-          "Assinatura ativada com sucesso! Bem-vindo ao plano Pro! 🎉",
+          "Assinatura ativada com sucesso! Bem-vindo ao seu novo plano! 🎉",
       });
     } else if (error) {
       const errorMessages: { [key: string]: string } = {

@@ -10,8 +10,8 @@ const UserSchema = new mongoose.Schema({
   subscription: {
     plan: {
       type: String,
-      enum: ["free", "pro", "custom"],
-      default: "free",
+      enum: ["trial", "semi-annual", "annual", "custom"],
+      default: "trial",
     },
     status: {
       type: String,
@@ -45,11 +45,11 @@ const UserSchema = new mongoose.Schema({
   },
   // Usage tracking
   usage: {
-    examsThisMonth: {
+    examsThisPeriod: {
       type: Number,
       default: 0,
     },
-    examsThisMonthResetDate: {
+    examsThisPeriodResetDate: {
       type: Date,
       default: () => new Date(),
     },

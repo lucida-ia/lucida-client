@@ -41,7 +41,7 @@ stripe customers create \
 
 # Note the customer ID (cus_xxxxx)
 
-# 2. Create a subscription for Pro plan
+# 2. Create a subscription for Annual plan
 stripe subscriptions create \
   --customer cus_xxxxx \
   --items '[{"price": "price_1RgrOp4RuS8yGC3wQUwTYx90"}]' \
@@ -157,23 +157,23 @@ After each test, verify:
 
 ### Complete User Journey Test
 
-1. **Start with Free Plan**
+1. **Start with Semi-Annual Plan**
 
    ```bash
    # Create user in your app (sign up)
-   # Verify: Dashboard shows "Free" plan with 3 exams limit
+   # Verify: Dashboard shows "Semi-Annual" plan with 10 exams limit
    ```
 
-2. **Create 3 Exams**
+2. **Create 10 Exams**
 
    ```bash
    # Create exams through your app
    # Verify: Usage counter increases
-   # Try to create 4th exam
+   # Try to create 11th exam
    # Verify: Should be blocked with upgrade message
    ```
 
-3. **Upgrade to Pro Plan**
+3. **Upgrade to Annual Plan**
 
    ```bash
    # Use Stripe CLI to simulate subscription creation
@@ -181,7 +181,7 @@ After each test, verify:
      --customer cus_xxxxx \
      --items '[{"price": "price_1RgrOp4RuS8yGC3wQUwTYx90"}]'
 
-   # Verify: Dashboard shows "Pro" plan with 50 exams limit
+   # Verify: Dashboard shows "Annual" plan with 30 exams limit
    # Verify: Can now create more exams
    ```
 

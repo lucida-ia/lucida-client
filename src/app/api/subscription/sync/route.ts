@@ -21,12 +21,13 @@ export async function POST(request: NextRequest) {
 
     await connectToDB();
 
-    // Find all users with Stripe subscriptions but missing period data
+    // Find all users with Stripe subscriptions but missing period data or incorrect plan mapping
     const usersNeedingSync = await User.find({
       "subscription.stripeSubscriptionId": { $exists: true, $ne: null },
       $or: [
         { "subscription.currentPeriodStart": null },
         { "subscription.currentPeriodEnd": null },
+        { "subscription.plan": "trial" }, // Users with paid subscriptions but still showing as trial
       ],
     });
 
@@ -39,7 +40,22 @@ export async function POST(request: NextRequest) {
           user.subscription.stripeSubscriptionId
         );
 
+        const priceId = (stripeSubscription as any).items.data[0].price.id;
+
+        // Determine plan based on environment variables
+        let plan = "trial";
+        if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL) {
+          plan = "annual";
+        } else if (
+          priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL
+        ) {
+          plan = "semi-annual";
+        } else if (priceId === process.env.STRIPE_PRICE_ID_CUSTOM) {
+          plan = "custom";
+        }
+
         // Update user subscription with Stripe data
+        user.subscription.plan = plan;
         user.subscription.status = stripeSubscription.status;
 
         // Safely handle date fields - get from subscription items or direct

@@ -64,12 +64,13 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
     {
       title: "Provas Restantes",
       value: (() => {
-        const plan = userData.user?.subscription?.plan || "free";
-        const usage = userData.user?.usage?.examsThisMonth || 0;
+        const plan = userData.user?.subscription?.plan || "trial";
+        const usage = userData.user?.usage?.examsThisPeriod || 0;
 
         const limits = {
-          free: 3,
-          pro: 30,
+          trial: 3,
+          "semi-annual": 10,
+          annual: 30,
           custom: -1, // unlimited
         };
 
@@ -84,54 +85,59 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
       })(),
       icon: <FileText className="h-5 w-5 text-muted-foreground" />,
       description: (() => {
-        const plan = userData.user?.subscription?.plan || "free";
+        const plan = userData.user?.subscription?.plan || "trial";
         const planNames = {
-          free: "Plano Grátis",
-          pro: "Plano Pro",
+          trial: "Plano Trial",
+          "semi-annual": "Plano Semi-Anual",
+          annual: "Plano Anual",
           custom: "Plano Personalizado",
         };
-        return planNames[plan as keyof typeof planNames] || "Plano Grátis";
+        return planNames[plan as keyof typeof planNames] || "Plano Trial";
       })(),
     },
-    {
-      title: "Status da Assinatura",
-      value: (() => {
-        const plan = userData.user?.subscription?.plan || "free";
-        const status = userData.user?.subscription?.status || "active";
+    // {
+    //   title: "Status da Assinatura",
+    //   value: (() => {
+    //     const plan = userData.user?.subscription?.plan || "trial";
+    //     const status = userData.user?.subscription?.status || "active";
 
-        if (plan === "free") {
-          return "Grátis";
-        }
+    //     if (plan === "trial") {
+    //       return "Trial";
+    //     } else if (plan === "semi-annual") {
+    //       return "Semi-Anual";
+    //     }
 
-        switch (status) {
-          case "active":
-            return "Ativa";
-          case "canceled":
-            return "Cancelada";
-          case "past_due":
-            return "Vencida";
-          default:
-            return "Inativa";
-        }
-      })(),
-      icon: <Users className="h-5 w-5 text-muted-foreground" />,
-      description: (() => {
-        const plan = userData.user?.subscription?.plan || "free";
-        const status = userData.user?.subscription?.status || "active";
+    //     switch (status) {
+    //       case "active":
+    //         return "Ativa";
+    //       case "canceled":
+    //         return "Cancelada";
+    //       case "past_due":
+    //         return "Vencida";
+    //       default:
+    //         return "Inativa";
+    //     }
+    //   })(),
+    //   icon: <Users className="h-5 w-5 text-muted-foreground" />,
+    //   description: (() => {
+    //     const plan = userData.user?.subscription?.plan || "trial";
+    //     const status = userData.user?.subscription?.status || "active";
 
-        if (plan === "free") {
-          return "Sem cobrança";
-        }
+    //     if (plan === "trial") {
+    //       return "Plano gratuito";
+    //     } else if (plan === "semi-annual") {
+    //       return "Plano básico";
+    //     }
 
-        const cancelAtPeriodEnd =
-          userData.user?.subscription?.cancelAtPeriodEnd;
-        if (cancelAtPeriodEnd) {
-          return "Cancela ao fim do período";
-        }
+    //     const cancelAtPeriodEnd =
+    //       userData.user?.subscription?.cancelAtPeriodEnd;
+    //     if (cancelAtPeriodEnd) {
+    //       return "Cancela ao fim do período";
+    //     }
 
-        return status === "active" ? "Pagamento em dia" : "Requer ação";
-      })(),
-    },
+    //     return status === "active" ? "Pagamento em dia" : "Requer ação";
+    //   })(),
+    // },
   ];
 
   return (

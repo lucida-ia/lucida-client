@@ -21,19 +21,49 @@ export async function GET(request: NextRequest) {
     let user = await User.findOne({ id: userId });
 
     if (!user) {
-      user = await User.create({ id: userId });
+      user = new User({
+        id: userId,
+      });
+
+      // Set subscription properties explicitly
+      user.subscription.plan = "trial";
+      user.subscription.status = "active";
+
+      // Set usage properties explicitly
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = new Date();
+
+      await user.save();
     }
 
-    // Check if usage needs to be reset (monthly reset)
+    // Check if usage needs to be reset based on plan duration
     const now = new Date();
-    const resetDate = new Date(user.usage.examsThisMonthResetDate);
-    const shouldReset =
-      now.getMonth() !== resetDate.getMonth() ||
-      now.getFullYear() !== resetDate.getFullYear();
+    const resetDate = new Date(user.usage.examsThisPeriodResetDate);
+    let shouldReset = false;
+
+    if (user.subscription.plan === "trial") {
+      // Reset every 30 days for trial users
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      shouldReset = resetDate < thirtyDaysAgo;
+    } else if (user.subscription.plan === "semi-annual") {
+      // Reset every 6 months
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      shouldReset = resetDate < sixMonthsAgo;
+    } else if (user.subscription.plan === "annual") {
+      // Reset every year
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      shouldReset = resetDate < oneYearAgo;
+    } else {
+      // For custom plan, no reset needed (unlimited)
+      shouldReset = false;
+    }
 
     if (shouldReset) {
-      user.usage.examsThisMonth = 0;
-      user.usage.examsThisMonthResetDate = now;
+      user.usage.examsThisPeriod = 0;
+      user.usage.examsThisPeriodResetDate = now;
       await user.save();
     }
 
@@ -58,7 +88,7 @@ export async function GET(request: NextRequest) {
         stats: {
           totalExams,
           totalClasses,
-          examsThisMonth: user.usage.examsThisMonth,
+          examsThisPeriod: user.usage.examsThisPeriod,
         },
         classes,
         exams,
@@ -159,11 +189,11 @@ export async function PATCH(request: NextRequest) {
 
     switch (action) {
       case "increment_exam_usage":
-        user.usage.examsThisMonth += 1;
+        user.usage.examsThisPeriod += 1;
         break;
       case "reset_usage":
-        user.usage.examsThisMonth = 0;
-        user.usage.examsThisMonthResetDate = new Date();
+        user.usage.examsThisPeriod = 0;
+        user.usage.examsThisPeriodResetDate = new Date();
         break;
       case "update_subscription":
         user.subscription = { ...user.subscription, ...data };

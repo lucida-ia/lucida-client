@@ -43,7 +43,8 @@ NODE_ENV=development  # or production
 3. **Create Products and Prices**
    - Go to Products → Add Product
    - Create two products:
-     - **Pro Plan**: R$ 27,90/month
+     - **Semi-Annual Plan**: R$ 189,90/6 months
+     - **Annual Plan**: R$ 334,80/year
      - **Custom Plan**: Custom pricing
    - Note down the **Price IDs** for each product
 
@@ -138,8 +139,8 @@ Ensure your MongoDB connection is working:
 
 ✅ **Plan Limits:**
 
-- Free: 3 exams/month
-- Pro: 50 exams/month
+- Semi-Annual: 10 exams/6 months
+- Annual: 30 exams/year
 - Custom: Unlimited exams
 
 ✅ **Supported Events:**

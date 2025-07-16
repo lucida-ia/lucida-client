@@ -28,6 +28,9 @@ import {
   Star,
   FileText,
   Clock,
+  BookOpen,
+  BookMarked,
+  GraduationCap,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,15 +54,15 @@ interface UserSubscription {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   usage?: {
-    examsThisMonth: number;
-    examsThisMonthResetDate: Date;
+    examsThisPeriod: number;
+    examsThisPeriodResetDate: Date;
   };
 }
 
 interface PricingPlan {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: string;
   priceId: string;
   period: string;
@@ -74,37 +77,55 @@ interface PricingPlan {
 
 const PRICING_PLANS: PricingPlan[] = [
   {
-    id: "free",
-    name: "Grátis",
-    description: "Para quem quer testar o produto",
-    price: "R$ 0,00",
+    id: "trial",
+    name: "Trial",
+    price: "Grátis",
     priceId: "",
-    period: "para sempre",
+    period: "por 30 dias",
     features: [
-      "Até 3 provas por mês",
-      "Apenas formato simples de questão",
-      "Geração padrão com IA",
+      "Até 3 provas gratuitas",
+      "Todos os formatos de questões",
+      "Geração avançada com IA",
       "Suporte por email",
+      "Histórico de provas",
+      "Exportação em PDF",
     ],
     popular: false,
     checkoutUrl: "",
     maxExams: 3,
-    examFormats: ["simples"],
-    icon: FileText,
+    examFormats: ["simples", "enem", "dissertativa"],
+    icon: Clock,
+    gradient: "from-green-500 to-emerald-600",
+  },
+  {
+    id: "semi-annual",
+    name: "Semi-Anual",
+    price: "R$ 189,90",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
+    period: "por 6 meses",
+    features: [
+      "Até 10 provas por semestre",
+      "Todos os formatos de questões",
+      "Geração avançada com IA",
+      "Suporte prioritário por email",
+      "Histórico de provas",
+      "Exportação em PDF",
+    ],
+    popular: false,
+    checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_SEMESTRAL || "",
+    maxExams: 10,
+    examFormats: ["simples", "enem", "dissertativa"],
+    icon: BookOpen,
     gradient: "from-slate-500 to-slate-600",
   },
   {
-    id: "pro",
-    name: "Pro",
-    description: "Para quem precisa de mais flexibilidade e recursos",
-    price: "R$ 27,90",
-    priceId:
-      process.env.NODE_ENV === "development"
-        ? "price_1RhgGMGCTk05nf7TPhS38OMS"
-        : "",
-    period: "por mês",
+    id: "annual",
+    name: "Anual",
+    price: "R$ 334,80",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
+    period: "por ano",
     features: [
-      "Até 30 provas por mês",
+      "Até 30 provas por ano",
       "Todos os formatos de questões",
       "Geração avançada com IA",
       "Suporte prioritário por email",
@@ -112,25 +133,18 @@ const PRICING_PLANS: PricingPlan[] = [
       "Exportação em PDF",
     ],
     popular: true,
-    checkoutUrl:
-      process.env.NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_7sYdR93TwcTJeX73P943S00"
-        : "",
+    checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_ANUAL || "",
     maxExams: 30,
     examFormats: ["simples", "enem", "dissertativa"],
-    icon: Zap,
+    icon: BookMarked,
     gradient: "from-blue-500 to-purple-600",
   },
   {
     id: "custom",
     name: "Personalizado",
-    description: "Soluções sob medida para grandes demandas ou instituições",
-    price: "Personalizado",
-    priceId:
-      process.env.NODE_ENV === "development"
-        ? "price_1RgZzc4RuS8yGC3w2EYaA8Ob"
-        : "",
-    period: "sob consulta",
+    price: "Sob consulta",
+    priceId: "",
+    period: "",
     features: [
       "Provas ilimitadas",
       "Todos os formatos de questões",
@@ -141,13 +155,10 @@ const PRICING_PLANS: PricingPlan[] = [
       "Gestão de equipes",
     ],
     popular: false,
-    checkoutUrl:
-      process.env.NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_9B600cbfIdqae3R8U8cV200"
-        : "",
+    checkoutUrl: "",
     maxExams: -1, // unlimited
     examFormats: ["simples", "enem", "dissertativa", "personalizada"],
-    icon: Crown,
+    icon: GraduationCap,
     gradient: "from-amber-500 to-orange-600",
   },
 ];
@@ -163,6 +174,7 @@ export default function BillingPage() {
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
+  const [isTrialDowngrade, setIsTrialDowngrade] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -194,20 +206,29 @@ export default function BillingPage() {
     setProcessingPlan(plan.id);
 
     try {
-      if (plan.id === "free") {
-        // Handle free plan subscription
-        const response = await fetch("/api/subscription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ planId: "free" }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to subscribe to free plan");
+      // Handle trial plan - cancel current subscription if user has one
+      if (plan.id === "trial") {
+        if (
+          subscription?.stripeSubscriptionId &&
+          subscription.status === "active" &&
+          subscription.plan !== "trial"
+        ) {
+          // Show cancel confirmation modal for trial "downgrade"
+          setIsTrialDowngrade(true);
+          setShowCancelModal(true);
+          setProcessingPlan(null);
+          return;
+        } else {
+          // User is already on trial or has no active subscription
+          setError(
+            "Você já está no plano Trial ou não possui uma assinatura ativa."
+          );
+          setProcessingPlan(null);
+          return;
         }
+      }
 
-        await fetchSubscription();
-      } else if (plan.priceId && plan.id !== "custom") {
+      if (plan.priceId && plan.id !== "custom") {
         // Create dynamic checkout session
         const response = await fetch("/api/create-checkout-session", {
           method: "POST",
@@ -262,6 +283,7 @@ export default function BillingPage() {
 
       await fetchSubscription();
       setShowCancelModal(false);
+      setIsTrialDowngrade(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -270,11 +292,19 @@ export default function BillingPage() {
   };
 
   const showCancelConfirmation = () => {
+    setIsTrialDowngrade(false);
     setShowCancelModal(true);
   };
 
+  const handleModalClose = (open: boolean) => {
+    setShowCancelModal(open);
+    if (!open) {
+      setIsTrialDowngrade(false);
+    }
+  };
+
   const getCurrentPlan = () => {
-    if (!subscription) return PRICING_PLANS[0]; // Default to free plan
+    if (!subscription) return PRICING_PLANS[0]; // Default to trial plan
     return (
       PRICING_PLANS.find((plan) => plan.id === subscription.plan) ||
       PRICING_PLANS[0]
@@ -297,7 +327,7 @@ export default function BillingPage() {
   const getUsagePercentage = () => {
     if (!subscription?.usage || !currentPlan) return 0;
     if (currentPlan.maxExams === -1) return 0; // unlimited
-    return (subscription.usage.examsThisMonth / currentPlan.maxExams) * 100;
+    return (subscription.usage.examsThisPeriod / currentPlan.maxExams) * 100;
   };
 
   if (loading) {
@@ -462,7 +492,7 @@ export default function BillingPage() {
                             Provas este mês
                           </span>
                           <span className="font-medium text-slate-900">
-                            {subscription?.usage?.examsThisMonth || 0} /{" "}
+                            {subscription?.usage?.examsThisPeriod || 0} /{" "}
                             {currentPlan.maxExams === -1
                               ? "∞"
                               : currentPlan.maxExams}
@@ -565,9 +595,6 @@ export default function BillingPage() {
                           <CardTitle className="text-2xl font-bold">
                             {plan.name}
                           </CardTitle>
-                          <CardDescription className="text-slate-600">
-                            {plan.description}
-                          </CardDescription>
                         </div>
                       </div>
                       <div className="mb-6">
@@ -618,10 +645,18 @@ export default function BillingPage() {
                             <Check className="w-4 h-4" />
                             Plano Atual
                           </div>
-                        ) : plan.id === "free" ? (
-                          "Usar Grátis"
+                        ) : plan.id === "trial" ? (
+                          subscription?.stripeSubscriptionId &&
+                          subscription.status === "active" &&
+                          subscription.plan !== "trial" ? (
+                            "Voltar ao Trial"
+                          ) : (
+                            "Plano Atual"
+                          )
+                        ) : plan.id === "semi-annual" ? (
+                          "Usar Semi-Anual"
                         ) : plan.id === "custom" ? (
-                          "Falar com Vendas"
+                          "Entre em contato agora!"
                         ) : (
                           "Assinar Agora"
                         )}
@@ -636,7 +671,8 @@ export default function BillingPage() {
           {/* Subscription Management */}
           {subscription &&
             subscription.status === "active" &&
-            subscription.plan !== "free" && (
+            subscription.plan !== "trial" &&
+            subscription.plan !== "semi-annual" && (
               <Card className="border-0 shadow-xl bg-white/70 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
@@ -689,40 +725,84 @@ export default function BillingPage() {
             )}
 
           {/* Confirmation Modal */}
-          <AlertDialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+          <AlertDialog open={showCancelModal} onOpenChange={handleModalClose}>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-red-600" />
-                  Cancelar Assinatura
+                  {isTrialDowngrade
+                    ? "Voltar ao Plano Trial"
+                    : "Cancelar Assinatura"}
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-base">
-                  Você tem certeza que deseja cancelar sua assinatura? Esta ação
-                  não pode ser desfeita.
-                  <br />
-                  <br />
-                  <strong>O que acontecerá:</strong>
-                  <ul className="mt-2 list-disc list-inside text-sm text-slate-600">
-                    <li>
-                      Sua assinatura será cancelada ao final do período atual
-                    </li>
-                    <li>
-                      Você continuará tendo acesso aos recursos premium até{" "}
-                      {subscription?.currentPeriodEnd &&
-                        new Date(
-                          subscription.currentPeriodEnd
-                        ).toLocaleDateString("pt-BR")}
-                    </li>
-                    <li>Após esta data, você voltará para o plano gratuito</li>
-                    <li>
-                      Você pode reativar sua assinatura a qualquer momento
-                    </li>
-                  </ul>
+                  {isTrialDowngrade ? (
+                    <>
+                      Você tem certeza que deseja voltar ao plano Trial? Sua
+                      assinatura atual será cancelada.
+                      <br />
+                      <br />
+                      <strong>O que acontecerá:</strong>
+                      <ul className="mt-2 list-disc list-inside text-sm text-slate-600">
+                        <li>
+                          Sua assinatura atual será cancelada ao final do
+                          período
+                        </li>
+                        <li>
+                          Você continuará tendo acesso aos recursos premium até{" "}
+                          {subscription?.currentPeriodEnd &&
+                            new Date(
+                              subscription.currentPeriodEnd
+                            ).toLocaleDateString("pt-BR")}
+                        </li>
+                        <li>
+                          Após esta data, você voltará automaticamente para o
+                          plano Trial
+                        </li>
+                        <li>
+                          No plano Trial você terá até 3 provas gratuitas por
+                          mês
+                        </li>
+                        <li>
+                          Você pode reativar sua assinatura premium a qualquer
+                          momento
+                        </li>
+                      </ul>
+                    </>
+                  ) : (
+                    <>
+                      Você tem certeza que deseja cancelar sua assinatura? Esta
+                      ação não pode ser desfeita.
+                      <br />
+                      <br />
+                      <strong>O que acontecerá:</strong>
+                      <ul className="mt-2 list-disc list-inside text-sm text-slate-600">
+                        <li>
+                          Sua assinatura será cancelada ao final do período
+                          atual
+                        </li>
+                        <li>
+                          Você continuará tendo acesso aos recursos premium até{" "}
+                          {subscription?.currentPeriodEnd &&
+                            new Date(
+                              subscription.currentPeriodEnd
+                            ).toLocaleDateString("pt-BR")}
+                        </li>
+                        <li>
+                          Após esta data, você voltará para o plano gratuito
+                        </li>
+                        <li>
+                          Você pode reativar sua assinatura a qualquer momento
+                        </li>
+                      </ul>
+                    </>
+                  )}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={cancellingSubscription}>
-                  Manter Assinatura
+                  {isTrialDowngrade
+                    ? "Manter Plano Atual"
+                    : "Manter Assinatura"}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleCancelSubscription}
@@ -732,8 +812,10 @@ export default function BillingPage() {
                   {cancellingSubscription ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      Cancelando...
+                      {isTrialDowngrade ? "Voltando..." : "Cancelando..."}
                     </div>
+                  ) : isTrialDowngrade ? (
+                    "Sim, Voltar ao Trial"
                   ) : (
                     "Sim, Cancelar Assinatura"
                   )}

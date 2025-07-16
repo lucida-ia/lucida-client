@@ -63,14 +63,19 @@ export async function GET(request: NextRequest) {
           session.subscription as string
         );
 
-        // Map Stripe price ID to our plan names
-        const planMap: { [key: string]: string } = {
-          price_1RgrOp4RuS8yGC3wQUwTYx90: "pro",
-          price_1RhgGMGCTk05nf7TPhS38OMS: "pro", // Updated price ID
-          price_1RgZzc4RuS8yGC3w2EYaA8Ob: "custom",
-        };
+        const priceId = subscription.items.data[0].price.id;
 
-        const plan = planMap[subscription.items.data[0].price.id] || "free";
+        // Determine plan based on environment variables
+        let plan = "trial";
+        if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL) {
+          plan = "annual";
+        } else if (
+          priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL
+        ) {
+          plan = "semi-annual";
+        } else if (priceId === process.env.STRIPE_PRICE_ID_CUSTOM) {
+          plan = "custom";
+        }
 
         user.subscription.plan = plan;
         user.subscription.status = subscription.status;

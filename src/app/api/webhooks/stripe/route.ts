@@ -121,25 +121,51 @@ async function handleSubscriptionCreated(subscription: any) {
       return;
     }
 
-    // Map Stripe price ID to our plan names
-    const planMap: { [key: string]: string } = {
-      price_1RgrOp4RuS8yGC3wQUwTYx90: "pro",
-      price_1RhgGMGCTk05nf7TPhS38OMS: "pro", // Updated price ID
-      price_1RgZzc4RuS8yGC3w2EYaA8Ob: "custom",
-    };
-
     const priceId = subscription.items.data[0].price.id;
-    const plan = planMap[priceId] || "free";
+
+    // Determine plan based on environment variables
+    let plan = "trial";
+    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL) {
+      plan = "annual";
+    } else if (
+      priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL
+    ) {
+      plan = "semi-annual";
+    } else if (priceId === process.env.STRIPE_PRICE_ID_CUSTOM) {
+      plan = "custom";
+    }
 
     const oldSubscription = { ...user.subscription };
 
-    // Safely handle date fields - get from subscription items
+    // Get subscription item for period dates
     const subscriptionItem = subscription.items?.data?.[0];
-    const currentPeriodStart =
-      subscriptionItem?.current_period_start ||
-      subscription.current_period_start;
-    const currentPeriodEnd =
-      subscriptionItem?.current_period_end || subscription.current_period_end;
+    console.log(
+      "[WEBHOOK] Subscription item:",
+      JSON.stringify(subscriptionItem, null, 2)
+    );
+
+    // Extract period dates - prioritize subscription item, fallback to subscription level
+    let currentPeriodStart = null;
+    let currentPeriodEnd = null;
+
+    if (subscriptionItem) {
+      currentPeriodStart = subscriptionItem.current_period_start;
+      currentPeriodEnd = subscriptionItem.current_period_end;
+    }
+
+    // Fallback to subscription level if not found in item
+    if (!currentPeriodStart) {
+      currentPeriodStart = subscription.current_period_start;
+    }
+    if (!currentPeriodEnd) {
+      currentPeriodEnd = subscription.current_period_end;
+    }
+
+    console.log("[WEBHOOK] Period dates:", {
+      currentPeriodStart,
+      currentPeriodEnd,
+    });
+
     const cancelAtPeriodEnd = subscription.cancel_at_period_end;
 
     user.subscription = {
@@ -194,25 +220,51 @@ async function handleSubscriptionUpdated(subscription: any) {
       return;
     }
 
-    // Map Stripe price ID to our plan names
-    const planMap: { [key: string]: string } = {
-      price_1RgrOp4RuS8yGC3wQUwTYx90: "pro",
-      price_1RhgGMGCTk05nf7TPhS38OMS: "pro", // Updated price ID
-      price_1RgZzc4RuS8yGC3w2EYaA8Ob: "custom",
-    };
-
     const priceId = subscription.items.data[0].price.id;
-    const plan = planMap[priceId] || "free";
+
+    // Determine plan based on environment variables
+    let plan = "trial";
+    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL) {
+      plan = "annual";
+    } else if (
+      priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL
+    ) {
+      plan = "semi-annual";
+    } else if (priceId === process.env.STRIPE_PRICE_ID_CUSTOM) {
+      plan = "custom";
+    }
 
     const oldSubscription = { ...user.subscription };
 
-    // Safely handle date fields - get from subscription items
+    // Get subscription item for period dates
     const subscriptionItem = subscription.items?.data?.[0];
-    const currentPeriodStart =
-      subscriptionItem?.current_period_start ||
-      subscription.current_period_start;
-    const currentPeriodEnd =
-      subscriptionItem?.current_period_end || subscription.current_period_end;
+    console.log(
+      "[WEBHOOK] Subscription item:",
+      JSON.stringify(subscriptionItem, null, 2)
+    );
+
+    // Extract period dates - prioritize subscription item, fallback to subscription level
+    let currentPeriodStart = null;
+    let currentPeriodEnd = null;
+
+    if (subscriptionItem) {
+      currentPeriodStart = subscriptionItem.current_period_start;
+      currentPeriodEnd = subscriptionItem.current_period_end;
+    }
+
+    // Fallback to subscription level if not found in item
+    if (!currentPeriodStart) {
+      currentPeriodStart = subscription.current_period_start;
+    }
+    if (!currentPeriodEnd) {
+      currentPeriodEnd = subscription.current_period_end;
+    }
+
+    console.log("[WEBHOOK] Period dates:", {
+      currentPeriodStart,
+      currentPeriodEnd,
+    });
+
     const cancelAtPeriodEnd = subscription.cancel_at_period_end;
 
     user.subscription = {
@@ -269,7 +321,7 @@ async function handleSubscriptionDeleted(subscription: any) {
 
     user.subscription = {
       ...user.subscription,
-      plan: "free",
+      plan: "trial",
       status: "canceled",
       stripeSubscriptionId: null,
       cancelAtPeriodEnd: false,
@@ -306,8 +358,8 @@ async function handlePaymentSucceeded(invoice: any) {
     const oldUsage = { ...user.usage };
 
     // Reset usage count on successful payment
-    user.usage.examsThisMonth = 0;
-    user.usage.examsThisMonthResetDate = new Date();
+    user.usage.examsThisPeriod = 0;
+    user.usage.examsThisPeriodResetDate = new Date();
 
     await user.save();
   } catch (error) {
