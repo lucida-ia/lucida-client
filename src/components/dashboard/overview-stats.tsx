@@ -87,12 +87,12 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
       description: (() => {
         const plan = userData.user?.subscription?.plan || "trial";
         const planNames = {
-          trial: "Plano Trial",
+          trial: "Plano Grátis",
           "semi-annual": "Plano Semestral",
           annual: "Plano Anual",
           custom: "Plano Personalizado",
         };
-        return planNames[plan as keyof typeof planNames] || "Plano Trial";
+        return planNames[plan as keyof typeof planNames] || "Plano Grátis";
       })(),
     },
     // {

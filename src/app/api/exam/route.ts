@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       // Reset every 30 days for trial users
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      shouldReset = lastReset < thirtyDaysAgo;
+      shouldReset = false;
     } else if (user.subscription.plan === "semi-annual") {
       // Reset every 6 months
       const sixMonthsAgo = new Date();

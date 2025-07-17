@@ -57,9 +57,9 @@ export function CreateExamUpload({
       if (isTrialUser && files.length >= 1) {
         toast({
           variant: "destructive",
-          title: "Limite de arquivos para usuários Trial",
+          title: "Limite de arquivos para usuários Grátis",
           description:
-            "Usuários Trial podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
+            "Usuários Grátis podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
         });
         return;
       }
@@ -67,9 +67,9 @@ export function CreateExamUpload({
       if (isTrialUser && files.length + newFiles.length > 1) {
         toast({
           variant: "destructive",
-          title: "Limite de arquivos para usuários Trial",
+          title: "Limite de arquivos para usuários Grátis",
           description:
-            "Usuários Trial podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
+            "Usuários Grátis podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
         });
         return;
       }
@@ -227,7 +227,7 @@ export function CreateExamUpload({
         <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">
           <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
           <AlertDescription className="text-orange-600 dark:text-orange-400">
-            <strong>Limitação Trial:</strong> Você pode enviar apenas 1 arquivo.
+            <strong>Sem plano ativo:</strong> Você pode enviar apenas 1 arquivo.
             Faça upgrade para enviar múltiplos arquivos e ter acesso completo à
             plataforma.
           </AlertDescription>
@@ -243,8 +243,13 @@ export function CreateExamUpload({
       </Alert>
 
       <div className="flex justify-end">
-        <Button onClick={handleContinue} className="w-full sm:w-auto touch-manipulation">
-          <span className="hidden sm:inline">Continuar para Personalização</span>
+        <Button
+          onClick={handleContinue}
+          className="w-full sm:w-auto touch-manipulation"
+        >
+          <span className="hidden sm:inline">
+            Continuar para Personalização
+          </span>
           <span className="sm:hidden">Continuar</span>
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

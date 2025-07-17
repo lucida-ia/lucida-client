@@ -239,7 +239,7 @@ export default function BillingPage() {
         } else {
           // User is already on trial or has no active subscription
           setError(
-            "Você já está no plano Trial ou não possui uma assinatura ativa."
+            "Você já está no plano Grátis ou não possui uma assinatura ativa."
           );
           setProcessingPlan(null);
           return;
@@ -665,7 +665,7 @@ export default function BillingPage() {
                         subscription?.stripeSubscriptionId &&
                         subscription.status === "active" &&
                         subscription.plan !== "trial" ? (
-                          "Voltar ao Trial"
+                          "Voltar ao Teste Grátis"
                         ) : (
                           "Plano Atual"
                         )
@@ -750,7 +750,7 @@ export default function BillingPage() {
               <AlertDialogDescription className="text-base text-slate-600 dark:text-slate-400">
                 {isTrialDowngrade ? (
                   <>
-                    Você tem certeza que deseja voltar ao plano Trial? Sua
+                    Você tem certeza que deseja voltar ao plano Grátis? Sua
                     assinatura atual será cancelada.
                     <br />
                     <br />
@@ -770,9 +770,9 @@ export default function BillingPage() {
                       </li>
                       <li>
                         Após esta data, você voltará automaticamente para o
-                        plano Trial
+                        plano Grátis
                       </li>
-                      <li>No plano Trial você terá até 3 provas gratuitas</li>
+                      <li>No plano Grátis você terá até 3 provas gratuitas</li>
                       <li>
                         Você pode reativar sua assinatura a qualquer momento
                       </li>

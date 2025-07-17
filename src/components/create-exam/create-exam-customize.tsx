@@ -126,9 +126,9 @@ export function CreateExamCustomize({
     if (subscription?.plan === "trial" && newCount > 10) {
       toast({
         variant: "destructive",
-        title: "Limite de questões para usuários Trial",
+        title: "Limite de questões para usuários Grátis",
         description:
-          "Usuários Trial podem criar provas com no máximo 10 questões. Faça upgrade para criar provas com mais questões.",
+          "Usuários Grátis podem criar provas com no máximo 10 questões. Faça upgrade para criar provas com mais questões.",
       });
       return;
     }
@@ -588,7 +588,7 @@ export function CreateExamCustomize({
               {subscription?.plan === "trial" && (
                 <div className="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
                   <p className="text-xs text-orange-600 dark:text-orange-400">
-                    <strong>Limitação Trial:</strong> Máximo 10 questões por
+                    <strong>Sem plano ativo:</strong> Máximo 10 questões por
                     prova. Faça upgrade para criar provas com até 50 questões.
                   </p>
                 </div>
@@ -827,7 +827,10 @@ export function CreateExamCustomize({
           <span className="sm:hidden">Voltar</span>
         </Button>
 
-        <Button onClick={handleReviewConfig} className="gap-2 w-full sm:w-auto touch-manipulation">
+        <Button
+          onClick={handleReviewConfig}
+          className="gap-2 w-full sm:w-auto touch-manipulation"
+        >
           <span className="hidden sm:inline">Revisar Configurações</span>
           <span className="sm:hidden">Revisar</span>
           <ArrowRight className="h-4 w-4" />
