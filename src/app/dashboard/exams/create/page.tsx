@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateExamUpload } from "@/components/create-exam/create-exam-upload";
 import { CreateExamCustomize } from "@/components/create-exam/create-exam-customize";
 import { CreateExamPreview } from "@/components/create-exam/create-exam-preview";
-import { CreateExamGenerated } from "@/components/create-exam/create-exam-generated";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CreateExamPage() {
@@ -31,9 +32,11 @@ export default function CreateExamPage() {
     difficulty: "médio",
     timeLimit: 60,
   });
-  const [generatedExam, setGeneratedExam] = useState<any>(null);
+  const [isSavingExam, setIsSavingExam] = useState(false);
+  const stopLoadingRef = useRef<(() => void) | null>(null);
 
   const { toast } = useToast();
+  const router = useRouter();
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -68,9 +71,56 @@ export default function CreateExamPage() {
     setActiveTab("preview");
   };
 
-  const handleExamGenerated = (exam: any) => {
-    setGeneratedExam(exam);
-    setActiveTab("generated");
+  const handleExamGenerated = async (exam: any) => {
+    setIsSavingExam(true);
+
+    try {
+      const response = await axios.post("/api/exam", exam);
+
+      if (response.data.status === "success") {
+        toast({
+          title: "Prova criada com sucesso!",
+          description: "Redirecionando para a página da prova...",
+        });
+
+        // Stop the loading state in the preview component
+        if (stopLoadingRef.current) {
+          stopLoadingRef.current();
+        }
+
+        // Redirect to the exam details page
+        router.push(`/dashboard/exams/${response.data.exam._id}`);
+      }
+    } catch (error: any) {
+      // Stop the loading state in case of error
+      if (stopLoadingRef.current) {
+        stopLoadingRef.current();
+      }
+
+      if (
+        error.response?.status === 402 &&
+        error.response?.data?.code === "USAGE_LIMIT_REACHED"
+      ) {
+        toast({
+          title: "Limite de Provas Atingido",
+          description:
+            "Você atingiu o limite de provas do seu plano. Faça upgrade para criar mais provas.",
+          variant: "destructive",
+        });
+        // Redirect to billing page after a short delay
+        setTimeout(() => {
+          router.push("/dashboard/billing");
+        }, 2000);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao salvar a prova. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSavingExam(false);
+    }
   };
 
   const handleBackToUpload = () => {
@@ -81,8 +131,8 @@ export default function CreateExamPage() {
     setActiveTab("customize");
   };
 
-  const handleBackToPreview = () => {
-    setActiveTab("preview");
+  const setStopLoadingCallback = (callback: () => void) => {
+    stopLoadingRef.current = callback;
   };
 
   return (
@@ -92,7 +142,7 @@ export default function CreateExamPage() {
         text="Envie conteúdo, personalize configurações e gere sua prova."
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
           <TabsTrigger
             value="upload"
             className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
@@ -112,13 +162,6 @@ export default function CreateExamPage() {
             className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
           >
             <span className="hidden sm:inline">3. </span>Visualizar e Gerar
-          </TabsTrigger>
-          <TabsTrigger
-            value="generated"
-            disabled={!generatedExam}
-            className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
-          >
-            <span className="hidden sm:inline">4. </span>Prova Gerada
           </TabsTrigger>
         </TabsList>
 
@@ -144,16 +187,8 @@ export default function CreateExamPage() {
             config={examConfig}
             onBack={handleBackToCustomize}
             onExamGenerated={handleExamGenerated}
+            onSetStopLoadingCallback={setStopLoadingCallback}
           />
-        </TabsContent>
-
-        <TabsContent value="generated">
-          {generatedExam && (
-            <CreateExamGenerated
-              generatedExam={generatedExam}
-              onBack={handleBackToPreview}
-            />
-          )}
         </TabsContent>
       </Tabs>
     </>

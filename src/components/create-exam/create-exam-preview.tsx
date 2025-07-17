@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,6 +64,7 @@ interface CreateExamPreviewProps {
   config: ExamConfig;
   onBack: () => void;
   onExamGenerated: (exam: any) => void;
+  onSetStopLoadingCallback: (callback: () => void) => void;
 }
 
 export function CreateExamPreview({
@@ -71,13 +72,24 @@ export function CreateExamPreview({
   config,
   onBack,
   onExamGenerated,
+  onSetStopLoadingCallback,
 }: CreateExamPreviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
+  // Register the stop loading callback with the parent component
+  useEffect(() => {
+    const stopLoading = () => {
+      setIsGenerating(false);
+    };
+    onSetStopLoadingCallback(stopLoading);
+  }, [onSetStopLoadingCallback]);
+
   const handleUploadFilesAndGenerateQuestions = async (files: File[]) => {
     try {
       setIsGenerating(true);
+
+      // Step 1: Generate exam
       const formData = new FormData();
 
       for (const file of files) {
@@ -142,8 +154,12 @@ export function CreateExamPreview({
         }
       }
 
-      // Call the callback with the generated exam data
+      // Step 2: Save exam (continue with loading state)
+      // Call the callback with the generated exam data - this will handle saving and redirect
       onExamGenerated(data);
+
+      // Note: Don't set setIsGenerating(false) here - let the parent component handle it
+      // after the save is complete
     } catch (error) {
       toast({
         variant: "destructive",
@@ -151,9 +167,10 @@ export function CreateExamPreview({
         description:
           "Falha ao processar os arquivos. Por favor, tente novamente.",
       });
-    } finally {
       setIsGenerating(false);
     }
+    // Note: Don't set setIsGenerating(false) here in the finally block
+    // The parent component will handle stopping the loading state after save is complete
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -247,10 +264,13 @@ export function CreateExamPreview({
               </div>
             </div>
             <div className="text-center space-y-3">
-              <h3 className="text-xl font-semibold">Gerando Prova</h3>
+              <h3 className="text-xl font-semibold">
+                Gerando e Salvando Prova
+              </h3>
               <p className="text-muted-foreground text-sm max-w-sm">
-                Estamos processando seus arquivos e criando questões
-                personalizadas. Isso leva somente alguns segundos.
+                Estamos processando seus arquivos, criando questões
+                personalizadas e salvando sua prova. Isso leva somente alguns
+                segundos.
               </p>
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
@@ -500,7 +520,7 @@ export function CreateExamPreview({
               <Zap className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-xl">Gerar Prova</CardTitle>
+              <CardTitle className="text-xl">Gerar e Salvar Prova</CardTitle>
               <CardDescription>
                 Tudo pronto! Clique no botão para processar os materiais e gerar
                 as questões.
@@ -541,13 +561,13 @@ export function CreateExamPreview({
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                <span className="hidden sm:inline">Gerando Prova...</span>
+                <span className="hidden sm:inline">Gerando e Salvando...</span>
                 <span className="sm:hidden">Gerando...</span>
               </>
             ) : (
               <>
                 <Zap className="h-4 w-4" />
-                <span className="hidden sm:inline">Gerar Prova</span>
+                <span className="hidden sm:inline">Gerar e Salvar Prova</span>
                 <span className="sm:hidden">Gerar</span>
               </>
             )}
