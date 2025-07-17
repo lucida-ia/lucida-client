@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { localization } from "@/helpers/localization";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
     <ClerkProvider localization={localization}>
       <html lang="pt-BR" suppressHydrationWarning>
         <Analytics />
+        <SpeedInsights />
         <body className={inter.className} suppressHydrationWarning>
           <ThemeProvider attribute="class" enableSystem>
             <TooltipProvider>

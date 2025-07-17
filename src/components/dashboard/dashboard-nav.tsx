@@ -74,7 +74,7 @@ type NavItem = {
 // Export navigation items for reuse in mobile component
 export function useNavItems() {
   const { shouldHideBilling } = useSubscription();
-  
+
   const allNavItems: NavItem[] = [
     {
       title: "Dashboard",
@@ -107,10 +107,7 @@ export function useNavItems() {
     },
   ];
 
-  // Filter out billing item for custom subscription users
-  return shouldHideBilling
-    ? allNavItems.filter((item) => item.href !== "/dashboard/billing")
-    : allNavItems;
+  return allNavItems;
 }
 
 export function DashboardNav() {
@@ -128,19 +125,6 @@ export function DashboardNav() {
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
-
-  // Prevent hydration issues and billing button flash by not rendering until both localStorage and subscription are loaded
-  if (!isLoaded || subscriptionLoading) {
-    return (
-      <div className="hidden border-r bg-muted/40 lg:block sticky top-0 left-0 w-64 h-screen">
-        <div className="flex h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4">
-            <div className="w-6 h-6 bg-muted rounded animate-pulse"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <TooltipProvider>
