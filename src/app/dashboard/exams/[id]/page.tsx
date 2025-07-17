@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import {
   Card,
@@ -157,37 +156,33 @@ export default function ExamPreviewPage() {
 
   if (loading) {
     return (
-      <DashboardShell>
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2">Carregando prova...</p>
-          </div>
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2">Carregando prova...</p>
         </div>
-      </DashboardShell>
+      </div>
     );
   }
 
   if (!exam) {
     return (
-      <DashboardShell>
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold">Prova não encontrada</h2>
-            <p className="mt-2 text-muted-foreground">
-              A prova que você está procurando não existe ou foi removida.
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/dashboard/exams">Voltar para Minhas Provas</Link>
-            </Button>
-          </div>
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Prova não encontrada</h2>
+          <p className="mt-2 text-muted-foreground">
+            A prova que você está procurando não existe ou foi removida.
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/dashboard/exams">Voltar para Minhas Provas</Link>
+          </Button>
         </div>
-      </DashboardShell>
+      </div>
     );
   }
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader
         heading={exam.title}
         text={exam.description || "Visualize e edite os detalhes da sua prova."}
@@ -324,9 +319,11 @@ export default function ExamPreviewPage() {
                                 <Badge
                                   variant="secondary"
                                   className={`text-xs ${
-                                    question.difficulty === "fácil" ? "bg-green-100 text-green-800" :
-                                    question.difficulty === "médio" ? "bg-yellow-100 text-yellow-800" :
-                                    "bg-red-100 text-red-800"
+                                    question.difficulty === "fácil"
+                                      ? "bg-green-100 text-green-800"
+                                      : question.difficulty === "médio"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
                                   }`}
                                 >
                                   {question.difficulty}
@@ -643,7 +640,7 @@ export default function ExamPreviewPage() {
                               </div>
                             </div>
                           )}
-                          
+
                           {/* Explanation section */}
                           {question.explanation && (
                             <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -665,6 +662,6 @@ export default function ExamPreviewPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardShell>
+    </>
   );
 }

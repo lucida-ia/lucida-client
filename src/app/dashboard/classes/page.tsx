@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,27 +125,35 @@ export default function ClassesPage() {
 
   const handleExportCSV = (classItem: Class, selectedExam: string) => {
     try {
-      const resultsToExport = selectedExam === "all" || !selectedExam
-        ? classItem.results
-        : classItem.results.filter(result => result.examId === selectedExam);
+      const resultsToExport =
+        selectedExam === "all" || !selectedExam
+          ? classItem.results
+          : classItem.results.filter(
+              (result) => result.examId === selectedExam
+            );
 
       if (resultsToExport.length === 0) {
         toast({
           title: "Nenhum resultado para exportar",
-          description: "Esta turma não possui resultados de provas para exportar.",
+          description:
+            "Esta turma não possui resultados de provas para exportar.",
           variant: "destructive",
         });
         return;
       }
 
-      const examTitle = selectedExam === "all" || !selectedExam
-        ? "todos_os_resultados"
-        : resultsToExport[0]?.examTitle || "resultados";
+      const examTitle =
+        selectedExam === "all" || !selectedExam
+          ? "todos_os_resultados"
+          : resultsToExport[0]?.examTitle || "resultados";
 
-      const filename = `${classItem.name}_${examTitle}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-      
+      const filename = `${classItem.name}_${examTitle}`.replace(
+        /[^a-zA-Z0-9_-]/g,
+        "_"
+      );
+
       exportResultsToCSV(resultsToExport, filename);
-      
+
       toast({
         title: "CSV exportado com sucesso!",
         description: "Os resultados foram salvos no seu dispositivo.",
@@ -166,7 +173,7 @@ export default function ClassesPage() {
   }, []);
 
   return (
-    <DashboardShell>
+    <>
       <div className="flex items-center justify-between">
         <DashboardHeader
           heading="Minhas Turmas"
@@ -238,11 +245,18 @@ export default function ClassesPage() {
                     </Select>
 
                     <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="gap-2"
-                        onClick={() => handleExportCSV(classItem, selectedExams[classItem.id] || "all")}
-                        disabled={!classItem.results || classItem.results.length === 0}
+                        onClick={() =>
+                          handleExportCSV(
+                            classItem,
+                            selectedExams[classItem.id] || "all"
+                          )
+                        }
+                        disabled={
+                          !classItem.results || classItem.results.length === 0
+                        }
                       >
                         <Download className="h-4 w-4" />
                         <span>Exportar CSV</span>
@@ -305,6 +319,6 @@ export default function ClassesPage() {
           </div>
         )}
       </div>
-    </DashboardShell>
+    </>
   );
 }

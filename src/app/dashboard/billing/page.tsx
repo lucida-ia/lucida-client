@@ -44,6 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 
 interface UserSubscription {
   id: string;
@@ -78,7 +79,7 @@ interface PricingPlan {
 const PRICING_PLANS: PricingPlan[] = [
   {
     id: "trial",
-    name: "Trial",
+    name: "Teste Gratis",
     price: "Grátis",
     priceId: "",
     period: "por 30 dias",
@@ -86,18 +87,13 @@ const PRICING_PLANS: PricingPlan[] = [
       "Até 3 provas gratuitas",
       "Máximo 10 questões por prova",
       "Apenas 1 arquivo por upload",
-      "Todos os formatos de questões",
-      "Geração avançada com IA",
-      "Suporte por email",
-      "Histórico de provas",
-      "Exportação em PDF",
     ],
     popular: false,
     checkoutUrl: "",
     maxExams: 3,
-    examFormats: ["simples", "enem", "dissertativa"],
+    examFormats: ["simples", "enem"],
     icon: Clock,
-    gradient: "from-green-500 to-emerald-600",
+    gradient: "from-teal-500 to-cyan-600",
   },
   {
     id: "semi-annual",
@@ -108,17 +104,15 @@ const PRICING_PLANS: PricingPlan[] = [
     features: [
       "Até 10 provas por semestre",
       "Todos os formatos de questões",
-      "Geração avançada com IA",
-      "Suporte prioritário por email",
-      "Histórico de provas",
-      "Exportação em PDF",
+      "Geração com IA",
+      "Suporte por email",
     ],
     popular: false,
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_SEMESTRAL || "",
     maxExams: 10,
-    examFormats: ["simples", "enem", "dissertativa"],
+    examFormats: ["simples", "enem"],
     icon: BookOpen,
-    gradient: "from-slate-500 to-slate-600",
+    gradient: "from-indigo-500 to-purple-600",
   },
   {
     id: "annual",
@@ -131,15 +125,13 @@ const PRICING_PLANS: PricingPlan[] = [
       "Todos os formatos de questões",
       "Geração avançada com IA",
       "Suporte prioritário por email",
-      "Histórico de provas",
-      "Exportação em PDF",
     ],
     popular: true,
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_ANUAL || "",
     maxExams: 30,
-    examFormats: ["simples", "enem", "dissertativa"],
+    examFormats: ["simples", "enem"],
     icon: BookMarked,
-    gradient: "from-blue-500 to-purple-600",
+    gradient: "from-rose-500 to-pink-600",
   },
   {
     id: "custom",
@@ -151,19 +143,35 @@ const PRICING_PLANS: PricingPlan[] = [
       "Provas ilimitadas",
       "Todos os formatos de questões",
       "Geração avançada com IA",
-      "Suporte prioritário 24/7",
+      "Suporte especializado 24/7",
       "Integração com LMS",
-      "Treinamento personalizado",
-      "Gestão de equipes",
     ],
     popular: false,
     checkoutUrl: "",
-    maxExams: -1, // unlimited
-    examFormats: ["simples", "enem", "dissertativa", "personalizada"],
+    maxExams: -1,
+    examFormats: ["simples", "enem"],
     icon: GraduationCap,
-    gradient: "from-amber-500 to-orange-600",
+    gradient: "from-emerald-500 to-green-600",
   },
 ];
+
+function BillingSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-64 bg-slate-200 dark:bg-slate-700" />
+        <Skeleton className="h-4 w-96 bg-slate-200 dark:bg-slate-700" />
+      </div>
+      <Skeleton className="h-48 w-full bg-slate-200 dark:bg-slate-700" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
+        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
+        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
+        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
+      </div>
+    </div>
+  );
+}
 
 export default function BillingPage() {
   const { user } = useUser();
@@ -356,13 +364,13 @@ export default function BillingPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20";
+        return "bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/20 dark:border-green-500/30";
       case "canceled":
-        return "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20";
+        return "bg-red-500/10 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/20 dark:border-red-500/30";
       case "past_due":
-        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20";
+        return "bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20 dark:border-yellow-500/30";
       default:
-        return "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-500/20";
+        return "bg-gray-500/10 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/20 dark:border-gray-500/30";
     }
   };
 
@@ -373,26 +381,7 @@ export default function BillingPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/50">
-        <div className="container mx-auto py-12 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-12">
-              <Skeleton className="h-10 w-64 mb-4" />
-              <Skeleton className="h-5 w-96 mb-8" />
-            </div>
-            <div className="grid gap-8">
-              <Skeleton className="h-48 w-full rounded-2xl" />
-              <div className="grid lg:grid-cols-3 gap-8">
-                <Skeleton className="h-[500px] w-full rounded-2xl" />
-                <Skeleton className="h-[500px] w-full rounded-2xl" />
-                <Skeleton className="h-[500px] w-full rounded-2xl" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <BillingSkeleton />;
   }
 
   // Don't render billing page for custom subscription users
@@ -404,475 +393,449 @@ export default function BillingPage() {
   const usagePercentage = getUsagePercentage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/50">
-      <div className="container mx-auto py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-2">
-                  Gerenciar Assinatura
-                </h1>
-                <p className="text-lg text-slate-600">
-                  Gerencie sua assinatura e acesse recursos premium
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => router.push("/dashboard")}
-                className="hover:bg-slate-100 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar ao Dashboard
-              </Button>
-            </div>
-          </div>
+    <>
+      <div className="flex items-center justify-between">
+        <DashboardHeader
+          heading="Gerenciar Assinatura"
+          text="Gerencie sua assinatura e acesse recursos premium"
+        />
+      </div>
 
-          {error && (
-            <Alert className="mb-8 border-red-200 bg-red-50">
-              <AlertDescription className="text-red-700">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
+      <div className="grid gap-4 md:gap-8">
+        {error && (
+          <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+            <AlertDescription className="text-red-700 dark:text-red-400">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
 
-          {/* Current Subscription Status */}
-          <Card className="mb-12 border-0 shadow-xl bg-white/70 backdrop-blur-sm">
-            <CardHeader className="pb-6">
-              <CardTitle className="flex items-center gap-3 text-2xl">
+        {/* Current Subscription Status */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Plan Overview Card */}
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700">
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${currentPlan.gradient} opacity-5`}
+            ></div>
+            <CardContent className="relative p-6">
+              <div className="flex items-center gap-4 mb-4">
                 <div
-                  className={`p-2 rounded-xl bg-gradient-to-r ${currentPlan.gradient}`}
+                  className={`p-3 rounded-xl bg-gradient-to-r ${currentPlan.gradient} shadow-lg`}
                 >
                   <currentPlan.icon className="w-6 h-6 text-white" />
                 </div>
-                Status da Assinatura
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid lg:grid-cols-2 gap-8">
-                {/* Plan Info */}
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-2xl font-bold">
-                          {currentPlan.name}
-                        </h3>
-                        {currentPlan.popular && (
-                          <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
-                            <Star className="w-3 h-3 mr-1" />
-                            Popular
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-slate-600">
-                        {currentPlan.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2 mb-6">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                      {currentPlan.price}
-                    </span>
-                    <span className="text-slate-500">{currentPlan.period}</span>
-                  </div>
-                </div>
-
-                {/* Status & Usage */}
-                <div className="space-y-6">
-                  {subscription && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-slate-700">
-                          Status:
-                        </span>
-                        <Badge
-                          className={`${getStatusColor(
-                            subscription.status
-                          )} border`}
-                        >
-                          {subscription.status === "active"
-                            ? "Ativo"
-                            : subscription.status}
-                        </Badge>
-                      </div>
-
-                      {subscription.currentPeriodEnd && (
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-700">
-                            Próxima cobrança:
-                          </span>
-                          <span className="text-slate-600 font-medium">
-                            {new Date(
-                              subscription.currentPeriodEnd
-                            ).toLocaleDateString("pt-BR")}
-                          </span>
-                        </div>
-                      )}
-
-                      {subscription.cancelAtPeriodEnd &&
-                        subscription.currentPeriodEnd && (
-                          <Alert className="border-amber-200 bg-amber-50">
-                            <Calendar className="w-4 h-4 text-amber-600" />
-                            <AlertDescription className="text-amber-700">
-                              Sua assinatura será cancelada em{" "}
-                              {new Date(
-                                subscription.currentPeriodEnd
-                              ).toLocaleDateString("pt-BR")}
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                    </div>
+                  <h3 className="text-lg font-bold">{currentPlan.name}</h3>
+                  {currentPlan.popular && (
+                    <Badge className="bg-gradient-to-r from-rose-500 to-pink-600 text-white border-0 text-xs">
+                      <Star className="w-3 h-3 mr-1" />
+                      Popular
+                    </Badge>
                   )}
-
-                  {/* Usage Statistics */}
-                  <div className="p-6 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-2xl border border-slate-200">
-                    <h4 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      Uso do Plano
-                    </h4>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-slate-600">
-                            Provas este mês
-                          </span>
-                          <span className="font-medium text-slate-900">
-                            {subscription?.usage?.examsThisPeriod || 0} /{" "}
-                            {currentPlan.maxExams === -1
-                              ? "∞"
-                              : currentPlan.maxExams}
-                          </span>
-                        </div>
-                        {currentPlan.maxExams !== -1 && (
-                          <Progress
-                            value={usagePercentage}
-                            className="h-2"
-                            style={
-                              {
-                                "--progress-background":
-                                  usagePercentage > 80
-                                    ? "#ef4444"
-                                    : usagePercentage > 60
-                                    ? "#f59e0b"
-                                    : "#10b981",
-                              } as React.CSSProperties
-                            }
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-sm text-slate-600">
-                          Formatos disponíveis:
-                        </span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {currentPlan.examFormats.map((format) => (
-                            <Badge
-                              key={format}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {format}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-200 bg-clip-text text-transparent">
+                    {currentPlan.price}
+                  </span>
+                  <span className="text-muted-foreground text-sm">
+                    {currentPlan.period}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {currentPlan.examFormats.map((format) => (
+                    <Badge key={format} variant="outline" className="text-xs">
+                      {format}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Available Plans */}
-          <div className="mb-12">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                Planos Disponíveis
-              </h2>
-              <p className="text-lg text-slate-600">
-                Escolha o plano que melhor se adapta às suas necessidades
-              </p>
-            </div>
-            <div className="grid lg:grid-cols-3 gap-8">
-              {PRICING_PLANS.map((plan) => {
-                const Icon = plan.icon;
-                const isCurrentPlan = currentPlan.id === plan.id;
+          {/* Status Card */}
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+                  <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h4 className="font-semibold text-lg">Status</h4>
+              </div>
 
-                return (
-                  <Card
-                    key={plan.id}
-                    className={`relative overflow-visible transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border-0 flex flex-col h-full ${
-                      plan.popular
-                        ? "shadow-2xl ring-2 ring-blue-500/20 bg-gradient-to-b from-white to-blue-50/30"
-                        : "shadow-lg bg-white/70 backdrop-blur-sm"
-                    } ${
-                      isCurrentPlan
-                        ? "ring-2 ring-green-500/30 bg-gradient-to-b from-white to-green-50/20"
-                        : ""
-                    }`}
-                  >
-                    {plan.popular && (
-                      <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20">
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg whitespace-nowrap">
-                          <Sparkles className="w-3 h-3 mr-1 inline" />
-                          Mais Popular
-                        </div>
-                      </div>
+              {subscription && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Situação:
+                    </span>
+                    <Badge
+                      className={`${getStatusColor(
+                        subscription.status
+                      )} border text-sm font-medium`}
+                    >
+                      {subscription.status === "active"
+                        ? "Ativo"
+                        : subscription.status}
+                    </Badge>
+                  </div>
+
+                  {subscription.currentPeriodEnd && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Próxima cobrança:
+                      </span>
+                      <span className="text-sm font-medium">
+                        {new Date(
+                          subscription.currentPeriodEnd
+                        ).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+                  )}
+
+                  {subscription.cancelAtPeriodEnd &&
+                    subscription.currentPeriodEnd && (
+                      <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                        <Calendar className="w-4 h-4 text-amber-600" />
+                        <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm">
+                          Cancelamento em{" "}
+                          {new Date(
+                            subscription.currentPeriodEnd
+                          ).toLocaleDateString("pt-BR")}
+                        </AlertDescription>
+                      </Alert>
                     )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-                    {isCurrentPlan && (
-                      <div className="absolute -top-4 right-4 z-20">
-                        <Badge className="bg-green-500 text-white border-0 shadow-lg">
-                          <Check className="w-3 h-3 mr-1" />
-                          Atual
-                        </Badge>
+          {/* Usage Card */}
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 md:col-span-2 lg:col-span-1">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900">
+                  <TrendingUp className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                </div>
+                <h4 className="font-semibold text-lg">Uso do Plano</h4>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">
+                      Provas este período
+                    </span>
+                    <span className="text-lg font-bold">
+                      {subscription?.usage?.examsThisPeriod || 0}
+                      <span className="text-muted-foreground font-normal">
+                        /
+                        {currentPlan.maxExams === -1
+                          ? "∞"
+                          : currentPlan.maxExams}
+                      </span>
+                    </span>
+                  </div>
+                  {currentPlan.maxExams !== -1 && (
+                    <div className="space-y-1">
+                      <Progress value={usagePercentage} className="h-3" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0</span>
+                        <span>{Math.round(usagePercentage)}% usado</span>
+                        <span>{currentPlan.maxExams}</span>
                       </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                    <CardHeader className="pb-4 pt-8">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div
-                          className={`p-3 rounded-2xl bg-gradient-to-r ${plan.gradient}`}
-                        >
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-2xl font-bold">
-                            {plan.name}
-                          </CardTitle>
-                        </div>
-                      </div>
-                      <div className="mb-6">
-                        <div className="text-center">
-                          <div className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-1">
-                            {plan.price}
-                          </div>
-                          <div className="text-sm text-slate-500">
-                            {plan.period}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="flex flex-col flex-1">
-                      <ul className="space-y-3 mb-8 flex-1">
-                        {plan.features.map((feature, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-3 text-sm"
-                          >
-                            <div className="p-1 rounded-full bg-green-100 mt-0.5">
-                              <Check className="w-3 h-3 text-green-600" />
-                            </div>
-                            <span className="text-slate-700">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Button
-                        className={`w-full h-12 text-base font-semibold transition-all duration-300 mt-auto ${
-                          isCurrentPlan
-                            ? "bg-green-100 text-green-700 hover:bg-green-200 border border-green-200"
-                            : plan.popular
-                            ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl"
-                            : "bg-gradient-to-r from-slate-900 to-slate-700 hover:from-slate-800 hover:to-slate-600 text-white"
-                        }`}
-                        onClick={() => handleSubscribe(plan)}
-                        disabled={isCurrentPlan || processingPlan === plan.id}
-                      >
-                        {processingPlan === plan.id ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            Processando...
-                          </div>
-                        ) : isCurrentPlan ? (
-                          <div className="flex items-center gap-2">
-                            <Check className="w-4 h-4" />
-                            Plano Atual
-                          </div>
-                        ) : plan.id === "trial" ? (
-                          subscription?.stripeSubscriptionId &&
-                          subscription.status === "active" &&
-                          subscription.plan !== "trial" ? (
-                            "Voltar ao Trial"
-                          ) : (
-                            "Plano Atual"
-                          )
-                        ) : plan.id === "semi-annual" ? (
-                          "Usar Semestral"
-                        ) : plan.id === "custom" ? (
-                          "Entre em contato agora!"
-                        ) : (
-                          "Assinar Agora"
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+        {/* Available Plans - Inline Layout */}
+        <div>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+              Planos Disponíveis
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Escolha o plano que melhor se adapta às suas necessidades
+            </p>
           </div>
 
-          {/* Subscription Management */}
-          {subscription &&
-            subscription.status === "active" &&
-            subscription.plan !== "trial" &&
-            subscription.plan !== "semi-annual" && (
-              <Card className="border-0 shadow-xl bg-white/70 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-2xl">
-                    <div className="p-2 rounded-xl bg-gradient-to-r from-slate-500 to-slate-600">
-                      <Shield className="w-6 h-6 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {PRICING_PLANS.map((plan) => {
+              const Icon = plan.icon;
+              const isCurrentPlan = currentPlan.id === plan.id;
+
+              return (
+                <Card
+                  key={plan.id}
+                  className={`relative transition-all duration-300 hover:shadow-xl hover:scale-105 border rounded-xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 ${
+                    plan.popular
+                      ? "shadow-xl ring-2 ring-rose-500/30 border-rose-200 dark:border-rose-700 dark:ring-rose-400/30"
+                      : ""
+                  } ${
+                    isCurrentPlan
+                      ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-700 dark:ring-teal-400/40"
+                      : ""
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                      <div className="bg-gradient-to-r from-rose-500 to-pink-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap">
+                        <Sparkles className="w-3 h-3 mr-1 inline" />
+                        Mais Popular
+                      </div>
                     </div>
-                    Gerenciar Assinatura
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    Controle sua assinatura e histórico de pagamentos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
+                  )}
+
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 right-3 z-20">
+                      <Badge className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white border-0 shadow-lg text-xs">
+                        <Check className="w-3 h-3 mr-1" />
+                        Atual
+                      </Badge>
+                    </div>
+                  )}
+
+                  <CardHeader className="pb-4 pt-6">
+                    <div className="text-center mb-4">
+                      <div
+                        className={`w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r ${plan.gradient} flex items-center justify-center shadow-lg`}
+                      >
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                        {plan.name}
+                      </CardTitle>
+                      <div className="text-3xl font-bold mb-1 text-slate-900 dark:text-slate-100">
+                        {plan.price}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {plan.period}
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                    <ul className="space-y-3 mb-8 flex-1">
+                      {plan.features.map((feature, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-3 text-sm"
+                        >
+                          <div className="p-1 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
+                            <Check className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                          </div>
+                          <span className="leading-relaxed text-slate-700 dark:text-slate-300">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
                     <Button
-                      variant="outline"
-                      onClick={handleCustomerPortal}
-                      disabled={redirectingToPortal}
-                      className="w-full sm:w-auto h-12 text-base hover:bg-slate-100 transition-colors"
+                      className={`w-full h-11 text-sm font-semibold transition-all duration-300 mt-auto ${
+                        isCurrentPlan
+                          ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
+                          : plan.popular
+                          ? "bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl"
+                          : plan.id === "trial"
+                          ? "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl"
+                          : "bg-gradient-to-r " +
+                            plan.gradient +
+                            " hover:shadow-lg text-white"
+                      }`}
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={isCurrentPlan || processingPlan === plan.id}
                     >
-                      {redirectingToPortal ? (
+                      {processingPlan === plan.id ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Redirecionando...
+                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Processando...
                         </div>
+                      ) : isCurrentPlan ? (
+                        <div className="flex items-center gap-2">
+                          <Check className="w-3 h-3" />
+                          Plano Atual
+                        </div>
+                      ) : plan.id === "trial" ? (
+                        subscription?.stripeSubscriptionId &&
+                        subscription.status === "active" &&
+                        subscription.plan !== "trial" ? (
+                          "Voltar ao Trial"
+                        ) : (
+                          "Plano Atual"
+                        )
+                      ) : plan.id === "semi-annual" ? (
+                        "Usar Semestral"
+                      ) : plan.id === "custom" ? (
+                        "Entre em contato!"
                       ) : (
-                        <>
-                          <CreditCard className="w-5 h-5 mr-2" />
-                          Gerenciar Pagamentos
-                        </>
+                        "Assinar Agora"
                       )}
                     </Button>
-
-                    <Separator className="my-6" />
-
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-red-600">
-                        <Shield className="w-4 h-4" />
-                        <h4 className="font-semibold">Zona de Perigo</h4>
-                      </div>
-                      <Button
-                        variant="destructive"
-                        onClick={showCancelConfirmation}
-                        disabled={subscription.cancelAtPeriodEnd}
-                        className="w-full sm:w-auto h-12 text-base"
-                      >
-                        {subscription.cancelAtPeriodEnd
-                          ? "Cancelamento Agendado"
-                          : "Cancelar Assinatura"}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-          {/* Confirmation Modal */}
-          <AlertDialog open={showCancelModal} onOpenChange={handleModalClose}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-red-600" />
-                  {isTrialDowngrade
-                    ? "Voltar ao Plano Trial"
-                    : "Cancelar Assinatura"}
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-base">
-                  {isTrialDowngrade ? (
-                    <>
-                      Você tem certeza que deseja voltar ao plano Trial? Sua
-                      assinatura atual será cancelada.
-                      <br />
-                      <br />
-                      <strong>O que acontecerá:</strong>
-                      <ul className="mt-2 list-disc list-inside text-sm text-slate-600">
-                        <li>
-                          Sua assinatura atual será cancelada ao final do
-                          período
-                        </li>
-                        <li>
-                          Você continuará tendo acesso aos recursos premium até{" "}
-                          {subscription?.currentPeriodEnd &&
-                            new Date(
-                              subscription.currentPeriodEnd
-                            ).toLocaleDateString("pt-BR")}
-                        </li>
-                        <li>
-                          Após esta data, você voltará automaticamente para o
-                          plano Trial
-                        </li>
-                        <li>No plano Trial você terá até 3 provas gratuitas</li>
-                        <li>
-                          Você pode reativar sua assinatura a qualquer momento
-                        </li>
-                      </ul>
-                    </>
-                  ) : (
-                    <>
-                      Você tem certeza que deseja cancelar sua assinatura? Esta
-                      ação não pode ser desfeita.
-                      <br />
-                      <br />
-                      <strong>O que acontecerá:</strong>
-                      <ul className="mt-2 list-disc list-inside text-sm text-slate-600">
-                        <li>
-                          Sua assinatura será cancelada ao final do período
-                          atual
-                        </li>
-                        <li>
-                          Você continuará tendo acesso aos recursos premium até{" "}
-                          {subscription?.currentPeriodEnd &&
-                            new Date(
-                              subscription.currentPeriodEnd
-                            ).toLocaleDateString("pt-BR")}
-                        </li>
-                        <li>
-                          Após esta data, você voltará para o plano gratuito
-                        </li>
-                        <li>
-                          Você pode reativar sua assinatura a qualquer momento
-                        </li>
-                      </ul>
-                    </>
-                  )}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={cancellingSubscription}>
-                  {isTrialDowngrade
-                    ? "Manter Plano Atual"
-                    : "Manter Assinatura"}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleCancelSubscription}
-                  disabled={cancellingSubscription}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {cancellingSubscription ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      {isTrialDowngrade ? "Voltando..." : "Cancelando..."}
-                    </div>
-                  ) : isTrialDowngrade ? (
-                    "Sim, Voltar ao Trial"
-                  ) : (
-                    "Sim, Cancelar Assinatura"
-                  )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Subscription Management */}
+        {subscription &&
+          subscription.status === "active" &&
+          subscription.plan !== "trial" &&
+          subscription.plan !== "semi-annual" && (
+            <Card className="border rounded-lg shadow-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-lg text-slate-900 dark:text-slate-100">
+                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+                    <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                  </div>
+                  Gerenciar Assinatura
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400">
+                  Controle sua assinatura e histórico de pagamentos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={handleCustomerPortal}
+                    disabled={redirectingToPortal}
+                    className="flex-1"
+                  >
+                    {redirectingToPortal ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Redirecionando...
+                      </div>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Gerenciar Pagamentos
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    onClick={showCancelConfirmation}
+                    disabled={subscription.cancelAtPeriodEnd}
+                    className="flex-1"
+                  >
+                    {subscription.cancelAtPeriodEnd
+                      ? "Cancelamento Agendado"
+                      : "Cancelar Assinatura"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+        {/* Confirmation Modal */}
+        <AlertDialog open={showCancelModal} onOpenChange={handleModalClose}>
+          <AlertDialogContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />
+                {isTrialDowngrade
+                  ? "Voltar ao Plano Trial"
+                  : "Cancelar Assinatura"}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-base text-slate-600 dark:text-slate-400">
+                {isTrialDowngrade ? (
+                  <>
+                    Você tem certeza que deseja voltar ao plano Trial? Sua
+                    assinatura atual será cancelada.
+                    <br />
+                    <br />
+                    <strong className="text-slate-900 dark:text-slate-100">
+                      O que acontecerá:
+                    </strong>
+                    <ul className="mt-2 list-disc list-inside text-sm text-muted-foreground">
+                      <li>
+                        Sua assinatura atual será cancelada ao final do período
+                      </li>
+                      <li>
+                        Você continuará tendo acesso aos recursos premium até{" "}
+                        {subscription?.currentPeriodEnd &&
+                          new Date(
+                            subscription.currentPeriodEnd
+                          ).toLocaleDateString("pt-BR")}
+                      </li>
+                      <li>
+                        Após esta data, você voltará automaticamente para o
+                        plano Trial
+                      </li>
+                      <li>No plano Trial você terá até 3 provas gratuitas</li>
+                      <li>
+                        Você pode reativar sua assinatura a qualquer momento
+                      </li>
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    Você tem certeza que deseja cancelar sua assinatura? Esta
+                    ação não pode ser desfeita.
+                    <br />
+                    <br />
+                    <strong className="text-slate-900 dark:text-slate-100">
+                      O que acontecerá:
+                    </strong>
+                    <ul className="mt-2 list-disc list-inside text-sm text-muted-foreground">
+                      <li>
+                        Sua assinatura será cancelada ao final do período atual
+                      </li>
+                      <li>
+                        Você continuará tendo acesso aos recursos premium até{" "}
+                        {subscription?.currentPeriodEnd &&
+                          new Date(
+                            subscription.currentPeriodEnd
+                          ).toLocaleDateString("pt-BR")}
+                      </li>
+                      <li>
+                        Após esta data, você voltará para o plano gratuito
+                      </li>
+                      <li>
+                        Você pode reativar sua assinatura a qualquer momento
+                      </li>
+                    </ul>
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={cancellingSubscription}
+                className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+              >
+                {isTrialDowngrade ? "Manter Plano Atual" : "Manter Assinatura"}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancelSubscription}
+                disabled={cancellingSubscription}
+                className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white"
+              >
+                {cancellingSubscription ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    {isTrialDowngrade ? "Voltando..." : "Cancelando..."}
+                  </div>
+                ) : isTrialDowngrade ? (
+                  "Sim, Voltar ao Trial"
+                ) : (
+                  "Sim, Cancelar Assinatura"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-    </div>
+    </>
   );
 }

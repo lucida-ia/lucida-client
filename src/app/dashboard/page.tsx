@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentExams } from "@/components/dashboard/recent-exams";
@@ -99,7 +98,7 @@ export default function DashboardPage() {
   }, [searchParams, toast]);
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader
         heading="Dashboard"
         text="Bem-vindo de volta! Aqui está um resumo das suas provas."
@@ -110,6 +109,6 @@ export default function DashboardPage() {
         <OverviewStats userData={userData} loading={loading} />
         <RecentExams onExamDeleted={fetchUserData} />
       </div>
-    </DashboardShell>
+    </>
   );
 }

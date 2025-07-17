@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentExams } from "@/components/dashboard/recent-exams";
@@ -40,7 +39,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader
         heading="Criar Turma"
         text="Crie uma nova turma para suas provas"
@@ -56,6 +55,6 @@ export default function DashboardPage() {
           <Button onClick={handleCreateClass}>Criar Turma</Button>
         </div>
       </div>
-    </DashboardShell>
+    </>
   );
 }

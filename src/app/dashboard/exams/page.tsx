@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,7 +62,7 @@ export default function ListExamsPage() {
   }, []);
 
   return (
-    <DashboardShell>
+    <>
       <div className="flex items-center justify-between">
         <DashboardHeader
           heading="Minhas Provas"
@@ -120,6 +119,6 @@ export default function ListExamsPage() {
           </div>
         )}
       </div>
-    </DashboardShell>
+    </>
   );
 }
