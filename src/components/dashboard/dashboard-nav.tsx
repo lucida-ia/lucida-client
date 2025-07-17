@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  HelpCircle,
 } from "lucide-react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -98,6 +99,11 @@ export function useNavItems() {
       title: "Minhas Turmas",
       href: "/dashboard/classes",
       icon: <UsersRound className="h-5 w-5" />,
+    },
+    {
+      title: "Ajuda",
+      href: "/dashboard/help",
+      icon: <HelpCircle className="h-5 w-5" />,
     },
     {
       title: "Gerenciar Assinatura",
