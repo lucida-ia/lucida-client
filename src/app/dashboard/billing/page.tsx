@@ -82,7 +82,7 @@ const PRICING_PLANS: PricingPlan[] = [
     name: "Teste Gratis",
     price: "Grátis",
     priceId: "",
-    period: "por 30 dias",
+    period: "",
     features: [
       "Até 3 provas gratuitas",
       "Máximo 10 questões por prova",
@@ -154,6 +154,21 @@ const PRICING_PLANS: PricingPlan[] = [
     gradient: "from-emerald-500 to-green-600",
   },
 ];
+
+// Helper function to calculate monthly equivalent pricing
+const getMonthlyEquivalent = (plan: PricingPlan) => {
+  if (plan.id === "semi-annual") {
+    const price = 189.9;
+    const months = 6;
+    return `(R$ ${(price / months).toFixed(2).replace(".", ",")}/mês)`;
+  }
+  if (plan.id === "annual") {
+    const price = 334.8;
+    const months = 12;
+    return `(R$ ${(price / months).toFixed(2).replace(".", ",")}/mês)`;
+  }
+  return "";
+};
 
 function BillingSkeleton() {
   return (
@@ -443,6 +458,11 @@ export default function BillingPage() {
                     {currentPlan.period}
                   </span>
                 </div>
+                {getMonthlyEquivalent(currentPlan) && (
+                  <div className="text-sm text-muted-foreground">
+                    {getMonthlyEquivalent(currentPlan)}
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1 mt-3">
                   {currentPlan.examFormats.map((format) => (
                     <Badge key={format} variant="outline" className="text-xs">
@@ -616,6 +636,11 @@ export default function BillingPage() {
                       <div className="text-sm text-muted-foreground">
                         {plan.period}
                       </div>
+                      {getMonthlyEquivalent(plan) && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {getMonthlyEquivalent(plan)}
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
 
