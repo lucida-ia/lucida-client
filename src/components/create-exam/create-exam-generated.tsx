@@ -294,7 +294,7 @@ export function CreateExamGenerated({
                               {capitalizeDifficulty(question.difficulty)}
                             </Badge>
                           )}
-                          {question.subject && (
+                          {question.subject && editingQuestion !== index && (
                             <Badge variant="outline" className="text-xs">
                               {question.subject}
                             </Badge>
@@ -336,6 +336,37 @@ export function CreateExamGenerated({
                                 placeholder="Texto da pergunta"
                               />
                             </div>
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">
+                                Matéria:
+                              </label>
+                              <Input
+                                value={editedQuestion.subject || ""}
+                                onChange={(e) =>
+                                  updateEditedQuestion(
+                                    "subject",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Matéria ou tópico da questão (opcional)"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">
+                                Explicação:
+                              </label>
+                              <Textarea
+                                value={editedQuestion.explanation || ""}
+                                onChange={(e) =>
+                                  updateEditedQuestion(
+                                    "explanation",
+                                    e.target.value
+                                  )
+                                }
+                                className="min-h-[80px]"
+                                placeholder="Explicação da resposta correta (opcional)"
+                              />
+                            </div>
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -344,7 +375,9 @@ export function CreateExamGenerated({
                                 <p className="text-sm text-muted-foreground font-medium mb-1">
                                   Contexto:
                                 </p>
-                                <p className="text-sm leading-relaxed break-words">{question.context}</p>
+                                <p className="text-sm leading-relaxed break-words">
+                                  {question.context}
+                                </p>
                               </div>
                             )}
                             <h3 className="font-medium text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words">
@@ -613,7 +646,7 @@ export function CreateExamGenerated({
                             </div>
                           </div>
                         )}
-                        
+
                         {/* Explanation section */}
                         {question.explanation && (
                           <div className="mt-3 md:mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">

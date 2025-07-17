@@ -695,7 +695,7 @@ export default function BillingPage() {
                           "Plano Atual"
                         )
                       ) : plan.id === "semi-annual" ? (
-                        "Usar Semestral"
+                        "Assinar Agora"
                       ) : plan.id === "custom" ? (
                         "Entre em contato!"
                       ) : (

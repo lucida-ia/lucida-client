@@ -313,7 +313,7 @@ export default function ExamPreviewPage() {
                         </Badge>
                         <div className="flex-1 space-y-2">
                           {/* Question metadata */}
-                          {!editingQuestion && (
+                          {editingQuestion !== index && (
                             <div className="flex items-center gap-2 flex-wrap">
                               {question.difficulty && (
                                 <Badge
@@ -370,6 +370,37 @@ export default function ExamPreviewPage() {
                                   }
                                   className="min-h-[60px]"
                                   placeholder="Texto da pergunta"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">
+                                  Matéria:
+                                </label>
+                                <Input
+                                  value={editedQuestion.subject || ""}
+                                  onChange={(e) =>
+                                    updateEditedQuestion(
+                                      "subject",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Matéria ou tópico da questão (opcional)"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">
+                                  Explicação:
+                                </label>
+                                <Textarea
+                                  value={editedQuestion.explanation || ""}
+                                  onChange={(e) =>
+                                    updateEditedQuestion(
+                                      "explanation",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="min-h-[80px]"
+                                  placeholder="Explicação da resposta correta (opcional)"
                                 />
                               </div>
                             </div>

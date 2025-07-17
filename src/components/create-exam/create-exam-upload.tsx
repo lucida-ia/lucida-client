@@ -3,13 +3,22 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { File, X, CheckCircle, ArrowRight } from "lucide-react";
+import { File, X, CheckCircle, ArrowRight, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UploadArea from "../ui/upload-area";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useRouter } from "next/navigation";
 
 const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todos os arquivos
+
+// Plan limits - keep in sync with backend
+const PLAN_LIMITS = {
+  trial: 3,
+  "semi-annual": 10,
+  annual: 30,
+  custom: -1, // unlimited
+};
 
 interface CreateExamUploadProps {
   uploadedFiles: File[];
@@ -24,13 +33,56 @@ export function CreateExamUpload({
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const { subscription, loading: subscriptionLoading } = useSubscription();
+  const router = useRouter();
 
   React.useEffect(() => {
     setFiles(uploadedFiles);
   }, [uploadedFiles]);
 
+  // Check if user has reached their exam limit
+  const hasReachedExamLimit = React.useMemo(() => {
+    if (!subscription?.usage) return false;
+
+    const plan = subscription.plan || "trial";
+    const limit =
+      PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] || PLAN_LIMITS.trial;
+
+    // Unlimited plan
+    if (limit === -1) return false;
+
+    return subscription.usage.examsThisPeriod >= limit;
+  }, [subscription]);
+
+  const getRemainingExams = React.useMemo(() => {
+    if (!subscription?.usage) return 0;
+
+    const plan = subscription.plan || "trial";
+    const limit =
+      PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] || PLAN_LIMITS.trial;
+
+    // Unlimited plan
+    if (limit === -1) return -1;
+
+    return Math.max(0, limit - subscription.usage.examsThisPeriod);
+  }, [subscription]);
+
+  const handleUpgradeRedirect = () => {
+    router.push("/dashboard/billing");
+  };
+
   const validateAndAddFiles = useCallback(
     (newFiles: File[]) => {
+      // Block file upload if user has reached exam limit
+      if (hasReachedExamLimit) {
+        toast({
+          variant: "destructive",
+          title: "Limite de Provas Atingido",
+          description:
+            "Você atingiu o limite de provas do seu plano. Faça upgrade para criar mais provas.",
+        });
+        return;
+      }
+
       const validFileTypes = [
         "application/pdf",
         "application/msword",
@@ -117,7 +169,7 @@ export function CreateExamUpload({
         });
       }
     },
-    [subscription, files, toast]
+    [subscription, files, toast, hasReachedExamLimit]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -167,11 +219,95 @@ export function CreateExamUpload({
       return;
     }
 
+    // Double-check exam limit before continuing
+    if (hasReachedExamLimit) {
+      toast({
+        variant: "destructive",
+        title: "Limite de Provas Atingido",
+        description:
+          "Você atingiu o limite de provas do seu plano. Faça upgrade para criar mais provas.",
+      });
+      return;
+    }
+
     onFilesUploaded(files);
   };
 
+  // Show loading state while subscription is loading
+  if (subscriptionLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-muted-foreground">Carregando...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show exam limit reached message
+  if (hasReachedExamLimit) {
+    const currentPlan = subscription?.plan || "trial";
+    const currentLimit =
+      PLAN_LIMITS[currentPlan as keyof typeof PLAN_LIMITS] || PLAN_LIMITS.trial;
+
+    return (
+      <div className="space-y-6">
+        <Card className="border-red-200 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/50 dark:to-orange-950/50 dark:border-red-800">
+          <CardContent className="pt-8 pb-8">
+            <div className="text-center space-y-6">
+              {/* Icon with background */}
+              <div className="mx-auto w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-10 w-10 text-red-600 dark:text-red-400" />
+              </div>
+
+              {/* Content */}
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-red-700 dark:text-red-400">
+                  Limite de Provas Atingido
+                </h3>
+                <div className="space-y-2">
+                  <p className="text-red-600 dark:text-red-300 font-medium">
+                    Você já criou {currentLimit} prova
+                    {currentLimit > 1 ? "s" : ""} este período
+                  </p>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    Para continuar criando provas e ter acesso a todos os
+                    recursos premium, faça upgrade do seu plano.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col items-center space-y-2">
+                <Button
+                  size="sm"
+                  onClick={handleUpgradeRedirect}
+                  className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white dark:from-white dark:to-gray-200 dark:hover:from-gray-100 dark:hover:to-gray-300 dark:text-black font-medium"
+                >
+                  Fazer Upgrade Agora!
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Show exam limit warning for users close to limit */}
+      {getRemainingExams !== -1 && getRemainingExams <= 2 && (
+        <Alert className="bg-yellow-50 border-yellow-200 items-start dark:bg-yellow-950 dark:border-yellow-800">
+          <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <AlertDescription className="text-yellow-600 dark:text-yellow-400">
+            <strong>Atenção:</strong> Você tem apenas {getRemainingExams}{" "}
+            prova(s) restante(s) em seu plano atual. Considere fazer upgrade
+            para criar mais provas.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <UploadArea
         isDragging={isDragging}
         handleDragOver={handleDragOver}
