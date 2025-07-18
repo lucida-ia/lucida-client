@@ -39,13 +39,13 @@ export const localization = {
   signUp: {
     start: {
       title: "Crie sua conta",
-      subtitle: "para continuar para Lucida",
+      subtitle: "para continuar com a Lucida",
       actionText: "Já tem uma conta?",
       actionLink: "Entrar",
     },
     emailCode: {
       title: "Verifique seu email",
-      subtitle: "para continuar para Lucida",
+      subtitle: "para continuar com a Lucida",
       formTitle: "Código de verificação",
       formSubtitle: "Digite o código de verificação enviado para seu email",
       resendButton: "Não recebeu um código? Reenviar",
@@ -55,13 +55,13 @@ export const localization = {
   signIn: {
     start: {
       title: "Entre na sua conta",
-      subtitle: "para continuar para Lucida",
+      subtitle: "para continuar com a Lucida",
       actionText: "Não tem uma conta?",
       actionLink: "Criar conta",
     },
     emailCode: {
       title: "Verifique seu email",
-      subtitle: "para continuar para Lucida",
+      subtitle: "para continuar com a Lucida",
       formTitle: "Código de verificação",
       formSubtitle: "Digite o código de verificação enviado para seu email",
       resendButton: "Não recebeu um código? Reenviar",
