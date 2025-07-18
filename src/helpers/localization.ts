@@ -27,14 +27,15 @@ export const localization = {
   footerActionLink__signUp: "Criar conta",
   dividerText: "ou",
   socialButtonsBlockButton: "Continuar com {{provider|titleize}}",
-  signIn: {
-    start: {
-      title: "Entre na sua conta",
-      subtitle: "para continuar para Lucida",
-      actionText: "Não tem uma conta?",
-      actionLink: "Criar conta",
-    },
-  },
+  
+  // Email verification translations
+  formFieldLabel__emailAddressVerificationCode: "Código de verificação",
+  formFieldInputPlaceholder__emailAddressVerificationCode: "Digite o código de verificação",
+  formFieldAction__emailAddressVerification: "Verificar email",
+  formFieldHintText__emailAddressVerification: "Enviamos um código de verificação para {{identifier}}",
+  formButtonPrimary__emailAddressVerification: "Verificar email",
+  
+  // Verification code UI strings
   signUp: {
     start: {
       title: "Crie sua conta",
@@ -42,5 +43,34 @@ export const localization = {
       actionText: "Já tem uma conta?",
       actionLink: "Entrar",
     },
+    emailCode: {
+      title: "Verifique seu email",
+      subtitle: "para continuar para Lucida",
+      formTitle: "Código de verificação",
+      formSubtitle: "Digite o código de verificação enviado para seu email",
+      resendButton: "Não recebeu um código? Reenviar",
+    },
   },
+  
+  signIn: {
+    start: {
+      title: "Entre na sua conta",
+      subtitle: "para continuar para Lucida",
+      actionText: "Não tem uma conta?",
+      actionLink: "Criar conta",
+    },
+    emailCode: {
+      title: "Verifique seu email",
+      subtitle: "para continuar para Lucida",
+      formTitle: "Código de verificação",
+      formSubtitle: "Digite o código de verificação enviado para seu email",
+      resendButton: "Não recebeu um código? Reenviar",
+    },
+  },
+  
+  // Additional verification strings
+  verificationLinkError: "O link de verificação é inválido ou expirou.",
+  verificationLinkErrorDescription: "Solicite um novo link de verificação.",
+  verificationCodeError: "Código de verificação inválido.",
+  verificationCodeErrorDescription: "Verifique o código e tente novamente.",
 };
