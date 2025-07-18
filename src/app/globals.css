@@ -401,3 +401,14 @@ body::-webkit-scrollbar {
 *::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
+
+/* clerk */
+
+.cl-userButtonTrigger {
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
+.cl-userButton-root {
+  width: 100% !important;
+}

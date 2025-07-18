@@ -20,7 +20,7 @@ import {
   Menu,
   HelpCircle,
 } from "lucide-react";
-import { SignOutButton, UserButton } from "@clerk/nextjs";
+import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
@@ -123,6 +123,7 @@ export function DashboardNav() {
     false
   );
   const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
+  const { user } = useUser();
 
   const pathname = usePathname();
   const router = useRouter();
@@ -151,25 +152,6 @@ export function DashboardNav() {
               </Link>
             )}
             <div className="flex items-center gap-2">
-              {!isCollapsed && (
-                <UserButton>
-                  <UserButton.MenuItems>
-                    <UserButton.Action
-                      label={theme === "dark" ? "Light Mode" : "Dark Mode"}
-                      labelIcon={
-                        theme === "dark" ? (
-                          <SunIcon className="w-4 h-4" />
-                        ) : (
-                          <MoonIcon className="w-4 h-4" />
-                        )
-                      }
-                      onClick={() =>
-                        setTheme(theme === "dark" ? "light" : "dark")
-                      }
-                    />
-                  </UserButton.MenuItems>
-                </UserButton>
-              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -236,32 +218,75 @@ export function DashboardNav() {
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <div className="flex items-center gap-2"></div>
-            <SignOutButton>
+            <div className="flex items-center gap-2">
               {isCollapsed ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-center p-2 h-10"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </Button>
+                    <div className="w-full flex justify-center items-center p-2">
+                      <UserButton
+                        appearance={{
+                          elements: {
+                            userButtonTrigger:
+                              "shadow-none dark:text-white text-black",
+                            button: "shadow-none",
+                          },
+                        }}
+                      >
+                        <UserButton.MenuItems>
+                          <UserButton.Action
+                            label={
+                              theme === "dark" ? "Light Mode" : "Dark Mode"
+                            }
+                            labelIcon={
+                              theme === "dark" ? (
+                                <SunIcon className="w-4 h-4" />
+                              ) : (
+                                <MoonIcon className="w-4 h-4" />
+                              )
+                            }
+                            onClick={() =>
+                              setTheme(theme === "dark" ? "light" : "dark")
+                            }
+                          />
+                        </UserButton.MenuItems>
+                      </UserButton>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>Sair</p>
+                    <p>{user?.firstName || user?.username || "Usuário"}</p>
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sair
-                </Button>
+                <div className="w-full flex justify-center items-center p-2 rounded-lg hover:cursor-pointer hover:bg-muted/50 transition-all duration-300 border border-black/10 hover:border-black/20 dark:border-white/10 dark:hover:border-white/20">
+                  <UserButton
+                    showName={true}
+                    appearance={{
+                      elements: {
+                        userButtonTrigger:
+                          "shadow-none dark:text-white text-black",
+                        button: "shadow-none",
+                      },
+                    }}
+                  >
+                    <UserButton.MenuItems>
+                      <UserButton.Action
+                        label={theme === "dark" ? "Light Mode" : "Dark Mode"}
+                        labelIcon={
+                          theme === "dark" ? (
+                            <SunIcon className="w-4 h-4" />
+                          ) : (
+                            <MoonIcon className="w-4 h-4" />
+                          )
+                        }
+                        onClick={() =>
+                          setTheme(theme === "dark" ? "light" : "dark")
+                        }
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
+                </div>
               )}
-            </SignOutButton>
+            </div>
           </div>
         </div>
       </div>
