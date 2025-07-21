@@ -39,6 +39,7 @@ import {
   Plus,
   Check,
   X,
+  Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -51,7 +52,7 @@ interface DifficultyDistribution {
 interface ExamConfig {
   title: string;
   description: string;
-  questionStyle: "simple" | "enem";
+  questionStyle: "simple" | "enem" | "enade";
   questionCount: number;
   class: {
     _id: string;
@@ -99,7 +100,7 @@ export function CreateExamCustomize({
   const maxQuestions = subscription?.plan === "trial" ? 10 : 50;
 
   useEffect(() => {
-    if (config.questionStyle === "enem") {
+    if (config.questionStyle === "enem" || config.questionStyle === "enade") {
       setConfig((prev) => ({
         ...prev,
         questionTypes: {
@@ -268,7 +269,7 @@ export function CreateExamCustomize({
     }
   };
 
-  const handleQuestionStyleChange = (value: "simple" | "enem") => {
+  const handleQuestionStyleChange = (value: "simple" | "enem" | "enade") => {
     if (value) {
       setConfig((prev) => ({ ...prev, questionStyle: value }));
     }
@@ -508,7 +509,7 @@ export function CreateExamCustomize({
             type="single"
             value={config.questionStyle}
             onValueChange={handleQuestionStyleChange}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full"
           >
             <ToggleGroupItem
               value="simple"
@@ -537,6 +538,38 @@ export function CreateExamCustomize({
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Questões contextualizadas e densas.
+                </div>
+              </div>
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="enade"
+              aria-label="Toggle enade"
+              className="h-auto p-6 border data-[state=on]:border-primary/20 data-[state=on]:bg-primary/5"
+              disabled={subscription?.plan === "trial"}
+              onClick={() => {
+                if (subscription?.plan === "trial") {
+                  toast({
+                    title: "Funcionalidade Premium",
+                    description:
+                      "A geração de questões no estilo ENADE está disponível apenas para assinantes.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              <div className="text-left space-y-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  <div className="font-semibold text-lg">ENADE</div>
+                  {subscription?.plan === "trial" && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Star className="h-3 w-3" />
+                      Premium
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Questões com estudos de caso profissionais.
                 </div>
               </div>
             </ToggleGroupItem>
@@ -610,7 +643,7 @@ export function CreateExamCustomize({
                       checked as boolean
                     )
                   }
-                  disabled={config.questionStyle === "enem"}
+                  disabled={config.questionStyle === "enem" || config.questionStyle === "enade"}
                 />
                 <Label
                   htmlFor="multipleChoice"
@@ -629,7 +662,7 @@ export function CreateExamCustomize({
                   onCheckedChange={(checked) =>
                     handleQuestionTypeChange("trueFalse", checked as boolean)
                   }
-                  disabled={config.questionStyle === "enem"}
+                  disabled={config.questionStyle === "enem" || config.questionStyle === "enade"}
                 />
                 <Label
                   htmlFor="trueFalse"
@@ -642,9 +675,9 @@ export function CreateExamCustomize({
                 )}
               </div>
             </div>
-            {config.questionStyle === "enem" && (
+            {(config.questionStyle === "enem" || config.questionStyle === "enade") && (
               <p className="text-xs text-muted-foreground bg-blue-50 dark:bg-muted/50 p-3 rounded-lg border border-blue-200 dark:border-muted">
-                📝 No estilo ENEM, apenas questões de múltipla escolha são
+                📝 No estilo {config.questionStyle === "enem" ? "ENEM" : "ENADE"}, apenas questões de múltipla escolha são
                 permitidas.
               </p>
             )}

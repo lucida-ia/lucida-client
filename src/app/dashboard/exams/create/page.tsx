@@ -17,7 +17,7 @@ export default function CreateExamPage() {
   const [examConfig, setExamConfig] = useState({
     title: "",
     description: "",
-    questionStyle: "simple" as "simple" | "enem",
+    questionStyle: "simple" as "simple" | "enem" | "enade",
     questionCount: 10,
     class: {
       _id: "",

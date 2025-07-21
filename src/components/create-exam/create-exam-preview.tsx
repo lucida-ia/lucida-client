@@ -42,7 +42,7 @@ interface DifficultyDistribution {
 interface ExamConfig {
   title: string;
   description: string;
-  questionStyle: "simple" | "enem";
+  questionStyle: "simple" | "enem" | "enade";
   questionCount: number;
   class: {
     _id: string;
@@ -331,7 +331,9 @@ export function CreateExamPreview({
                 <Badge variant="secondary" className="font-medium">
                   {config.questionStyle === "simple"
                     ? "Simples"
-                    : "Estilo ENEM"}
+                    : config.questionStyle === "enem"
+                    ? "Estilo ENEM"
+                    : "Estilo ENADE"}
                 </Badge>
               </div>
             </div>
