@@ -39,6 +39,7 @@ import {
   Plus,
   Check,
   X,
+  Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -544,11 +545,28 @@ export function CreateExamCustomize({
               value="enade"
               aria-label="Toggle enade"
               className="h-auto p-6 border data-[state=on]:border-primary/20 data-[state=on]:bg-primary/5"
+              disabled={subscription?.plan === "trial"}
+              onClick={() => {
+                if (subscription?.plan === "trial") {
+                  toast({
+                    title: "Funcionalidade Premium",
+                    description:
+                      "A geração de questões no estilo ENADE está disponível apenas para assinantes.",
+                    variant: "destructive",
+                  });
+                }
+              }}
             >
               <div className="text-left space-y-2">
                 <div className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
                   <div className="font-semibold text-lg">ENADE</div>
+                  {subscription?.plan === "trial" && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Star className="h-3 w-3" />
+                      Premium
+                    </Badge>
+                  )}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Questões com estudos de caso profissionais.
