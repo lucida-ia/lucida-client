@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface Question {
   question: string;
@@ -52,9 +53,89 @@ interface ExamResult {
   totalQuestions: number;
 }
 
+interface ExamSecurityConfig {
+  allowConsultation: boolean;
+  showScoreAtEnd: boolean;
+  showCorrectAnswersAtEnd: boolean;
+}
+
+interface ExamSession {
+  examId: string;
+  startTime: number;
+  duration: number;
+  answers: number[];
+  email: string;
+}
+
+// Cookie management utilities
+const EXAM_SESSION_COOKIE = "examSession";
+
+const setCookie = (name: string, value: string, days: number = 1) => {
+  const expires = new Date(
+    Date.now() + days * 24 * 60 * 60 * 1000
+  ).toUTCString();
+  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Strict`;
+};
+
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+  return null;
+};
+
+const deleteCookie = (name: string) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};
+
+const saveExamSession = (
+  examId: string,
+  duration: number,
+  email: string,
+  answers: number[] = []
+) => {
+  const session: ExamSession = {
+    examId,
+    startTime: Date.now(),
+    duration,
+    answers,
+    email,
+  };
+  setCookie(EXAM_SESSION_COOKIE, JSON.stringify(session));
+};
+
+const getExamSession = (): ExamSession | null => {
+  try {
+    const sessionData = getCookie(EXAM_SESSION_COOKIE);
+    if (!sessionData) return null;
+    return JSON.parse(sessionData);
+  } catch {
+    return null;
+  }
+};
+
+const updateExamSessionAnswers = (answers: number[]) => {
+  const session = getExamSession();
+  if (session) {
+    session.answers = answers;
+    setCookie(EXAM_SESSION_COOKIE, JSON.stringify(session));
+  }
+};
+
+const clearExamSession = () => {
+  deleteCookie(EXAM_SESSION_COOKIE);
+};
+
 export default function PublicExamPage() {
   const { shareId } = useParams();
+  const searchParams = useSearchParams();
   const [exam, setExam] = useState<Exam | null>(null);
+  const [securityConfig, setSecurityConfig] = useState<ExamSecurityConfig>({
+    allowConsultation: true, // Default to allowing consultation when no config
+    showScoreAtEnd: true,
+    showCorrectAnswersAtEnd: false,
+  });
+  const [hasSecurityConfig, setHasSecurityConfig] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -63,10 +144,32 @@ export default function PublicExamPage() {
   const [result, setResult] = useState<ExamResult | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isTimerHidden, setIsTimerHidden] = useState(false);
+  const [timeExpired, setTimeExpired] = useState(false);
   const { toast } = useToast();
   const [email, setEmail] = useState<string>("");
+  const [violationDetected, setViolationDetected] = useState(false);
+  const [examEndReason, setExamEndReason] = useState<
+    "manual" | "time" | "violation" | null
+  >(null);
 
   useEffect(() => {
+    // Read security configuration from URL parameters
+    const configParam = searchParams.get("c");
+    if (configParam) {
+      try {
+        const decodedConfig = atob(configParam);
+        const parsedConfig = JSON.parse(decodedConfig);
+        setSecurityConfig(parsedConfig);
+        setHasSecurityConfig(true);
+      } catch (error) {
+        console.error("Failed to parse security config:", error);
+        setHasSecurityConfig(false);
+      }
+    } else {
+      // No security config provided - allow consultation by default
+      setHasSecurityConfig(false);
+    }
+
     const fetchExam = async () => {
       try {
         const response = await axios.get(`/api/exam/public/${shareId}`);
@@ -94,12 +197,61 @@ export default function PublicExamPage() {
           explanation: q.explanation,
         }));
 
-        setExam({
+        const examWithValidatedQuestions = {
           ...examData,
           questions: validatedQuestions,
-        });
-        setTimeLeft(examData.duration * 60); // Convert minutes to seconds
-        setAnswers(new Array(validatedQuestions.length).fill(-1));
+        };
+
+        setExam(examWithValidatedQuestions);
+
+        // Check for existing exam session
+        const existingSession = getExamSession();
+
+        if (existingSession) {
+          // If different exam ID, clear the session
+          if (existingSession.examId !== shareId) {
+            clearExamSession();
+            setTimeLeft(examData.duration * 60);
+            setAnswers(new Array(validatedQuestions.length).fill(-1));
+          } else {
+            // Resume existing session
+            const elapsed = Math.floor(
+              (Date.now() - existingSession.startTime) / 1000
+            );
+            const totalDuration = existingSession.duration * 60;
+            const remainingTime = totalDuration - elapsed;
+
+            if (remainingTime <= 0) {
+              // Time expired
+              setTimeExpired(true);
+              setExamEndReason("time");
+              setTimeLeft(0);
+              setEmail(existingSession.email);
+              setAnswers(existingSession.answers);
+              setIsStarted(true);
+              // Auto-submit the exam
+              setTimeout(() => {
+                handleSubmitExpired(
+                  existingSession.answers,
+                  existingSession.email
+                );
+              }, 100);
+            } else {
+              // Resume with remaining time
+              setTimeLeft(remainingTime);
+              setAnswers(existingSession.answers);
+              setEmail(existingSession.email);
+              setIsStarted(true);
+              toast({
+                title: "Prova Retomada",
+                description: "Sua prova foi retomada de onde parou.",
+              });
+            }
+          }
+        } else {
+          setTimeLeft(examData.duration * 60);
+          setAnswers(new Array(validatedQuestions.length).fill(-1));
+        }
       } catch (error) {
         console.error("Error fetching exam:", error);
         toast({
@@ -117,17 +269,39 @@ export default function PublicExamPage() {
   }, [shareId]);
 
   useEffect(() => {
-    if (isStarted && timeLeft > 0 && !isSubmitted) {
+    if (isStarted && timeLeft > 0 && !isSubmitted && !timeExpired) {
       const timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        setTimeLeft((prev) => {
+          const newTime = prev - 1;
+          if (newTime <= 0) {
+            setTimeExpired(true);
+            setExamEndReason("time");
+            // Auto-submit when time runs out
+            setTimeout(() => {
+              const session = getExamSession();
+              if (session) {
+                handleSubmitExpired(session.answers, session.email);
+              } else {
+                handleSubmit();
+              }
+            }, 100);
+            return 0;
+          }
+          return newTime;
+        });
       }, 1000);
 
       return () => clearInterval(timer);
-    } else if (isStarted && timeLeft === 0 && !isSubmitted) {
-      handleSubmit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, isSubmitted, isStarted]);
+  }, [timeLeft, isSubmitted, isStarted, timeExpired]);
+
+  // Update session answers when answers change
+  useEffect(() => {
+    if (isStarted && !isSubmitted) {
+      updateExamSessionAnswers(answers);
+    }
+  }, [answers, isStarted, isSubmitted]);
 
   // Scroll to top when question changes
   useEffect(() => {
@@ -137,17 +311,63 @@ export default function PublicExamPage() {
   }, [currentQuestion, isStarted]);
 
   const handleStartExam = () => {
+    if (!exam || !email) return;
+
+    // Save exam session to cookies
+    saveExamSession(shareId as string, exam.duration, email, answers);
+
     setIsStarted(true);
+
+    toast({
+      title: "Prova Iniciada",
+      description: "Sua prova foi salva e pode ser retomada se necessário.",
+    });
   };
 
   const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
-    if (isSubmitted || !isStarted || !exam) return;
+    if (isSubmitted || !isStarted || !exam || timeExpired) return;
     const newAnswers = [...answers];
     newAnswers[questionIndex] = answerIndex;
     setAnswers(newAnswers);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitExpired = async (
+    finalAnswers: number[],
+    emailAddress: string
+  ) => {
+    if (isSubmitted || !exam) return;
+
+    try {
+      const response = await axios.post(`/api/exam/public/${shareId}/submit`, {
+        answers: finalAnswers,
+        email: emailAddress,
+      });
+
+      setResult(response.data);
+      setIsSubmitted(true);
+      clearExamSession(); // Clear session after successful submission
+
+      toast({
+        title: "Tempo Esgotado",
+        description:
+          "Sua prova foi enviada automaticamente pois o tempo expirou.",
+        variant: "destructive",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Falha ao enviar a prova automaticamente",
+      });
+    }
+  };
+
+  const handleManualSubmit = () => {
+    setExamEndReason("manual");
+    handleSubmit();
+  };
+
+  const handleSubmit = useCallback(async () => {
     if (isSubmitted || !isStarted || !exam) return;
 
     try {
@@ -158,11 +378,28 @@ export default function PublicExamPage() {
 
       setResult(response.data);
       setIsSubmitted(true);
+      clearExamSession(); // Clear session after successful submission
 
-      toast({
-        title: "Sucesso",
-        description: "Sua prova foi enviada com sucesso",
-      });
+      if (violationDetected) {
+        toast({
+          title: "Exame Finalizado por Violação",
+          description:
+            "Sua prova foi enviada automaticamente devido à violação das regras.",
+          variant: "destructive",
+        });
+      } else if (timeExpired) {
+        toast({
+          title: "Tempo Esgotado",
+          description:
+            "Sua prova foi enviada automaticamente pois o tempo expirou.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sucesso",
+          description: "Sua prova foi enviada com sucesso",
+        });
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -170,7 +407,92 @@ export default function PublicExamPage() {
         description: "Falha ao enviar a prova",
       });
     }
-  };
+  }, [
+    isSubmitted,
+    isStarted,
+    exam,
+    shareId,
+    answers,
+    email,
+    violationDetected,
+    timeExpired,
+    toast,
+  ]);
+
+  // Anti-cheating detection when consultation is not allowed and security config exists
+  useEffect(() => {
+    if (
+      !isStarted ||
+      isSubmitted ||
+      !hasSecurityConfig ||
+      securityConfig.allowConsultation ||
+      timeExpired
+    ) {
+      return;
+    }
+
+    let warningShown = false;
+
+    const handleViolation = () => {
+      if (violationDetected || isSubmitted) return;
+
+      setViolationDetected(true);
+      setExamEndReason("violation");
+      toast({
+        title: "Violação Detectada",
+        description:
+          "Você saiu da tela da prova. O exame será finalizado automaticamente.",
+        variant: "destructive",
+      });
+
+      // Auto-submit the exam after a short delay
+      setTimeout(() => {
+        handleSubmit();
+      }, 1000);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && !warningShown) {
+        warningShown = true;
+        handleViolation();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (!warningShown) {
+        warningShown = true;
+        handleViolation();
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "Você tem certeza que deseja sair da prova?";
+      handleViolation();
+      return e.returnValue;
+    };
+
+    // Add event listeners
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Cleanup on unmount or when exam ends
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [
+    isStarted,
+    isSubmitted,
+    hasSecurityConfig,
+    securityConfig.allowConsultation,
+    violationDetected,
+    timeExpired,
+    handleSubmit,
+    toast,
+  ]);
 
   const getTimerColor = () => {
     if (timeLeft <= 60) return "text-destructive"; // Last minute
@@ -225,16 +547,45 @@ export default function PublicExamPage() {
     );
   }
 
+  // Show time expired message if time has run out
+  if (timeExpired && !isSubmitted) {
+    return (
+      <div className="container mx-auto py-8 max-w-md">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Tempo Expirado</h2>
+            <p className="text-muted-foreground mb-4">
+              O tempo limite para esta prova foi ultrapassado. Suas respostas
+              estão sendo enviadas automaticamente.
+            </p>
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
+              <span className="text-sm text-muted-foreground">
+                Enviando respostas...
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!isStarted) {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PlayCircle className="h-6 w-6" />
-              {exam.title}
-            </CardTitle>
-            <CardDescription>{exam.description}</CardDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <PlayCircle className="h-6 w-6" />
+                  {exam.title}
+                </CardTitle>
+                <CardDescription>{exam.description}</CardDescription>
+              </div>
+              <ThemeToggle />
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -260,14 +611,31 @@ export default function PublicExamPage() {
                   • Você terá {exam.duration} minutos para completar a prova
                 </li>
                 <li>
-                  • O cronômetro começará assim que você clicar em "Iniciar
-                  Prova"
+                  • O cronômetro começará assim que você clicar em &quot;Iniciar
+                  Prova&quot;
                 </li>
                 <li>• Você não pode pausar a prova uma vez iniciada</li>
                 <li>
                   • Certifique-se de enviar suas respostas antes que o tempo
                   acabe
                 </li>
+                <li className="text-green-600 dark:text-green-400 font-medium">
+                  • ✅ Sua sessão será salva automaticamente - você pode retomar
+                  se fechar acidentalmente
+                </li>
+                {hasSecurityConfig &&
+                  (securityConfig.allowConsultation ? (
+                    <li className="text-blue-600 dark:text-blue-400 font-medium">
+                      • Consulta permitida: Você pode consultar materiais
+                      durante esta prova
+                    </li>
+                  ) : (
+                    <li className="text-red-600 dark:text-red-400 font-medium">
+                      • ⚠️ ATENÇÃO: Não é permitido sair desta tela, trocar de
+                      aba ou minimizar a janela durante a prova. Qualquer
+                      tentativa resultará no encerramento automático do exame.
+                    </li>
+                  ))}
               </ul>
             </div>
 
@@ -303,118 +671,196 @@ export default function PublicExamPage() {
       <div className="container mx-auto py-8 max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-6 w-6" />
-              Prova Completada
-            </CardTitle>
-            <CardDescription>Resultado enviado para: {email}</CardDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle2 className="h-6 w-6" />
+                  Prova Completada
+                </CardTitle>
+                <CardDescription>
+                  Resultado enviado para: {email}
+                </CardDescription>
+              </div>
+              <ThemeToggle />
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="text-center p-6 bg-muted rounded-lg">
-              <div className="text-4xl font-bold mb-2">
-                {result.percentage.toFixed(1)}%
+            {/* Exam completion message */}
+            {examEndReason && (
+              <div
+                className={`p-4 rounded-lg border ${
+                  examEndReason === "manual"
+                    ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
+                    : examEndReason === "time"
+                    ? "bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800"
+                    : "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {examEndReason === "manual" ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  ) : examEndReason === "time" ? (
+                    <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  )}
+                  <div>
+                    <p
+                      className={`font-medium ${
+                        examEndReason === "manual"
+                          ? "text-green-800 dark:text-green-200"
+                          : examEndReason === "time"
+                          ? "text-orange-800 dark:text-orange-200"
+                          : "text-red-800 dark:text-red-200"
+                      }`}
+                    >
+                      {examEndReason === "manual" &&
+                        "Prova Finalizada Manualmente"}
+                      {examEndReason === "time" &&
+                        "Prova Finalizada - Tempo Esgotado"}
+                      {examEndReason === "violation" &&
+                        "Prova Finalizada - Violação de Segurança"}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        examEndReason === "manual"
+                          ? "text-green-600 dark:text-green-400"
+                          : examEndReason === "time"
+                          ? "text-orange-600 dark:text-orange-400"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {examEndReason === "manual" &&
+                        "Você completou a prova e a enviou com sucesso."}
+                      {examEndReason === "time" &&
+                        "O tempo limite foi alcançado e a prova foi enviada automaticamente."}
+                      {examEndReason === "violation" &&
+                        "A prova foi finalizada devido a uma violação das regras de segurança."}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-muted-foreground">
-                {result.score} de {result.totalQuestions} questões corretas
-              </p>
-            </div>
+            )}
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Revisão das Respostas</h3>
-              {exam.questions.map((question, index) => (
-                <Card key={index} className="">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="outline" className="text-sm">
-                        {index + 1}
-                      </Badge>
-                      <div className="flex-1 space-y-3">
-                        <h4 className="font-medium whitespace-pre-wrap">
-                          {question.context || question.question}
-                          {question.context && `\n${question.question}`}
-                        </h4>
-                        <div className="space-y-2">
-                          {question.type === "trueFalse" ? (
-                            <>
-                              <div
-                                className={`p-2 rounded ${
-                                  1 === question.correctAnswer
-                                    ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
-                                    : answers[index] === 1
-                                    ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
-                                    : "bg-muted"
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="radio"
-                                    checked={answers[index] === 1}
-                                    disabled
-                                    className="h-4 w-4"
-                                  />
-                                  <span>Verdadeiro</span>
-                                  {1 === question.correctAnswer && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
-                                  )}
+            {securityConfig.showScoreAtEnd ? (
+              <div className="text-center p-6 bg-muted rounded-lg">
+                <div className="text-4xl font-bold mb-2">
+                  {result.percentage.toFixed(1)}%
+                </div>
+                <p className="text-muted-foreground">
+                  {result.score} de {result.totalQuestions} questões corretas
+                </p>
+              </div>
+            ) : (
+              <div className="text-center p-6 bg-muted rounded-lg">
+                <div className="text-lg font-semibold mb-2">
+                  Prova Concluída com Sucesso!
+                </div>
+                <p className="text-muted-foreground">
+                  Suas respostas foram enviadas. O resultado será
+                  disponibilizado pelo professor.
+                </p>
+              </div>
+            )}
+
+            {securityConfig.showCorrectAnswersAtEnd && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Revisão das Respostas</h3>
+                {exam.questions.map((question, index) => (
+                  <Card key={index} className="">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start gap-3">
+                        <Badge variant="outline" className="text-sm">
+                          {index + 1}
+                        </Badge>
+                        <div className="flex-1 space-y-3">
+                          <h4 className="font-medium whitespace-pre-wrap">
+                            {question.context || question.question}
+                            {question.context && `\n${question.question}`}
+                          </h4>
+                          <div className="space-y-2">
+                            {question.type === "trueFalse" ? (
+                              <>
+                                <div
+                                  className={`p-2 rounded ${
+                                    1 === question.correctAnswer
+                                      ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
+                                      : answers[index] === 1
+                                      ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
+                                      : "bg-muted"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="radio"
+                                      checked={answers[index] === 1}
+                                      disabled
+                                      className="h-4 w-4"
+                                    />
+                                    <span>Verdadeiro</span>
+                                    {1 === question.correctAnswer && (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                              <div
-                                className={`p-2 rounded ${
-                                  0 === question.correctAnswer
-                                    ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
-                                    : answers[index] === 0
-                                    ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
-                                    : "bg-muted"
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="radio"
-                                    checked={answers[index] === 0}
-                                    disabled
-                                    className="h-4 w-4"
-                                  />
-                                  <span>Falso</span>
-                                  {0 === question.correctAnswer && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
-                                  )}
+                                <div
+                                  className={`p-2 rounded ${
+                                    0 === question.correctAnswer
+                                      ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
+                                      : answers[index] === 0
+                                      ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
+                                      : "bg-muted"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="radio"
+                                      checked={answers[index] === 0}
+                                      disabled
+                                      className="h-4 w-4"
+                                    />
+                                    <span>Falso</span>
+                                    {0 === question.correctAnswer && (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          ) : (
-                            question.options?.map((option, optionIndex) => (
-                              <div
-                                key={optionIndex}
-                                className={`p-2 rounded ${
-                                  optionIndex === question.correctAnswer
-                                    ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
-                                    : answers[index] === optionIndex
-                                    ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
-                                    : "bg-muted"
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="radio"
-                                    checked={answers[index] === optionIndex}
-                                    disabled
-                                    className="h-4 w-4"
-                                  />
-                                  <span>{option}</span>
-                                  {optionIndex === question.correctAnswer && (
-                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
-                                  )}
+                              </>
+                            ) : (
+                              question.options?.map((option, optionIndex) => (
+                                <div
+                                  key={optionIndex}
+                                  className={`p-2 rounded ${
+                                    optionIndex === question.correctAnswer
+                                      ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
+                                      : answers[index] === optionIndex
+                                      ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
+                                      : "bg-muted"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="radio"
+                                      checked={answers[index] === optionIndex}
+                                      disabled
+                                      className="h-4 w-4"
+                                    />
+                                    <span>{option}</span>
+                                    {optionIndex === question.correctAnswer && (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))
-                          )}
+                              ))
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -432,8 +878,17 @@ export default function PublicExamPage() {
               <p className="text-sm text-muted-foreground">
                 {exam.description}
               </p>
+              {hasSecurityConfig && !securityConfig.allowConsultation && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                    Modo Anti-Fraude Ativo
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <Button
                 variant="outline"
                 size="sm"
@@ -627,7 +1082,7 @@ export default function PublicExamPage() {
                   </Button>
                 ) : (
                   <Button
-                    onClick={handleSubmit}
+                    onClick={handleManualSubmit}
                     disabled={timeLeft === 0 || isSubmitted}
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />

@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { exportExamToWord } from "@/lib/word-export";
 import { useState } from "react";
+import { ExamSecurityConfigModal } from "./exam-security-config-modal";
 
 export function ExamTable({
   exams,
@@ -32,7 +33,8 @@ export function ExamTable({
 }) {
   const { toast } = useToast();
   const [exportingExamId, setExportingExamId] = useState<string | null>(null);
-  const [sharingExamId, setSharingExamId] = useState<string | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareExamId, setShareExamId] = useState<string | null>(null);
 
   const handleDeleteExam = async (examId: string) => {
     const response = await axios.delete("/api/exam", {
@@ -64,7 +66,8 @@ export function ExamTable({
       console.error("Error exporting Word document:", error);
       toast({
         title: "Erro ao exportar documento",
-        description: "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
+        description:
+          "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -72,29 +75,9 @@ export function ExamTable({
     }
   };
 
-  const handleShareExam = async (examId: string) => {
-    try {
-      setSharingExamId(examId);
-      const response = await axios.post("/api/exam/share", { examId });
-
-      const shareUrl = `${window.location.origin}/exam/${response.data.id}`;
-
-      // Copy to clipboard
-      await navigator.clipboard.writeText(shareUrl);
-
-      toast({
-        title: "Link da Prova Copiado!",
-        description: "O link da prova foi copiado, agora só compartilhar.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao gerar link de compartilhamento",
-      });
-    } finally {
-      setSharingExamId(null);
-    }
+  const handleShareExam = (examId: string) => {
+    setShareExamId(examId);
+    setShareModalOpen(true);
   };
 
   return (
@@ -165,17 +148,12 @@ export function ExamTable({
                         variant="outline"
                         size="icon"
                         onClick={() => handleShareExam(exam._id)}
-                        disabled={sharingExamId === exam._id}
                       >
                         <Share2 className="h-4 w-4" />
                         <span className="sr-only">Compartilhar</span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      {sharingExamId === exam._id
-                        ? "Compartilhando..."
-                        : "Compartilhar Prova"}
-                    </TooltipContent>
+                    <TooltipContent>Compartilhar Prova</TooltipContent>
                   </Tooltip>
 
                   <Tooltip>
@@ -197,6 +175,14 @@ export function ExamTable({
           ))}
         </TableBody>
       </Table>
+
+      {shareExamId && (
+        <ExamSecurityConfigModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          examId={shareExamId}
+        />
+      )}
     </>
   );
 }

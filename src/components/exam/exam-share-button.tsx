@@ -3,50 +3,30 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
+import { ExamSecurityConfigModal } from "./exam-security-config-modal";
 
 interface ExamShareButtonProps {
   examId: string;
 }
 
 export function ExamShareButton({ examId }: ExamShareButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleShare = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.post("/api/exam/share", { examId });
-
-      const shareUrl = `${window.location.origin}/exam/${response.data.id}`;
-
-      // Copy to clipboard
-      await navigator.clipboard.writeText(shareUrl);
-
-      toast({
-        title: "Link da Prova Copiado!",
-        description: "O link da prova foi copiado, agora só compartilhar.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate share link",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleShare = () => {
+    setIsModalOpen(true);
   };
 
   return (
-    <Button
-      variant="outline"
-      onClick={handleShare}
-      disabled={isLoading}
-      size="icon"
-    >
-      <Share2 className="h-4 w-4" />
-    </Button>
+    <>
+      <Button variant="outline" onClick={handleShare} size="icon">
+        <Share2 className="h-4 w-4" />
+      </Button>
+
+      <ExamSecurityConfigModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        examId={examId}
+      />
+    </>
   );
 }
