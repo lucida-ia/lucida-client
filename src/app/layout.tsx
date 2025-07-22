@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { localization } from "@/helpers/localization";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleTagManager } from "@next/third-parties/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
       <html lang="pt-BR" suppressHydrationWarning>
         <Analytics />
         <SpeedInsights />
+        <GoogleTagManager gtmId="GTM-NWBZ58SG" />
         <body className={inter.className} suppressHydrationWarning>
           <ThemeProvider attribute="class" enableSystem>
             <TooltipProvider>
