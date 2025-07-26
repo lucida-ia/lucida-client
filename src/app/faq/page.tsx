@@ -48,7 +48,7 @@ export default function Home() {
     {
       question: "Meu conteúdo está seguro quando eu o envio?",
       answer:
-        "Levamos a segurança dos dados muito a sério. Todo o conteúdo enviado é criptografado em trânsito e em repouso. Não compartilhamos seus materiais com terceiros, e você mantém todos os direitos sobre seu conteúdo. Para detalhes, consulte nossa política de privacidade.",
+        "Sim, seus materiais ficam totalmente seguros e privados. Não compartilhamos seu conteúdo com terceiros, e você mantém todos os direitos sobre seus materiais. Utilizamos apenas para gerar suas provas personalizadas. Para mais detalhes, consulte nossa política de privacidade.",
     },
     {
       question: "Vocês oferecem descontos educacionais?",
