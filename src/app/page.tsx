@@ -17,6 +17,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import {
   FileText,
@@ -35,6 +41,7 @@ import {
   Brain,
   Lightbulb,
   Target,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -54,6 +61,9 @@ export default function Home() {
 
   // Navbar scroll state
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Video modal state
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -86,9 +96,9 @@ export default function Home() {
     },
     {
       icon: <Shield className="w-5 h-5" />,
-      title: "100% Seguro",
+      title: "Totalmente Privado",
       description:
-        "Seus dados e materiais protegidos com criptografia avançada",
+        "Seus materiais didáticos ficam seguros e privados em nossa plataforma",
       size: "large",
     },
     {
@@ -219,7 +229,7 @@ export default function Home() {
     {
       question: "Meu conteúdo está seguro quando eu o envio?",
       answer:
-        "Levamos a segurança dos dados muito a sério. Todo o conteúdo enviado é criptografado em trânsito e em repouso. Não compartilhamos seus materiais com terceiros, e você mantém todos os direitos sobre seu conteúdo. Para detalhes, consulte nossa política de privacidade.",
+        "Sim, seus materiais ficam totalmente seguros e privados. Não compartilhamos seu conteúdo com terceiros, e você mantém todos os direitos sobre seus materiais. Utilizamos apenas para gerar suas provas personalizadas. Para mais detalhes, consulte nossa política de privacidade.",
     },
     {
       question: "Vocês oferecem descontos educacionais?",
@@ -297,10 +307,10 @@ export default function Home() {
             </Link>
 
             <Button
-              disabled
               size="lg"
               variant="outline"
               className="border-slate-700 text-slate-300 bg-slate-800/50 hover:bg-slate-700/50 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg backdrop-blur-sm rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[44px]"
+              onClick={() => setIsVideoModalOpen(true)}
             >
               <span>Ver Demo</span>
               <ArrowUpRight className="w-5 h-5 ml-2" />
@@ -651,6 +661,31 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {/* Video Demo Modal */}
+      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-slate-900 border-slate-700">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-white text-xl font-semibold">
+              Demo do Lucida
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 pt-4">
+            <div className="aspect-video w-full">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/_B6nTvxtgI0"
+                title="Demo do Lucida"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="rounded-lg"
+              ></iframe>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
