@@ -43,6 +43,7 @@ import {
   Target,
   X,
 } from "lucide-react";
+import { TypingAnimation } from "@/components/typing-animation";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -278,7 +279,15 @@ export default function Home() {
 
           {/* Main Headline - Mobile responsive typography */}
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight px-2">
-            Crie Provas com
+            Crie{" "}
+            <TypingAnimation 
+              words={["Provas", "Avaliações", "Quizzes", "Simulados", "Atividades"]}
+              typingSpeed={120}
+              deletingSpeed={80}
+              pauseDuration={1500}
+              className="text-white"
+            />{" "}
+            com
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
               IA em Segundos
@@ -287,7 +296,7 @@ export default function Home() {
 
           {/* Subtitle - Mobile optimized */}
           <p className="text-base sm:text-xl lg:text-2xl text-slate-300 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-4">
-            Transforme seu material didático em provas com IA.
+            Transforme seu material didático em avaliações com IA.
             <br />
             <span className="text-slate-400">
               Rápido, inteligente e personalizado.
