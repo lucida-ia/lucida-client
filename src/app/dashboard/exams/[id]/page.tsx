@@ -41,6 +41,11 @@ export default function ExamPreviewPage() {
   const [editingQuestion, setEditingQuestion] = useState<number | null>(null);
   const [editedQuestion, setEditedQuestion] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  // Add state for editing exam metadata
+  const [editingExamDetails, setEditingExamDetails] = useState(false);
+  const [editedExamTitle, setEditedExamTitle] = useState("");
+  const [editedExamDescription, setEditedExamDescription] = useState("");
+  const [isSavingExamDetails, setIsSavingExamDetails] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,6 +53,9 @@ export default function ExamPreviewPage() {
       try {
         const response = await axios.get(`/api/exam/${params.id}`);
         setExam(response.data.exam);
+        // Initialize edited values with current exam data
+        setEditedExamTitle(response.data.exam.title);
+        setEditedExamDescription(response.data.exam.description || "");
       } catch (error) {
         console.error("Error fetching exam:", error);
       } finally {
@@ -154,6 +162,51 @@ export default function ExamPreviewPage() {
     }
   };
 
+  // Add functions for exam details editing
+  const startEditingExamDetails = () => {
+    if (!exam) return;
+    setEditedExamTitle(exam.title);
+    setEditedExamDescription(exam.description || "");
+    setEditingExamDetails(true);
+  };
+
+  const cancelEditingExamDetails = () => {
+    setEditingExamDetails(false);
+    if (exam) {
+      setEditedExamTitle(exam.title);
+      setEditedExamDescription(exam.description || "");
+    }
+  };
+
+  const saveExamDetails = async () => {
+    if (!exam) return;
+    
+    setIsSavingExamDetails(true);
+    try {
+      const updatedExam = {
+        ...exam,
+        title: editedExamTitle.trim(),
+        description: editedExamDescription.trim(),
+      };
+
+      await axios.put(`/api/exam/${params.id}`, updatedExam);
+      setExam(updatedExam);
+      setEditingExamDetails(false);
+      toast({
+        title: "Prova atualizada",
+        description: "O título e descrição foram salvos com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao salvar as alterações. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingExamDetails(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
@@ -184,8 +237,8 @@ export default function ExamPreviewPage() {
   return (
     <>
       <DashboardHeader
-        heading={exam.title}
-        text={exam.description || "Visualize e edite os detalhes da sua prova."}
+        heading={editingExamDetails ? "Editando Prova" : exam.title}
+        text={editingExamDetails ? "Edite o título e descrição da sua prova" : (exam.description || "Visualize e edite os detalhes da sua prova.")}
       >
         <div className="flex gap-2">
           <Button variant="outline" asChild>
@@ -202,15 +255,78 @@ export default function ExamPreviewPage() {
         {/* Exam Header Card */}
         <Card className="hover:border-primary/20 transition-colors">
           <CardHeader className="pb-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <FileCheck className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <CardTitle className="text-xl">{exam.title}</CardTitle>
-                <CardDescription>
-                  {exam.description || "Detalhes e estatísticas da prova"}
-                </CardDescription>
+                {editingExamDetails ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Título da Prova:
+                      </label>
+                      <Input
+                        value={editedExamTitle}
+                        onChange={(e) => setEditedExamTitle(e.target.value)}
+                        placeholder="Digite o título da prova"
+                        className="text-lg font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Descrição:
+                      </label>
+                      <Textarea
+                        value={editedExamDescription}
+                        onChange={(e) => setEditedExamDescription(e.target.value)}
+                        placeholder="Digite a descrição da prova (opcional)"
+                        className="min-h-[60px]"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <CardTitle className="text-xl">{exam.title}</CardTitle>
+                    <CardDescription>
+                      {exam.description || "Detalhes e estatísticas da prova"}
+                    </CardDescription>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {editingExamDetails ? (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={saveExamDetails}
+                      disabled={isSavingExamDetails || !editedExamTitle.trim()}
+                      className="gap-1"
+                    >
+                      <Save className="h-3 w-3" />
+                      {isSavingExamDetails ? "Salvando..." : "Salvar"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={cancelEditingExamDetails}
+                      className="gap-1"
+                    >
+                      <X className="h-3 w-3" />
+                      Cancelar
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={startEditingExamDetails}
+                    className="gap-1"
+                  >
+                    <Edit className="h-3 w-3" />
+                    Editar
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>

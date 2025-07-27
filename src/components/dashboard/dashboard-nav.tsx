@@ -106,7 +106,7 @@ export function useNavItems() {
       icon: <HelpCircle className="h-5 w-5" />,
     },
     {
-      title: "Gerenciar Assinatura",
+      title: "Planos",
       href: "/dashboard/billing",
       icon: <CreditCard className="h-5 w-5" />,
       disabled: shouldHideBilling,
