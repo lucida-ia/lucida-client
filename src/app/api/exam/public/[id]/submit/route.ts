@@ -25,6 +25,20 @@ export async function POST(
 
     const { answers, email } = await request.json();
 
+    // Check for existing submission by this email for this exam
+    const existingResult = await Result.findOne({
+      examId: exam._id.toString(),
+      email: email,
+    });
+
+    if (existingResult) {
+      return NextResponse.json({
+        status: "error",
+        message: "Exam already submitted by this email",
+        code: "DUPLICATE_SUBMISSION",
+      }, { status: 409 }); // 409 Conflict
+    }
+
     // Calculate score
     let score = 0;
     exam.questions.forEach((question: any, index: number) => {
@@ -35,7 +49,7 @@ export async function POST(
 
     const percentage = (score / exam.questions.length) * 100;
 
-    const result = Result.create({
+    const result = await Result.create({
       examId: exam._id.toString(),
       classId: exam.classId,
       email,
