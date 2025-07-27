@@ -355,7 +355,7 @@ export default function ExamPreviewPage() {
                     Criada em
                   </p>
                   <p className="text-lg font-semibold">
-                    {new Date(exam.createdAt).toLocaleDateString()}
+                    {new Date(exam.createdAt).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
@@ -369,7 +369,7 @@ export default function ExamPreviewPage() {
                     Atualizada em
                   </p>
                   <p className="text-lg font-semibold">
-                    {new Date(exam.updatedAt).toLocaleDateString()}
+                    {new Date(exam.updatedAt).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
