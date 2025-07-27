@@ -22,12 +22,23 @@ import {
   ChevronRight,
   EyeOff,
   Eye,
+  AlertTriangle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Question {
   question: string;
@@ -151,6 +162,8 @@ export default function PublicExamPage() {
   const [examEndReason, setExamEndReason] = useState<
     "manual" | "time" | "violation" | null
   >(null);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Read security configuration from URL parameters
@@ -335,7 +348,9 @@ export default function PublicExamPage() {
     finalAnswers: number[],
     emailAddress: string
   ) => {
-    if (isSubmitted || !exam) return;
+    if (isSubmitted || !exam || isSubmitting) return;
+
+    setIsSubmitting(true);
 
     try {
       const response = await axios.post(`/api/exam/public/${shareId}/submit`, {
@@ -353,22 +368,41 @@ export default function PublicExamPage() {
           "Sua prova foi enviada automaticamente pois o tempo expirou.",
         variant: "destructive",
       });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao enviar a prova automaticamente",
-      });
+    } catch (error: any) {
+      // Check if it's a duplicate submission error
+      if (error.response?.status === 409 && error.response?.data?.code === "DUPLICATE_SUBMISSION") {
+        toast({
+          variant: "destructive",
+          title: "Prova já enviada",
+          description: "Esta prova já foi enviada anteriormente por este e-mail.",
+        });
+        setIsSubmitted(true); // Mark as submitted to prevent further attempts
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Falha ao enviar a prova automaticamente",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleManualSubmit = () => {
     setExamEndReason("manual");
-    handleSubmit();
+    setShowSubmitConfirmation(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    setShowSubmitConfirmation(false);
+    await handleSubmit();
   };
 
   const handleSubmit = useCallback(async () => {
-    if (isSubmitted || !isStarted || !exam) return;
+    if (isSubmitted || !isStarted || !exam || isSubmitting) return;
+
+    setIsSubmitting(true);
 
     try {
       const response = await axios.post(`/api/exam/public/${shareId}/submit`, {
@@ -400,12 +434,24 @@ export default function PublicExamPage() {
           description: "Sua prova foi enviada com sucesso",
         });
       }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao enviar a prova",
-      });
+    } catch (error: any) {
+      // Check if it's a duplicate submission error
+      if (error.response?.status === 409 && error.response?.data?.code === "DUPLICATE_SUBMISSION") {
+        toast({
+          variant: "destructive",
+          title: "Prova já enviada",
+          description: "Esta prova já foi enviada anteriormente por este e-mail.",
+        });
+        setIsSubmitted(true); // Mark as submitted to prevent further attempts
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Falha ao enviar a prova",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }, [
     isSubmitted,
@@ -417,6 +463,7 @@ export default function PublicExamPage() {
     violationDetected,
     timeExpired,
     toast,
+    isSubmitting,
   ]);
 
   // Anti-cheating detection when consultation is not allowed and security config exists
@@ -869,6 +916,47 @@ export default function PublicExamPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showSubmitConfirmation} onOpenChange={setShowSubmitConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Confirmar Envio da Prova
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja finalizar e enviar sua prova? Esta ação não pode ser desfeita.
+              <br />
+              <br />
+              <strong>Questões respondidas:</strong> {getAnsweredCount()} de {exam?.questions.length}
+              <br />
+              <strong>Tempo restante:</strong> {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmSubmit}
+              disabled={isSubmitting}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Sim, Finalizar Prova
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Header with Timer and Progress */}
       <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -1083,10 +1171,19 @@ export default function PublicExamPage() {
                 ) : (
                   <Button
                     onClick={handleManualSubmit}
-                    disabled={timeLeft === 0 || isSubmitted}
+                    disabled={timeLeft === 0 || isSubmitted || isSubmitting}
                   >
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Finalizar Prova
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Finalizar Prova
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
