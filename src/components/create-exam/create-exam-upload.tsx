@@ -11,7 +11,7 @@ import UploadArea from "../ui/upload-area";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useRouter } from "next/navigation";
 
-const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todos os arquivos
+const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todo o material
 
 // Plan limits - keep in sync with backend
 const PLAN_LIMITS = {
@@ -132,9 +132,9 @@ export function CreateExamUpload({
       if (isTrialUser && files.length >= 1) {
         toast({
           variant: "destructive",
-          title: "Limite de arquivos para usuários Grátis",
+          title: "Limite de material para usuários Grátis",
           description:
-            "Usuários Grátis podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
+            "Usuários Grátis podem enviar apenas 1 material. Faça upgrade para enviar mais materiais.",
         });
         return;
       }
@@ -142,9 +142,9 @@ export function CreateExamUpload({
       if (isTrialUser && files.length + newFiles.length > 1) {
         toast({
           variant: "destructive",
-          title: "Limite de arquivos para usuários Grátis",
+          title: "Limite de material para usuários Grátis",
           description:
-            "Usuários Grátis podem enviar apenas 1 arquivo. Faça upgrade para enviar mais arquivos.",
+            "Usuários Grátis podem enviar apenas 1 material. Faça upgrade para enviar mais materiais.",
         });
         return;
       }
@@ -171,7 +171,7 @@ export function CreateExamUpload({
         toast({
           variant: "destructive",
           title: "Limite de upload excedido",
-          description: `Adicionando estes arquivos excederia o limite de upload (${newPercentage}% do limite)`,
+          description: `Adicionando este material excederia o limite de upload (${newPercentage}% do limite)`,
         });
         return;
       }
@@ -179,7 +179,7 @@ export function CreateExamUpload({
       if (invalidFiles.length > 0) {
         toast({
           variant: "destructive",
-          title: "Arquivos inválidos",
+          title: "Material inválido",
           description: `Não foi possível adicionar: ${invalidFiles.join(", ")}`,
         });
       }
@@ -187,8 +187,8 @@ export function CreateExamUpload({
       if (validFiles.length > 0) {
         setFiles((prev) => [...prev, ...validFiles]);
         toast({
-          title: "Arquivos adicionados",
-          description: `${validFiles.length} arquivo(s) adicionado(s) com sucesso`,
+          title: "Material adicionado",
+          description: `${validFiles.length} arquivo(s) de material adicionado(s) com sucesso`,
         });
       }
     },
@@ -236,8 +236,8 @@ export function CreateExamUpload({
     if (files.length === 0) {
       toast({
         variant: "destructive",
-        title: "Nenhum arquivo adicionado",
-        description: "Por favor, envie pelo menos um arquivo para continuar.",
+        title: "Nenhum material adicionado",
+        description: "Por favor, envie pelo menos um material de estudo para continuar.",
       });
       return;
     }
@@ -347,9 +347,9 @@ export function CreateExamUpload({
                 <HardDrive className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-medium">
-                  Arquivos Enviados ({files.length})
-                </h3>
+                                 <h3 className="text-lg font-medium">
+                   Material Enviado ({files.length})
+                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {uploadMetrics.totalSizeMB.toFixed(1)} MB • {uploadMetrics.usagePercentage}% do limite usado
                 </p>
@@ -422,8 +422,8 @@ export function CreateExamUpload({
         <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">
           <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
           <AlertDescription className="text-orange-600 dark:text-orange-400">
-            <strong>Sem plano ativo:</strong> Você pode enviar apenas 1 arquivo.
-            Faça upgrade para enviar múltiplos arquivos e ter acesso completo à
+            <strong>Sem plano ativo:</strong> Você pode enviar apenas 1 material.
+            Faça upgrade para enviar múltiplos materiais e ter acesso completo à
             plataforma.
           </AlertDescription>
         </Alert>
@@ -432,8 +432,8 @@ export function CreateExamUpload({
       <Alert className="bg-blue-50 border-blue-200 items-start dark:bg-blue-950 dark:border-blue-800">
         <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
         <AlertDescription className="text-blue-600 dark:text-blue-400">
-          Seus arquivos serão usados apenas para gerar questões da prova e não
-          serão compartilhados ou armazenados permanentemente.
+          Seu material será usado apenas para gerar questões da prova e não
+          será compartilhado ou armazenado permanentemente.
         </AlertDescription>
       </Alert>
 

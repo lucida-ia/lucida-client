@@ -44,13 +44,13 @@ const UploadArea = ({
               <Upload className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />
               <div className="space-y-1 md:space-y-2">
                 <h3 className="text-lg md:text-xl font-semibold">
-                  Arraste e solte seus arquivos
+                  Arraste e solte seu material
                 </h3>
                 <p className="text-sm text-muted-foreground px-2">
                   Faça upload de múltiplos arquivos PDF, DOC, DOCX ou TXT
                 </p>
                 <p className="text-xs text-muted-foreground px-2">
-                  Tamanho máximo: 100MB por arquivo • Limite total: ~500.000 tokens
+                  Tamanho máximo: 100MB por arquivo
                 </p>
               </div>
               <div>
@@ -61,7 +61,7 @@ const UploadArea = ({
                     className="cursor-pointer touch-manipulation"
                     size="default"
                   >
-                    Selecionar arquivos
+                    Selecionar material
                   </Button>
                   <input
                     id="file-upload"
