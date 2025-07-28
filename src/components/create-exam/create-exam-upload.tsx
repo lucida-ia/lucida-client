@@ -371,14 +371,12 @@ export function CreateExamUpload({
                 </span>
               </div>
               <div className="relative">
-                <Progress 
-                  value={uploadMetrics.usagePercentage} 
-                  className="h-3"
-                />
-                <div 
-                  className={`absolute top-0 left-0 h-3 rounded-full transition-all ${getProgressColor(uploadMetrics.usagePercentage)}`}
-                  style={{ width: `${uploadMetrics.usagePercentage}%` }}
-                />
+                <div className="h-3 w-full bg-secondary rounded-full">
+                  <div 
+                    className={`h-3 rounded-full transition-all ${getProgressColor(uploadMetrics.usagePercentage)}`}
+                    style={{ width: `${uploadMetrics.usagePercentage}%` }}
+                  />
+                </div>
               </div>
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>0%</span>
