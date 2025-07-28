@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -75,12 +75,24 @@ export function CreateExamPreview({
   onSetStopLoadingCallback,
 }: CreateExamPreviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [progressMessage, setProgressMessage] = useState(
+    "Preparando recursos..."
+  );
+  const progressTimersRef = useRef<NodeJS.Timeout[]>([]);
   const { toast } = useToast();
+
+  // Clear progress timers helper
+  const clearProgressTimers = () => {
+    progressTimersRef.current.forEach((t) => clearTimeout(t));
+    progressTimersRef.current = [];
+  };
 
   // Register the stop loading callback with the parent component
   useEffect(() => {
     const stopLoading = () => {
+      clearProgressTimers();
       setIsGenerating(false);
+      setProgressMessage("Preparando recursos...");
     };
     onSetStopLoadingCallback(stopLoading);
   }, [onSetStopLoadingCallback]);
@@ -88,6 +100,40 @@ export function CreateExamPreview({
   const handleUploadFilesAndGenerateQuestions = async (files: File[]) => {
     try {
       setIsGenerating(true);
+
+      // Estimate durations and schedule messages
+      const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+      const estimatedTokens = Math.ceil(totalBytes / 4); // ≈4 bytes / token
+      const processingSec = estimatedTokens * 0.00027429;
+      const generationSec = config.questionCount * 1.8;
+
+      type Step = { msg: string; pct: number };
+      const processingSteps: Step[] = [
+        { msg: "Lendo seu conteúdo", pct: 0.2 },
+        { msg: "Analisando principais pontos", pct: 0.3 },
+        { msg: "Selecionando principais pontos", pct: 0.3 },
+        { msg: "Revisando seu conteúdo", pct: 0.2 },
+      ];
+      const generationSteps: Step[] = [
+        { msg: "Criando perguntas", pct: 0.4 },
+        { msg: "Criando alternativas", pct: 0.3 },
+        { msg: "Explicando respostas das questões", pct: 0.3 },
+      ];
+
+      let delayAcc = 0;
+      const schedule = (steps: Step[], total: number) => {
+        steps.forEach(({ msg, pct }) => {
+          const t = setTimeout(
+            () => setProgressMessage(msg),
+            (delayAcc + total * pct) * 1000
+          );
+          progressTimersRef.current.push(t);
+          delayAcc += total * pct;
+        });
+      };
+      
+      schedule(processingSteps, processingSec);
+      schedule(generationSteps, generationSec);
 
       // Step 1: Generate exam
       const formData = new FormData();
@@ -268,9 +314,7 @@ export function CreateExamPreview({
                 Gerando e Salvando Prova
               </h3>
               <p className="text-muted-foreground text-sm max-w-sm">
-                Estamos processando seus arquivos, criando questões
-                personalizadas e salvando sua prova. Isso leva somente alguns
-                segundos.
+                {progressMessage}
               </p>
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
