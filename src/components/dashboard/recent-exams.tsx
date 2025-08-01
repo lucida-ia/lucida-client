@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Trash, Copy, Link, Loader2 } from "lucide-react";
+import { FileText, Download, Trash, Copy, Link, Loader2, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DBExam } from "@/types/exam";
@@ -25,7 +25,7 @@ import axios from "axios";
 import { TooltipContent } from "@radix-ui/react-tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { Tooltip } from "@radix-ui/react-tooltip";
-import { ExamShareButton } from "../exam/exam-share-button";
+import { ExamSecurityConfigModal } from "../exam/exam-security-config-modal";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "../ui/skeleton";
@@ -39,6 +39,7 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
   const [exams, setExams] = React.useState<DBExam[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [downloadingExamId, setDownloadingExamId] = React.useState<string | null>(null);
+  const [shareModalExamId, setShareModalExamId] = React.useState<string | null>(null);
   const router = useRouter();
 
   const fetchExams = async () => {
@@ -97,7 +98,7 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
   };
 
   return (
-    <Card className="col-span-4">
+    <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
       <CardHeader>
         <CardTitle>Provas Recentes</CardTitle>
         <CardDescription>
@@ -112,104 +113,189 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
         {isLoading ? (
           <Skeleton className="h-48 w-full" />
         ) : exams?.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título da Prova</TableHead>
-                <TableHead>Questões</TableHead>
-                <TableHead>Criada</TableHead>
-                <TableHead>Última Atualização</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Título da Prova</TableHead>
+                    <TableHead>Questões</TableHead>
+                    <TableHead>Criada</TableHead>
+                    <TableHead>Última Atualização</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {exams.map((exam) => (
+                    <TableRow key={exam._id}>
+                      <TableCell className="font-medium">{exam.title}</TableCell>
+                      <TableCell>{exam?.questions.length}</TableCell>
+                      <TableCell>
+                        {formatDistanceToNow(exam?.createdAt, {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {formatDistanceToNow(exam?.updatedAt, {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() =>
+                                  router.push(`/dashboard/exams/${exam?._id}`)
+                                }
+                              >
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">Visualizar</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Visualizar Prova</TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDownloadExam(exam)}
+                                disabled={downloadingExamId === exam._id}
+                              >
+                                <Download className="h-4 w-4" />
+                                <span className="sr-only">Download</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {downloadingExamId === exam._id ? "Baixando..." : "Baixar Prova"}
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setShareModalExamId(exam._id)}
+                              >
+                                <Share2 className="h-4 w-4" />
+                                <span className="sr-only">Compartilhar</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Compartilhar Prova</TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDeleteExam(exam?._id)}
+                              >
+                                <Trash className="h-4 w-4 text-red-500" />
+                                <span className="sr-only">Excluir</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Excluir Prova</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="block md:hidden space-y-2">
               {exams.map((exam) => (
-                <TableRow key={exam._id}>
-                  <TableCell className="font-medium">{exam.title}</TableCell>
-                  <TableCell>{exam?.questions.length}</TableCell>
-                  <TableCell>
-                    {formatDistanceToNow(exam?.createdAt, {
-                      addSuffix: true,
-                      locale: ptBR,
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {formatDistanceToNow(exam?.updatedAt, {
-                      addSuffix: true,
-                      locale: ptBR,
-                    })}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() =>
-                              router.push(`/dashboard/exams/${exam?._id}`)
-                            }
-                          >
-                            <FileText className="h-4 w-4" />
-                            <span className="sr-only">Visualizar</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Visualizar Prova</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleDownloadExam(exam)}
-                            disabled={downloadingExamId === exam._id}
-                          >
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {downloadingExamId === exam._id ? "Baixando..." : "Baixar Prova"}
-                        </TooltipContent>
-                      </Tooltip>
-
-                      {/* <Tooltip>
+                <Card key={exam._id} className="border shadow-sm">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1 min-w-0 mr-3">
+                        <h4 className="font-medium text-sm truncate">{exam.title}</h4>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex gap-1">
+                        <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon">
-                              <Copy className="h-4 w-4" />
-                              <span className="sr-only">Duplicar</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                router.push(`/dashboard/exams/${exam?._id}`)
+                              }
+                            >
+                              <FileText className="h-3.5 w-3.5" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Duplicar Prova</TooltipContent>
-                        </Tooltip> */}
+                          <TooltipContent>Visualizar</TooltipContent>
+                        </Tooltip>
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <ExamShareButton examId={exam?._id} />
-                        </TooltipTrigger>
-                        <TooltipContent>Compartilhar Prova</TooltipContent>
-                      </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleDownloadExam(exam)}
+                              disabled={downloadingExamId === exam._id}
+                            >
+                              {downloadingExamId === exam._id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Download className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {downloadingExamId === exam._id ? "Baixando..." : "Baixar"}
+                          </TooltipContent>
+                        </Tooltip>
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleDeleteExam(exam?._id)}
-                          >
-                            <Trash className="h-4 w-4 text-red-500" />
-                            <span className="sr-only">Excluir</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Excluir Prova</TooltipContent>
-                      </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => setShareModalExamId(exam._id)}
+                            >
+                              <Share2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Compartilhar</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleDeleteExam(exam?._id)}
+                            >
+                              <Trash className="h-3.5 w-3.5 text-red-500" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          </>
         ) : (
           <div className="flex h-48 items-center justify-center rounded-md border border-dashed">
             <div className="flex flex-col items-center gap-1 text-center">
@@ -222,6 +308,13 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
           </div>
         )}
       </CardContent>
+      
+      {/* Share Modal for Mobile */}
+      <ExamSecurityConfigModal
+        open={shareModalExamId !== null}
+        onOpenChange={(open) => !open && setShareModalExamId(null)}
+        examId={shareModalExamId || ""}
+      />
     </Card>
   );
 }

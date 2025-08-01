@@ -18,8 +18,9 @@ export function ExamShareButton({ examId }: ExamShareButtonProps) {
 
   return (
     <>
-      <Button variant="outline" onClick={handleShare} size="icon">
-        <Share2 className="h-4 w-4" />
+      <Button variant="outline" onClick={handleShare}>
+        <Share2 className="mr-2 h-4 w-4" />
+        Compartilhar
       </Button>
 
       <ExamSecurityConfigModal

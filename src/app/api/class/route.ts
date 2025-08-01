@@ -48,7 +48,10 @@ export async function GET(request: NextRequest) {
 
     const payload = classes.map((c) => ({
       name: c.name,
+      description: c.description || "",
       id: c._id,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
       results: results.filter((r) => r.classId === c.id),
     }));
 
@@ -63,6 +66,65 @@ export async function GET(request: NextRequest) {
       status: "error",
       message: "Failed to get classes",
     });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+
+    await connectToDB();
+
+    const { id, name, description } = await request.json();
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Nome da turma é obrigatório",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check if class exists and belongs to user
+    const existingClass = await Class.findOne({ _id: id, userId });
+    if (!existingClass) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Turma não encontrada",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Update the class
+    const updatedClass = await Class.findByIdAndUpdate(
+      id,
+      {
+        name: name.trim(),
+        description: description?.trim() || "",
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    return NextResponse.json({
+      status: "success",
+      message: "Turma atualizada com sucesso",
+      data: updatedClass,
+    });
+  } catch (error) {
+    console.error("[CLASS_UPDATE_ERROR]", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        message: "Falha ao atualizar turma",
+      },
+      { status: 500 }
+    );
   }
 }
 

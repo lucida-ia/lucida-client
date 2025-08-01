@@ -227,7 +227,7 @@ export default function ExamPreviewPage() {
             A prova que você está procurando não existe ou foi removida.
           </p>
           <Button asChild className="mt-4">
-            <Link href="/dashboard/exams">Voltar para Minhas Provas</Link>
+            <Link href="/dashboard/overview">Voltar para Minhas Avaliações</Link>
           </Button>
         </div>
       </div>
@@ -242,7 +242,7 @@ export default function ExamPreviewPage() {
       >
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link href="/dashboard/exams">
+            <Link href="/dashboard/overview">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Link>
