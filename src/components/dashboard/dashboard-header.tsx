@@ -12,7 +12,7 @@ export function DashboardHeader({
   children,
 }: DashboardHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="grid gap-1">
         <h1 className="font-heading text-xl md:text-2xl lg:text-3xl font-medium">
           {heading}
@@ -20,7 +20,7 @@ export function DashboardHeader({
         {text && <p className="text-sm md:text-base text-muted-foreground">{text}</p>}
       </div>
       {children && (
-        <div className="flex-shrink-0">
+        <div className="flex gap-2">
           {children}
         </div>
       )}

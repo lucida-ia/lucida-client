@@ -5,9 +5,9 @@ import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentExams } from "@/components/dashboard/recent-exams";
 import { CreateExamCTA } from "@/components/dashboard/create-exam-cta";
 import { URLParamsHandler } from "@/components/dashboard/url-params-handler";
+import { useToast } from "@/hooks/use-toast";
 import React, { Suspense } from "react";
 import axios from "axios";
-import { useToast } from "@/hooks/use-toast";
 
 interface UserData {
   user: any;
@@ -65,13 +65,16 @@ export default function DashboardPage() {
       <Suspense fallback={null}>
         <URLParamsHandler />
       </Suspense>
-      <DashboardHeader
-        heading="Dashboard"
-        text="Bem-vindo de volta! Aqui está um resumo das suas provas."
-      >
+      
+      <div className="flex items-center justify-between">
+        <DashboardHeader
+          heading="Dashboard"
+          text="Bem-vindo de volta! Aqui está um resumo das suas provas."
+        />
         <CreateExamCTA />
-      </DashboardHeader>
-      <div className="w-full flex flex-col gap-4">
+      </div>
+      
+      <div className="space-y-6 mt-4">
         <OverviewStats userData={userData} loading={loading} />
         <RecentExams onExamDeleted={fetchUserData} />
       </div>

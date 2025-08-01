@@ -417,7 +417,7 @@ export default function UnifiedOverviewPage() {
   const handleExportWord = async (exam: ExamData) => {
     try {
       setExportingExamId(exam._id);
-      await exportExamToWord(exam, false);
+      await exportExamToWord({ ...exam, description: exam.description || "" }, false);
       toast({
         title: "Documento Word exportado com sucesso!",
         description: "A prova foi salva no seu dispositivo.",

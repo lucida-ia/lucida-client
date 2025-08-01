@@ -17,16 +17,16 @@ interface OverviewStatsProps {
 export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="w-full">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-              <div className="h-5 w-5 bg-muted rounded animate-pulse" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
-              <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+          <Card key={i} className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+            <CardContent className="flex items-start justify-between p-6">
+              <div className="space-y-1">
+                <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+              </div>
+              <div className="h-12 w-12 bg-muted rounded-lg animate-pulse" />
             </CardContent>
           </Card>
         ))}
@@ -37,9 +37,10 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   const stats = [
     {
       title: "Total de Provas",
-      value: `${userData.exams.length} provas`,
-      icon: <FileText className="h-5 w-5 text-muted-foreground" />,
-      description: "Criadas no Lucida",
+      value: userData.exams.length,
+      icon: <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+      description: "Provas criadas",
+      color: "blue",
     },
     {
       title: "Tempo Economizado",
@@ -48,18 +49,20 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
           (acc, exam) => acc + exam.questions.length * 13.5,
           0
         ) / 60
-      )} horas`,
-      icon: <Clock className="h-5 w-5 text-muted-foreground" />,
-      description: "De tempo economizado",
+      )}`,
+      icon: <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />,
+      description: "Horas poupadas",
+      color: "green",
     },
     {
       title: "Questões Geradas",
-      value: `${userData.exams.reduce(
+      value: userData.exams.reduce(
         (acc, exam) => acc + exam.questions.length,
         0
-      )} questões`,
-      icon: <Zap className="h-5 w-5 text-muted-foreground" />,
-      description: "Em todas as provas",
+      ),
+      icon: <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />,
+      description: "Questões criadas",
+      color: "purple",
     },
     {
       title: "Provas Restantes",
@@ -77,23 +80,24 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
         const limit = limits[plan as keyof typeof limits] || 3;
 
         if (limit === -1) {
-          return "Ilimitado";
+          return "∞";
         }
 
         const remaining = Math.max(0, limit - usage);
         return `${remaining}/${limit}`;
       })(),
-      icon: <FileText className="h-5 w-5 text-muted-foreground" />,
+      icon: <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />,
       description: (() => {
         const plan = userData.user?.subscription?.plan || "trial";
         const planNames = {
           trial: "Plano Grátis",
-          "semi-annual": "Plano Semestral",
+          "semi-annual": "Plano Semestral", 
           annual: "Plano Anual",
           custom: "Plano Personalizado",
         };
         return planNames[plan as keyof typeof planNames] || "Plano Grátis";
       })(),
+      color: "indigo",
     },
     // {
     //   title: "Status da Assinatura",
@@ -141,16 +145,24 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {stats.map((stat, i) => (
-        <Card key={i} className="w-full hover:bg-muted/50 transition-all ">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-            {stat.icon}
-          </CardHeader>
-          <CardContent className="flex flex-col justify-between">
-            <div className="text-2xl font-medium">{stat.value}</div>
-            <p className="text-xs text-muted-foreground">{stat.description}</p>
+        <Card key={i} className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+          <CardContent className="flex items-start justify-between p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
+                {stat.title}
+              </p>
+              <div className={`text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}>
+                {stat.value}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-zinc-500">
+                {stat.description}
+              </p>
+            </div>
+            <div className={`p-3 bg-${stat.color}-50 dark:bg-${stat.color}-900/20 rounded-lg`}>
+              {stat.icon}
+            </div>
           </CardContent>
         </Card>
       ))}
