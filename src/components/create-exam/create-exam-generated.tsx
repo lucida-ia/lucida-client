@@ -54,7 +54,7 @@ export function CreateExamGenerated({
         method: "POST",
         data: examData,
       });
-      router.push("/dashboard/exams");
+              router.push("/dashboard/overview");
     } catch (error: any) {
       if (
         error.response?.status === 402 &&

@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Menu,
   HelpCircle,
+  FileCheck,
 } from "lucide-react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -84,32 +85,27 @@ export function useNavItems() {
       role: ["admin", "student", "teacher"],
     },
     {
-      title: "Criar Prova",
+      title: "Criar Avaliação",
       href: "/dashboard/exams/create",
       icon: <FileText className="h-5 w-5" />,
       role: ["admin", "teacher"],
     },
     {
-      title: "Minhas Provas",
-      href: "/dashboard/exams",
-      icon: <Folder className="h-5 w-5" />,
+      title: "Minhas Avaliações",
+      href: "/dashboard/overview",
+      icon: <FileCheck className="h-5 w-5" />,
       role: ["admin", "teacher"],
-    },
-    {
-      title: "Minhas Turmas",
-      href: "/dashboard/classes",
-      icon: <UsersRound className="h-5 w-5" />,
-    },
-    {
-      title: "Ajuda",
-      href: "/dashboard/help",
-      icon: <HelpCircle className="h-5 w-5" />,
     },
     {
       title: "Planos",
       href: "/dashboard/billing",
       icon: <CreditCard className="h-5 w-5" />,
       disabled: shouldHideBilling,
+    },
+    {
+      title: "Ajuda",
+      href: "/dashboard/help",
+      icon: <HelpCircle className="h-5 w-5" />,
     },
   ];
 

@@ -28,7 +28,7 @@ export default function DashboardPage() {
       toast({
         title: "Turma criada com sucesso",
       });
-      router.push("/dashboard/classes");
+              router.push("/dashboard/overview");
     } else {
       toast({
         title: "Erro ao criar turma",

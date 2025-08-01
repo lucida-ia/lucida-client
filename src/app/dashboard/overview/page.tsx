@@ -160,6 +160,11 @@ export default function UnifiedOverviewPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
 
+  // Create class modal state
+  const [isCreateClassModalOpen, setIsCreateClassModalOpen] = React.useState(false);
+  const [newClassName, setNewClassName] = React.useState("");
+  const [isCreatingClass, setIsCreatingClass] = React.useState(false);
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -347,6 +352,47 @@ export default function UnifiedOverviewPage() {
     }
   };
 
+  const handleCreateClass = async () => {
+    if (!newClassName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "O nome da turma é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingClass(true);
+
+    try {
+      const response = await axios.post("/api/class", {
+        name: newClassName.trim(),
+      });
+
+      if (response.status === 200) {
+        toast({
+          title: "Turma criada com sucesso",
+        });
+        setIsCreateClassModalOpen(false);
+        setNewClassName("");
+        fetchData();
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao criar turma",
+        description: "Ocorreu um erro ao criar a turma. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingClass(false);
+    }
+  };
+
+  const openCreateClassModal = () => {
+    setNewClassName("");
+    setIsCreateClassModalOpen(true);
+  };
+
   const handleDeleteExam = async (examId: string) => {
     try {
       const response = await axios.delete("/api/exam", {
@@ -454,7 +500,7 @@ export default function UnifiedOverviewPage() {
       <>
         <div className="flex items-center justify-between">
           <DashboardHeader
-            heading="Minhas Turmas & Provas"
+            heading="Minhas Avaliações"
             text="Visão unificada de todas as suas turmas e provas"
           />
         </div>
@@ -469,7 +515,7 @@ export default function UnifiedOverviewPage() {
     <>
       <div className="flex items-center justify-between">
         <DashboardHeader
-          heading="Minhas Turmas & Provas"
+          heading="Minhas Avaliações"
           text="Visão unificada de todas as suas turmas e provas"
         />
         <DropdownMenu>
@@ -481,13 +527,13 @@ export default function UnifiedOverviewPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push("/dashboard/classes/create")}>
+            <DropdownMenuItem onClick={openCreateClassModal}>
               <GraduationCap className="h-4 w-4 mr-2" />
               Nova Turma
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/dashboard/exams/create")}>
               <FileText className="h-4 w-4 mr-2" />
-              Nova Prova
+              Nova Avaliação
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -603,9 +649,7 @@ export default function UnifiedOverviewPage() {
                               <BookOpen className="h-5 w-5" />
                               {classItem.name}
                             </h3>
-                            <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-                              {classItem.exams.length} prova(s) • {classItem.totalResults} resultado(s) • {classItem.totalQuestions} questões
-                            </p>
+
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs">
@@ -641,9 +685,7 @@ export default function UnifiedOverviewPage() {
                             <BookOpen className="h-5 w-5" />
                             {classItem.name}
                           </CardTitle>
-                          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-                            {classItem.exams.length} prova(s) • {classItem.totalResults} resultado(s) • {classItem.totalQuestions} questões
-                          </p>
+
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1057,7 +1099,7 @@ export default function UnifiedOverviewPage() {
                   <p className="text-gray-500 dark:text-zinc-400 mb-4">
                     Comece criando sua primeira turma para organizar suas provas.
                   </p>
-                  <Button onClick={() => router.push("/dashboard/classes/create")}>
+                  <Button onClick={openCreateClassModal}>
                     <Plus className="h-4 w-4 mr-2" />
                     Criar Primeira Turma
                   </Button>
@@ -1078,6 +1120,62 @@ export default function UnifiedOverviewPage() {
           <ArrowUp className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
       )}
+
+      {/* Create Class Modal */}
+      <Dialog open={isCreateClassModalOpen} onOpenChange={setIsCreateClassModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Criar Nova Turma
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-class-name">Nome da Turma</Label>
+              <Input
+                id="new-class-name"
+                placeholder="Digite o nome da turma"
+                value={newClassName}
+                onChange={(e) => setNewClassName(e.target.value)}
+                disabled={isCreatingClass}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isCreatingClass && newClassName.trim()) {
+                    handleCreateClass();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateClassModalOpen(false)}
+              disabled={isCreatingClass}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateClass}
+              disabled={isCreatingClass || !newClassName.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isCreatingClass ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  Criar Turma
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Class Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
