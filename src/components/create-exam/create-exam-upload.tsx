@@ -4,7 +4,14 @@ import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { File, X, CheckCircle, ArrowRight, AlertTriangle, HardDrive } from "lucide-react";
+import {
+  File,
+  X,
+  CheckCircle,
+  ArrowRight,
+  AlertTriangle,
+  HardDrive,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UploadArea from "../ui/upload-area";
@@ -16,8 +23,9 @@ const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todo o materia
 // Plan limits - keep in sync with backend
 const PLAN_LIMITS = {
   trial: 3,
+  monthly: 10,
   "semi-annual": 10,
-  annual: 30,
+  annual: 10,
   custom: -1, // unlimited
 };
 
@@ -74,15 +82,21 @@ export function CreateExamUpload({
   // Calculate upload progress metrics
   const uploadMetrics = React.useMemo(() => {
     const estimateTokens = (file: File) => Math.ceil(file.size / 4);
-    const totalTokensUsed = files.reduce((sum, file) => sum + estimateTokens(file), 0);
-    const usagePercentage = Math.round((totalTokensUsed / TOTAL_TOKEN_LIMIT) * 100);
-    const totalSizeMB = files.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024);
-    
+    const totalTokensUsed = files.reduce(
+      (sum, file) => sum + estimateTokens(file),
+      0
+    );
+    const usagePercentage = Math.round(
+      (totalTokensUsed / TOTAL_TOKEN_LIMIT) * 100
+    );
+    const totalSizeMB =
+      files.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024);
+
     return {
       totalTokensUsed,
       usagePercentage: Math.min(usagePercentage, 100),
       totalSizeMB,
-      remainingTokens: Math.max(0, TOTAL_TOKEN_LIMIT - totalTokensUsed)
+      remainingTokens: Math.max(0, TOTAL_TOKEN_LIMIT - totalTokensUsed),
     };
   }, [files]);
 
@@ -167,7 +181,9 @@ export function CreateExamUpload({
         0
       );
       if (currentTokens + newTokens > TOTAL_TOKEN_LIMIT) {
-        const newPercentage = Math.round(((currentTokens + newTokens) / TOTAL_TOKEN_LIMIT) * 100);
+        const newPercentage = Math.round(
+          ((currentTokens + newTokens) / TOTAL_TOKEN_LIMIT) * 100
+        );
         toast({
           variant: "destructive",
           title: "Limite de upload excedido",
@@ -237,7 +253,8 @@ export function CreateExamUpload({
       toast({
         variant: "destructive",
         title: "Nenhum material adicionado",
-        description: "Por favor, envie pelo menos um material de estudo para continuar.",
+        description:
+          "Por favor, envie pelo menos um material de estudo para continuar.",
       });
       return;
     }
@@ -347,33 +364,40 @@ export function CreateExamUpload({
                 <HardDrive className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1">
-                                 <h3 className="text-lg font-medium">
-                   Material Enviado ({files.length})
-                 </h3>
+                <h3 className="text-lg font-medium">
+                  Material Enviado ({files.length})
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  {uploadMetrics.totalSizeMB.toFixed(1)} MB • {uploadMetrics.usagePercentage}% do limite usado
+                  {uploadMetrics.totalSizeMB.toFixed(1)} MB •{" "}
+                  {uploadMetrics.usagePercentage}% do limite usado
                 </p>
               </div>
             </div>
-            
+
             {/* Progress Bar */}
             <div className="space-y-2 mb-6">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Uso do limite de upload</span>
-                <span className={`font-medium ${
-                  uploadMetrics.usagePercentage < 60 
-                    ? "text-green-600 dark:text-green-400" 
-                    : uploadMetrics.usagePercentage < 85 
-                    ? "text-yellow-600 dark:text-yellow-400" 
-                    : "text-red-600 dark:text-red-400"
-                }`}>
+                <span className="text-muted-foreground">
+                  Uso do limite de upload
+                </span>
+                <span
+                  className={`font-medium ${
+                    uploadMetrics.usagePercentage < 60
+                      ? "text-green-600 dark:text-green-400"
+                      : uploadMetrics.usagePercentage < 85
+                      ? "text-yellow-600 dark:text-yellow-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
                   {uploadMetrics.usagePercentage}%
                 </span>
               </div>
               <div className="relative">
                 <div className="h-3 w-full bg-secondary rounded-full">
-                  <div 
-                    className={`h-3 rounded-full transition-all ${getProgressColor(uploadMetrics.usagePercentage)}`}
+                  <div
+                    className={`h-3 rounded-full transition-all ${getProgressColor(
+                      uploadMetrics.usagePercentage
+                    )}`}
                     style={{ width: `${uploadMetrics.usagePercentage}%` }}
                   />
                 </div>
@@ -396,7 +420,8 @@ export function CreateExamUpload({
                     <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{file.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(1)} MB • {file.type.split('/')[1]?.toUpperCase() || 'Arquivo'}
+                        {(file.size / 1024 / 1024).toFixed(1)} MB •{" "}
+                        {file.type.split("/")[1]?.toUpperCase() || "Arquivo"}
                       </div>
                     </div>
                   </div>
@@ -420,9 +445,9 @@ export function CreateExamUpload({
         <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">
           <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
           <AlertDescription className="text-orange-600 dark:text-orange-400">
-            <strong>Sem plano ativo:</strong> Você pode enviar apenas 1 material.
-            Faça upgrade para enviar múltiplos materiais e ter acesso completo à
-            plataforma.
+            <strong>Sem plano ativo:</strong> Você pode enviar apenas 1
+            material. Faça upgrade para enviar múltiplos materiais e ter acesso
+            completo à plataforma.
           </AlertDescription>
         </Alert>
       )}
@@ -430,8 +455,8 @@ export function CreateExamUpload({
       <Alert className="bg-blue-50 border-blue-200 items-start dark:bg-blue-950 dark:border-blue-800">
         <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
         <AlertDescription className="text-blue-600 dark:text-blue-400">
-          Seu material será usado apenas para gerar questões da prova e não
-          será compartilhado ou armazenado permanentemente.
+          Seu material será usado apenas para gerar questões da prova e não será
+          compartilhado ou armazenado permanentemente.
         </AlertDescription>
       </Alert>
 

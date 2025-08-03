@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
   subscription: {
     plan: {
       type: String,
-      enum: ["trial", "semi-annual", "annual", "custom"],
+      enum: ["trial", "monthly", "semi-annual", "annual", "custom"],
       default: "trial",
     },
     status: {

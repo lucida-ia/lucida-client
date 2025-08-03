@@ -10,8 +10,9 @@ import { NextRequest, NextResponse } from "next/server";
 // Plan limits
 const PLAN_LIMITS = {
   trial: 3,
+  monthly: 10,
   "semi-annual": 10,
-  annual: 30,
+  annual: 10,
   custom: -1, // unlimited
 };
 
@@ -67,16 +68,15 @@ export async function POST(request: NextRequest) {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       shouldReset = false;
-    } else if (user.subscription.plan === "semi-annual") {
-      // Reset every 6 months
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      shouldReset = lastReset < sixMonthsAgo;
-    } else if (user.subscription.plan === "annual") {
-      // Reset every year
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-      shouldReset = lastReset < oneYearAgo;
+    } else if (
+      user.subscription.plan === "monthly" ||
+      user.subscription.plan === "semi-annual" ||
+      user.subscription.plan === "annual"
+    ) {
+      // Reset every month for all paid plans
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      shouldReset = lastReset < oneMonthAgo;
     } else {
       // For custom plan, no reset needed (unlimited)
       shouldReset = false;
