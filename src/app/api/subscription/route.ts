@@ -161,12 +161,7 @@ export async function POST(request: NextRequest) {
     // Create Stripe customer if subscribing to paid plan and customer doesn't exist
     let customerId = stripeCustomerId || user.subscription.stripeCustomerId;
 
-    if (
-      planId !== "trial" &&
-      planId !== "semi-annual" &&
-      !customerId &&
-      (customerEmail || customerName)
-    ) {
+    if (planId !== "trial" && !customerId && (customerEmail || customerName)) {
       try {
         const customer = await stripe.customers.create({
           email: customerEmail,
