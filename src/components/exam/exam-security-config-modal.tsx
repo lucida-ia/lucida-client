@@ -12,8 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Share2 } from "lucide-react";
+import { Share2, Copy, Check } from "lucide-react";
 import axios from "axios";
 
 interface ExamSecurityConfig {
@@ -40,6 +41,8 @@ export function ExamSecurityConfigModal({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [examTitle, setExamTitle] = useState<string>("");
+  const [shareUrl, setShareUrl] = useState<string>("");
+  const [showUrlModal, setShowUrlModal] = useState(false);
   const { toast } = useToast();
 
   // Fetch exam data when modal opens
@@ -74,25 +77,86 @@ export function ExamSecurityConfigModal({
     return btoa(configString);
   };
 
+  const shareOrCopyLink = async (shareUrl: string): Promise<{ success: boolean; method: string }> => {
+    // Try Web Share API first (works great on Safari mobile)
+    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share({
+          title: examTitle,
+          text: 'Acesse esta prova:',
+          url: shareUrl,
+        });
+        return { success: true, method: 'share' };
+      } catch (err) {
+        // User cancelled share or API failed
+        console.warn('Web Share API failed:', err);
+      }
+    }
+
+    // Try clipboard API with immediate execution (preserves user gesture)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        return { success: true, method: 'clipboard' };
+      } catch (err) {
+        console.warn('Modern clipboard API failed:', err);
+      }
+    }
+
+    // Fallback for older browsers
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        return { success: true, method: 'execCommand' };
+      }
+    } catch (err) {
+      console.error('Fallback clipboard failed:', err);
+    }
+
+    return { success: false, method: 'none' };
+  };
+
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
+      
+      // Generate the share URL first
       const response = await axios.post("/api/exam/share", { examId });
-
-      // Encode the configuration as base64
       const encodedConfig = encodeConfig(config);
       const shareUrl = `${window.location.origin}/exam/${response.data.id}?c=${encodedConfig}`;
 
-      // Copy to clipboard
-      await navigator.clipboard.writeText(shareUrl);
+      // Try to share or copy immediately (preserves user gesture)
+      const result = await shareOrCopyLink(shareUrl);
 
-      toast({
-        title: "Link da Prova Copiado!",
-        description:
-          "O link da prova foi copiado com as configurações de segurança aplicadas.",
-      });
-
-      onOpenChange(false);
+      if (result.success) {
+        if (result.method === 'share') {
+          toast({
+            title: "Prova Compartilhada!",
+            description: "O link da prova foi compartilhado com sucesso.",
+          });
+        } else {
+          toast({
+            title: "Link da Prova Copiado!",
+            description: "O link da prova foi copiado com as configurações de segurança aplicadas.",
+          });
+        }
+        onOpenChange(false);
+      } else {
+        // Show modal with selectable link if all methods fail
+        setShareUrl(shareUrl);
+        setShowUrlModal(true);
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -109,6 +173,7 @@ export function ExamSecurityConfigModal({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] p-6">
         <DialogHeader className="space-y-3">
@@ -206,5 +271,65 @@ export function ExamSecurityConfigModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Fallback URL Modal */}
+    <Dialog open={showUrlModal} onOpenChange={setShowUrlModal}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Share2 className="h-5 w-5" />
+            Link da Prova Gerado
+          </DialogTitle>
+          <DialogDescription>
+            Copie o link abaixo para compartilhar a prova:
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="flex items-center space-x-2">
+            <Input
+              value={shareUrl}
+              readOnly
+              className="flex-1"
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+            />
+            <Button
+              size="sm"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(shareUrl);
+                  toast({
+                    title: "Copiado!",
+                    description: "Link copiado para a área de transferência.",
+                  });
+                  setShowUrlModal(false);
+                } catch {
+                  // If clipboard still fails, just select the text
+                  const input = document.querySelector('input[readonly]') as HTMLInputElement;
+                  if (input) {
+                    input.select();
+                    input.setSelectionRange(0, 99999);
+                  }
+                }
+              }}
+              variant="outline"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <p className="text-sm text-muted-foreground">
+            Toque no campo acima para selecionar todo o link, depois use Ctrl+C (ou Cmd+C no Mac) para copiar.
+          </p>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={() => setShowUrlModal(false)} className="w-full">
+            Fechar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }

@@ -1288,24 +1288,90 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
     return btoa(configString);
   };
 
+  const shareOrCopyLink = async (shareUrl: string): Promise<{ success: boolean; method: string }> => {
+    // Try Web Share API first (works great on Safari mobile)
+    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share({
+          title: exam.title,
+          text: 'Acesse esta prova:',
+          url: shareUrl,
+        });
+        return { success: true, method: 'share' };
+      } catch (err) {
+        // User cancelled share or API failed
+        console.warn('Web Share API failed:', err);
+      }
+    }
+
+    // Try clipboard API with immediate execution (preserves user gesture)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        return { success: true, method: 'clipboard' };
+      } catch (err) {
+        console.warn('Modern clipboard API failed:', err);
+      }
+    }
+
+    // Fallback for older browsers
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        return { success: true, method: 'execCommand' };
+      }
+    } catch (err) {
+      console.error('Fallback clipboard failed:', err);
+    }
+
+    return { success: false, method: 'none' };
+  };
+
   const handleGenerateLink = async () => {
     try {
       setIsGenerating(true);
+      
+      // Generate the share URL first
       const response = await axios.post("/api/exam/share", { examId: exam._id });
-
-      // Encode the configuration as base64
       const encodedConfig = encodeConfig(config);
       const shareUrl = `${window.location.origin}/exam/${response.data.id}?c=${encodedConfig}`;
 
-      // Copy to clipboard
-      await navigator.clipboard.writeText(shareUrl);
+      // Try to share or copy immediately (preserves user gesture)
+      const result = await shareOrCopyLink(shareUrl);
 
-      toast({
-        title: "Link da Prova Copiado!",
-        description: "O link da prova foi copiado com as configurações de segurança aplicadas.",
-      });
-
-      onClose();
+      if (result.success) {
+        if (result.method === 'share') {
+          toast({
+            title: "Prova Compartilhada!",
+            description: "O link da prova foi compartilhado com sucesso.",
+          });
+        } else {
+          toast({
+            title: "Link da Prova Copiado!",
+            description: "O link da prova foi copiado com as configurações de segurança aplicadas.",
+          });
+        }
+        onClose();
+      } else {
+        // Fallback: show the URL so user can copy manually
+        toast({
+          title: "Link da Prova Gerado!",
+          description: `Link: ${shareUrl}`,
+          duration: 15000, // Show longer so user can copy
+        });
+        onClose();
+      }
     } catch (error) {
       toast({
         variant: "destructive",
