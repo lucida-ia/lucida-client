@@ -99,7 +99,7 @@ const GRATIS_PLAN: PricingPlan = {
     popular: false,
     checkoutUrl: "",
     maxExams: 3,
-    examFormats: ["simples", "enem"],
+    examFormats: ["Simples", "ENEM"],
     icon: Clock,
     gradient: "from-teal-500 to-cyan-600",
 };
@@ -145,7 +145,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_MENSAL || "",
     maxExams: 10,
     examFormats: ["Simples", "ENEM", "ENADE"],
-    icon: Calendar,
+    icon: FileText,
     gradient: "from-blue-500 to-indigo-600",
   },
   semestral: {
@@ -167,7 +167,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_SEMESTRAL || "",
     maxExams: 10,
     examFormats: ["simples", "enem"],
-    icon: BookOpen,
+    icon: Star,
     gradient: "from-indigo-500 to-purple-600",
     savings: "Salve 10%",
   },
@@ -190,7 +190,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_ANUAL || "",
     maxExams: 10,
     examFormats: ["simples", "enem"],
-    icon: BookMarked,
+    icon: Crown,
     gradient: "from-rose-500 to-pink-600",
     savings: "Salve 20%",
   },
@@ -460,8 +460,8 @@ export default function BillingPage() {
 
       <div className="grid gap-4 md:gap-8">
         {error && (
-          <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
-            <AlertDescription className="text-red-700 dark:text-red-400">
+          <Alert className="border-red-200 bg-red-50 dark:border-red-700/50 dark:bg-red-950/30 shadow-sm dark:shadow-red-900/20">
+            <AlertDescription className="text-red-700 dark:text-red-300">
               {error}
             </AlertDescription>
           </Alert>
@@ -470,9 +470,9 @@ export default function BillingPage() {
         {/* Current Subscription Status */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Plan Overview Card */}
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700">
+          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800/90 dark:to-slate-700/80 dark:border dark:border-slate-600/20">
             <div
-              className={`absolute inset-0 bg-gradient-to-br ${currentPlan.gradient} opacity-5`}
+              className={`absolute inset-0 bg-gradient-to-br ${currentPlan.gradient} opacity-5 dark:opacity-10`}
             ></div>
             <CardContent className="relative p-6">
               <div className="flex items-center gap-4 mb-4">
@@ -517,7 +517,7 @@ export default function BillingPage() {
           </Card>
 
           {/* Status Card */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+          <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/90 dark:border dark:border-slate-600/20">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
@@ -558,9 +558,9 @@ export default function BillingPage() {
 
                   {subscription.cancelAtPeriodEnd &&
                     subscription.currentPeriodEnd && (
-                      <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-                        <Calendar className="w-4 h-4 text-amber-600" />
-                        <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm">
+                      <Alert className="border-amber-200 bg-amber-50 dark:border-amber-700/50 dark:bg-amber-950/30 shadow-sm dark:shadow-amber-900/20">
+                        <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
                           Cancelamento em{" "}
                           {new Date(
                             subscription.currentPeriodEnd
@@ -574,7 +574,7 @@ export default function BillingPage() {
           </Card>
 
           {/* Usage Card */}
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 md:col-span-2 lg:col-span-1">
+          <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/90 dark:border dark:border-slate-600/20 md:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900">
@@ -626,15 +626,15 @@ export default function BillingPage() {
             </p>
           </div>
 
-          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shadow-inner">
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800/60 dark:border dark:border-slate-700/50 rounded-xl p-1 shadow-inner dark:shadow-slate-900/20">
             {PERIOD_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setSelectedPeriod(option.value)}
                 className={`relative px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                   selectedPeriod === option.value
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm dark:shadow-slate-900/40"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 }`}
               >
                 {option.label}
@@ -651,7 +651,7 @@ export default function BillingPage() {
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Gratis Card */}
-          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg">
+          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40">
             <CardHeader className="pb-4 pt-8">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg">
@@ -713,19 +713,18 @@ export default function BillingPage() {
           </Card>
 
           {/* Pro Card */}
-          <Card className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg ${
+          <Card className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40 ${
             currentProPlan.savings && currentProPlan.id !== "pro-mensal"
-              ? "shadow-2xl ring-2 ring-green-500/30 border-green-200 dark:border-green-700 dark:ring-green-400/30 transform scale-105"
+              ? "shadow-2xl ring-2 ring-green-500/30 border-green-200 dark:border-green-600/60 dark:ring-green-400/40 transform scale-105"
                       : ""
                   } ${
             currentPlan.id === currentProPlan.id
-                      ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-700 dark:ring-teal-400/40"
+                      ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-600/60 dark:ring-teal-400/50"
                       : ""
           }`}>
             {currentProPlan.savings && currentProPlan.id !== "pro-mensal" && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
-                  <Sparkles className="w-4 h-4 mr-2 inline" />
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg dark:shadow-green-900/40 whitespace-nowrap">
                   {currentProPlan.savings}
                       </div>
                     </div>
@@ -746,7 +745,7 @@ export default function BillingPage() {
                   <currentProPlan.icon className="w-8 h-8 text-white" />
                       </div>
                 <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
-                  Pro
+                  {currentProPlan.name}
                       </CardTitle>
                 <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
                   {currentProPlan.price}
@@ -810,7 +809,7 @@ export default function BillingPage() {
                 </Card>
 
           {/* Personalizado Card */}
-          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg">
+          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40">
             <CardHeader className="pb-4 pt-8">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
@@ -823,7 +822,7 @@ export default function BillingPage() {
                   Sob consulta
                 </div>
                 <div className="text-sm text-muted-foreground font-medium">
-                  Para empresas
+                  Para instituições
                 </div>
               </div>
             </CardHeader>
@@ -868,7 +867,7 @@ export default function BillingPage() {
           subscription.status === "active" &&
           subscription.plan !== "trial" &&
           subscription.plan !== "semi-annual" && (
-            <Card className="border rounded-lg shadow-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+            <Card className="border rounded-lg shadow-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 dark:shadow-slate-900/40">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-lg text-slate-900 dark:text-slate-100">
                   <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -918,7 +917,7 @@ export default function BillingPage() {
 
         {/* Confirmation Modal */}
         <AlertDialog open={showCancelModal} onOpenChange={handleModalClose}>
-          <AlertDialogContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+          <AlertDialogContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 dark:shadow-slate-900/60">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
                 <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />
