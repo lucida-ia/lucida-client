@@ -74,12 +74,20 @@ interface PricingPlan {
   examFormats: string[];
   icon: any;
   gradient: string;
+  savings?: string;
 }
 
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    id: "trial",
-    name: "Teste Gratis",
+type PeriodType = "mensal" | "semestral" | "anual";
+
+const PERIOD_OPTIONS: { value: PeriodType; label: string; savings?: string }[] = [
+  { value: "mensal", label: "Mensal" },
+  { value: "semestral", label: "Semestral", savings: "Salve 10%" },
+  { value: "anual", label: "Anual", savings: "Salve 20%" },
+];
+
+const GRATIS_PLAN: PricingPlan = {
+  id: "gratis",
+  name: "Gratis",
     price: "Grátis",
     priceId: "",
     period: "",
@@ -94,56 +102,89 @@ const PRICING_PLANS: PricingPlan[] = [
     examFormats: ["simples", "enem"],
     icon: Clock,
     gradient: "from-teal-500 to-cyan-600",
-  },
-  {
-    id: "monthly",
-    name: "Mensal",
+};
+
+const PERSONALIZADO_PLAN: PricingPlan = {
+  id: "personalizado",
+  name: "Personalizado",
+  price: "Sob consulta",
+  priceId: "",
+  period: "",
+  features: [
+    "Provas ilimitadas",
+    "Todos os formatos de questões",
+    "Geração avançada com IA",
+    "Suporte especializado 24/7",
+    "Integração com LMS",
+  ],
+  popular: false,
+  checkoutUrl: "",
+  maxExams: -1,
+  examFormats: ["simples", "enem"],
+  icon: GraduationCap,
+  gradient: "from-emerald-500 to-green-600",
+};
+
+const PRO_PLANS: Record<PeriodType, PricingPlan> = {
+  mensal: {
+    id: "pro-mensal",
+    name: "Pro",
     price: "R$ 35,00",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL || "",
     period: "por mês",
     features: [
-      "Até 10 provas por mês",
+      "Até 10 avaliações por mês",
+      "Upload de múltiplos materiais",
       "Todos os formatos de questões",
-      "Geração com IA",
-      "Suporte por email",
+      "Até 50 questões por avaliação",
+      "Sistema anti-fraude para avaliações online",
+      "Acesso prioritário a novas ferramentas",
+      "Suporte dedicado por email",
     ],
     popular: false,
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_MENSAL || "",
     maxExams: 10,
-    examFormats: ["simples", "enem"],
+    examFormats: ["Simples", "ENEM", "ENADE"],
     icon: Calendar,
     gradient: "from-blue-500 to-indigo-600",
   },
-  {
-    id: "semi-annual",
-    name: "Semestral",
+  semestral: {
+    id: "pro-semestral",
+    name: "Pro Semestral",
     price: "R$ 189,90",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
-    period: "por mês",
+    period: "por 6 meses",
     features: [
-      "Até 10 provas por mês",
+      "Até 10 avaliações por mês",
+      "Upload de múltiplos materiais",
       "Todos os formatos de questões",
-      "Geração com IA",
-      "Suporte por email",
+      "Até 50 questões por avaliação",
+      "Sistema anti-fraude para avaliações online",
+      "Acesso prioritário a novas ferramentas",
+      "Suporte dedicado por email",
     ],
-    popular: false,
+    popular: true,
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_SEMESTRAL || "",
     maxExams: 10,
     examFormats: ["simples", "enem"],
     icon: BookOpen,
     gradient: "from-indigo-500 to-purple-600",
+    savings: "Salve 10%",
   },
-  {
-    id: "annual",
-    name: "Anual",
+  anual: {
+    id: "pro-anual",
+    name: "Pro Anual",
     price: "R$ 334,80",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
-    period: "por mês",
+    period: "por ano",
     features: [
-      "Até 10 provas por mês",
+      "Até 10 avaliações por mês",
+      "Upload de múltiplos materiais",
       "Todos os formatos de questões",
-      "Geração avançada com IA",
-      "Suporte prioritário por email",
+      "Até 50 questões por avaliação",
+      "Sistema anti-fraude para avaliações online",
+      "Acesso prioritário a novas ferramentas",
+      "Suporte dedicado por email",
     ],
     popular: true,
     checkoutUrl: process.env.NEXT_PUBLIC_STRIPE_PRICE_URL_PRO_ANUAL || "",
@@ -151,37 +192,18 @@ const PRICING_PLANS: PricingPlan[] = [
     examFormats: ["simples", "enem"],
     icon: BookMarked,
     gradient: "from-rose-500 to-pink-600",
+    savings: "Salve 20%",
   },
-  {
-    id: "custom",
-    name: "Personalizado",
-    price: "Sob consulta",
-    priceId: "",
-    period: "",
-    features: [
-      "Provas ilimitadas",
-      "Todos os formatos de questões",
-      "Geração avançada com IA",
-      "Suporte especializado 24/7",
-      "Integração com LMS",
-    ],
-    popular: false,
-    checkoutUrl: "",
-    maxExams: -1,
-    examFormats: ["simples", "enem"],
-    icon: GraduationCap,
-    gradient: "from-emerald-500 to-green-600",
-  },
-];
+};
 
 // Helper function to calculate monthly equivalent pricing
 const getMonthlyEquivalent = (plan: PricingPlan) => {
-  if (plan.id === "semi-annual") {
+  if (plan.id === "pro-semestral") {
     const price = 189.9;
     const months = 6;
     return `(R$ ${(price / months).toFixed(2).replace(".", ",")}/mês)`;
   }
-  if (plan.id === "annual") {
+  if (plan.id === "pro-anual") {
     const price = 334.8;
     const months = 12;
     return `(R$ ${(price / months).toFixed(2).replace(".", ",")}/mês)`;
@@ -197,8 +219,7 @@ function BillingSkeleton() {
         <Skeleton className="h-4 w-96 bg-slate-200 dark:bg-slate-700" />
       </div>
       <Skeleton className="h-48 w-full bg-slate-200 dark:bg-slate-700" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
         <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
         <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
@@ -220,6 +241,7 @@ export default function BillingPage() {
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [isTrialDowngrade, setIsTrialDowngrade] = useState(false);
   const [redirectingToPortal, setRedirectingToPortal] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("mensal");
 
   useEffect(() => {
     if (user) {
@@ -259,7 +281,7 @@ export default function BillingPage() {
 
     try {
       // Handle trial plan - cancel current subscription if user has one
-      if (plan.id === "trial") {
+      if (plan.id === "gratis") {
         if (
           subscription?.stripeSubscriptionId &&
           subscription.status === "active" &&
@@ -280,7 +302,7 @@ export default function BillingPage() {
         }
       }
 
-      if (plan.priceId && plan.id !== "custom") {
+      if (plan.priceId && plan.id !== "personalizado") {
         // Create dynamic checkout session
         const response = await fetch("/api/create-checkout-session", {
           method: "POST",
@@ -388,10 +410,10 @@ export default function BillingPage() {
   };
 
   const getCurrentPlan = () => {
-    if (!subscription) return PRICING_PLANS[0]; // Default to trial plan
+    if (!subscription) return GRATIS_PLAN; // Default to trial plan
     return (
-      PRICING_PLANS.find((plan) => plan.id === subscription.plan) ||
-      PRICING_PLANS[0]
+      [GRATIS_PLAN, PRO_PLANS.mensal, PRO_PLANS.semestral, PRO_PLANS.anual, PERSONALIZADO_PLAN].find((plan) => plan.id === subscription.plan) ||
+      GRATIS_PLAN
     );
   };
 
@@ -425,6 +447,7 @@ export default function BillingPage() {
 
   const currentPlan = getCurrentPlan();
   const usagePercentage = getUsagePercentage();
+  const currentProPlan = PRO_PLANS[selectedPeriod];
 
   return (
     <>
@@ -592,88 +615,164 @@ export default function BillingPage() {
           </Card>
         </div>
 
-        {/* Available Plans - Inline Layout */}
-        <div>
-          <div className="mb-6">
-            <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
-              Planos Disponíveis
+        {/* Period Selector */}
+        <div className="flex flex-col items-center space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+              Escolha seu Plano
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Escolha o plano que melhor se adapta às suas necessidades
+            <p className="text-muted-foreground">
+              Selecione o período que melhor se adapta às suas necessidades
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {PRICING_PLANS.map((plan) => {
-              const Icon = plan.icon;
-              const isCurrentPlan = currentPlan.id === plan.id;
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shadow-inner">
+            {PERIOD_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedPeriod(option.value)}
+                className={`relative px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                  selectedPeriod === option.value
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                }`}
+              >
+                {option.label}
+                {option.savings && (
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 rounded-full">
+                    {option.savings}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
 
-              return (
-                <Card
-                  key={plan.id}
-                  className={`relative transition-all duration-300 hover:shadow-xl hover:scale-105 border rounded-xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 ${
-                    plan.popular
-                      ? "shadow-xl ring-2 ring-rose-500/30 border-rose-200 dark:border-rose-700 dark:ring-rose-400/30"
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Gratis Card */}
+          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg">
+            <CardHeader className="pb-4 pt-8">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg">
+                  <Clock className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
+                  Gratis
+                </CardTitle>
+                <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                  Grátis
+                </div>
+                <div className="text-sm text-muted-foreground font-medium">
+                  Para começar
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
+              <ul className="space-y-4 mb-8 flex-1">
+                {GRATIS_PLAN.features.map((feature, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
+                      <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
+                  currentPlan.id === "gratis"
+                    ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
+                    : "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl"
+                }`}
+                onClick={() => handleSubscribe(GRATIS_PLAN)}
+                disabled={currentPlan.id === "gratis" || processingPlan === "gratis"}
+              >
+                {processingPlan === "gratis" ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Processando...
+                  </div>
+                ) : currentPlan.id === "gratis" ? (
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    Plano Atual
+                  </div>
+                ) : (
+                  "Começar Grátis"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Pro Card */}
+          <Card className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg ${
+            currentProPlan.savings && currentProPlan.id !== "pro-mensal"
+              ? "shadow-2xl ring-2 ring-green-500/30 border-green-200 dark:border-green-700 dark:ring-green-400/30 transform scale-105"
                       : ""
                   } ${
-                    isCurrentPlan
+            currentPlan.id === currentProPlan.id
                       ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-700 dark:ring-teal-400/40"
                       : ""
-                  }`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                      <div className="bg-gradient-to-r from-rose-500 to-pink-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap">
-                        <Sparkles className="w-3 h-3 mr-1 inline" />
-                        Mais Popular
+          }`}>
+            {currentProPlan.savings && currentProPlan.id !== "pro-mensal" && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
+                  <Sparkles className="w-4 h-4 mr-2 inline" />
+                  {currentProPlan.savings}
                       </div>
                     </div>
                   )}
 
-                  {isCurrentPlan && (
-                    <div className="absolute -top-3 right-3 z-20">
-                      <Badge className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white border-0 shadow-lg text-xs">
-                        <Check className="w-3 h-3 mr-1" />
+            {currentPlan.id === currentProPlan.id && (
+              <div className="absolute -top-3 right-4 z-20">
+                <Badge className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white border-0 shadow-lg">
+                  <Check className="w-4 h-4 mr-1" />
                         Atual
                       </Badge>
                     </div>
                   )}
 
-                  <CardHeader className="pb-4 pt-6">
-                    <div className="text-center mb-4">
-                      <div
-                        className={`w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-r ${plan.gradient} flex items-center justify-center shadow-lg`}
-                      >
-                        <Icon className="w-6 h-6 text-white" />
+            <CardHeader className="pb-4 pt-8">
+              <div className="text-center mb-6">
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center shadow-lg`}>
+                  <currentProPlan.icon className="w-8 h-8 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
-                        {plan.name}
+                <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
+                  Pro
                       </CardTitle>
-                      <div className="text-3xl font-bold mb-1 text-slate-900 dark:text-slate-100">
-                        {plan.price}
+                <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                  {currentProPlan.price}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {plan.period}
+                <div className="text-sm text-muted-foreground font-medium">
+                  {currentProPlan.period}
                       </div>
-                      {getMonthlyEquivalent(plan) && (
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {getMonthlyEquivalent(plan)}
+                {getMonthlyEquivalent(currentProPlan) && (
+                  <div className="text-sm text-muted-foreground mt-1 font-medium">
+                    {getMonthlyEquivalent(currentProPlan)}
                         </div>
                       )}
                     </div>
                   </CardHeader>
 
-                  <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
-                    <ul className="space-y-3 mb-8 flex-1">
-                      {plan.features.map((feature, index) => (
+            <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
+              <ul className="space-y-4 mb-8 flex-1">
+                {currentProPlan.features.map((feature, index) => (
                         <li
                           key={index}
-                          className="flex items-start gap-3 text-sm"
+                    className="flex items-start gap-3"
                         >
-                          <div className="p-1 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
-                            <Check className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                    <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
+                      <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                           </div>
-                          <span className="leading-relaxed text-slate-700 dark:text-slate-300">
+                    <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
                             {feature}
                           </span>
                         </li>
@@ -681,51 +780,87 @@ export default function BillingPage() {
                     </ul>
 
                     <Button
-                      className={`w-full h-11 text-sm font-semibold transition-all duration-300 mt-auto ${
-                        isCurrentPlan
+                className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
+                  currentPlan.id === currentProPlan.id
                           ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
-                          : plan.popular
-                          ? "bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl"
-                          : plan.id === "trial"
-                          ? "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl"
+                    : currentProPlan.savings && currentProPlan.id !== "pro-mensal"
+                    ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
                           : "bg-gradient-to-r " +
-                            plan.gradient +
+                      currentProPlan.gradient +
                             " hover:shadow-lg text-white"
                       }`}
-                      onClick={() => handleSubscribe(plan)}
-                      disabled={isCurrentPlan || processingPlan === plan.id}
+                onClick={() => handleSubscribe(currentProPlan)}
+                disabled={currentPlan.id === currentProPlan.id || processingPlan === currentProPlan.id}
                     >
-                      {processingPlan === plan.id ? (
+                {processingPlan === currentProPlan.id ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                           Processando...
                         </div>
-                      ) : isCurrentPlan ? (
+                ) : currentPlan.id === currentProPlan.id ? (
                         <div className="flex items-center gap-2">
-                          <Check className="w-3 h-3" />
+                    <Check className="w-4 h-4" />
                           Plano Atual
                         </div>
-                      ) : plan.id === "trial" ? (
-                        subscription?.stripeSubscriptionId &&
-                        subscription.status === "active" &&
-                        subscription.plan !== "trial" ? (
-                          "Voltar ao Teste Grátis"
-                        ) : (
-                          "Plano Atual"
-                        )
-                      ) : plan.id === "semi-annual" ? (
-                        "Assinar Agora"
-                      ) : plan.id === "custom" ? (
-                        "Entre em contato!"
                       ) : (
                         "Assinar Agora"
                       )}
                     </Button>
                   </CardContent>
                 </Card>
-              );
-            })}
+
+          {/* Personalizado Card */}
+          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg">
+            <CardHeader className="pb-4 pt-8">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+                  <GraduationCap className="w-8 h-8 text-white" />
           </div>
+                <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
+                  Personalizado
+                </CardTitle>
+                <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                  Sob consulta
+                </div>
+                <div className="text-sm text-muted-foreground font-medium">
+                  Para empresas
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
+              <ul className="space-y-4 mb-8 flex-1">
+                {PERSONALIZADO_PLAN.features.map((feature, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
+                      <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                className="w-full h-12 font-semibold transition-all duration-300 mt-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl rounded-xl"
+                onClick={() => handleSubscribe(PERSONALIZADO_PLAN)}
+                disabled={processingPlan === "personalizado"}
+              >
+                {processingPlan === "personalizado" ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Processando...
+                  </div>
+                ) : (
+                  "Entre em contato!"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Subscription Management */}
