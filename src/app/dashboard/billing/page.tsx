@@ -45,6 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { ContactModal } from "@/components/contact-modal";
 
 interface UserSubscription {
   id: string;
@@ -242,6 +243,7 @@ export default function BillingPage() {
   const [isTrialDowngrade, setIsTrialDowngrade] = useState(false);
   const [redirectingToPortal, setRedirectingToPortal] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("mensal");
+  const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -328,8 +330,8 @@ export default function BillingPage() {
           throw new Error("No checkout URL received");
         }
       } else {
-        // Handle custom plan - redirect to contact
-        window.location.href = "/contact";
+        // Handle custom plan - show contact modal
+        setShowContactModal(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -1013,6 +1015,12 @@ export default function BillingPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Contact Modal */}
+        <ContactModal 
+          open={showContactModal} 
+          onOpenChange={setShowContactModal} 
+        />
       </div>
     </>
   );
