@@ -5,8 +5,9 @@ import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentExams } from "@/components/dashboard/recent-exams";
 import { CreateExamCTA } from "@/components/dashboard/create-exam-cta";
 import { URLParamsHandler } from "@/components/dashboard/url-params-handler";
+import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
 import { useToast } from "@/hooks/use-toast";
-import React, { Suspense } from "react";
+import React, { Suspense, useCallback } from "react";
 import axios from "axios";
 
 interface UserData {
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get("/api/user");
@@ -54,18 +55,23 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   React.useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [fetchUserData]);
+
+  // Check if user is on trial plan
+  const isTrialUser = userData.user?.subscription?.plan === "trial";
 
   return (
     <>
       <Suspense fallback={null}>
         <URLParamsHandler />
       </Suspense>
-      
+
+      <TrialUpgradeDialog isTrialUser={isTrialUser} isLoading={loading} />
+
       <div className="flex items-center justify-between">
         <DashboardHeader
           heading="Dashboard"
@@ -73,7 +79,7 @@ export default function DashboardPage() {
         />
         <CreateExamCTA />
       </div>
-      
+
       <div className="space-y-6 mt-4">
         <OverviewStats userData={userData} loading={loading} />
         <RecentExams onExamDeleted={fetchUserData} />
