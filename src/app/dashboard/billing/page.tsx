@@ -80,29 +80,30 @@ interface PricingPlan {
 
 type PeriodType = "mensal" | "semestral" | "anual";
 
-const PERIOD_OPTIONS: { value: PeriodType; label: string; savings?: string }[] = [
-  { value: "mensal", label: "Mensal" },
-  { value: "semestral", label: "Semestral", savings: "Salve 10%" },
-  { value: "anual", label: "Anual", savings: "Salve 20%" },
-];
+const PERIOD_OPTIONS: { value: PeriodType; label: string; savings?: string }[] =
+  [
+    { value: "mensal", label: "Mensal" },
+    { value: "semestral", label: "Semestral", savings: "Salve 10%" },
+    { value: "anual", label: "Anual", savings: "Salve 20%" },
+  ];
 
 const GRATIS_PLAN: PricingPlan = {
   id: "gratis",
   name: "Gratis",
-    price: "Grátis",
-    priceId: "",
-    period: "",
-    features: [
-      "Até 3 provas gratuitas",
-      "Máximo 10 questões por prova",
-      "Apenas 1 arquivo por upload",
-    ],
-    popular: false,
-    checkoutUrl: "",
-    maxExams: 3,
-    examFormats: ["Simples", "ENEM"],
-    icon: Clock,
-    gradient: "from-teal-500 to-cyan-600",
+  price: "Grátis",
+  priceId: "",
+  period: "",
+  features: [
+    "Até 3 provas gratuitas",
+    "Máximo 10 questões por prova",
+    "Apenas 1 arquivo por upload",
+  ],
+  popular: false,
+  checkoutUrl: "",
+  maxExams: 3,
+  examFormats: ["Simples", "ENEM"],
+  icon: Clock,
+  gradient: "from-teal-500 to-cyan-600",
 };
 
 const PERSONALIZADO_PLAN: PricingPlan = {
@@ -128,7 +129,7 @@ const PERSONALIZADO_PLAN: PricingPlan = {
 
 const PRO_PLANS: Record<PeriodType, PricingPlan> = {
   mensal: {
-    id: "pro-mensal",
+    id: "monthly",
     name: "Pro",
     price: "R$ 35,00",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL || "",
@@ -150,7 +151,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     gradient: "from-blue-500 to-indigo-600",
   },
   semestral: {
-    id: "pro-semestral",
+    id: "semi-annual",
     name: "Pro Semestral",
     price: "R$ 189,90",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
@@ -173,7 +174,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     savings: "Salve 10%",
   },
   anual: {
-    id: "pro-anual",
+    id: "annual",
     name: "Pro Anual",
     price: "R$ 334,80",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
@@ -199,12 +200,12 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
 
 // Helper function to calculate monthly equivalent pricing
 const getMonthlyEquivalent = (plan: PricingPlan) => {
-  if (plan.id === "pro-semestral") {
+  if (plan.id === "semi-annual") {
     const price = 189.9;
     const months = 6;
     return `(R$ ${(price / months).toFixed(2).replace(".", ",")}/mês)`;
   }
-  if (plan.id === "pro-anual") {
+  if (plan.id === "annual") {
     const price = 334.8;
     const months = 12;
     return `(R$ ${(price / months).toFixed(2).replace(".", ",")}/mês)`;
@@ -413,9 +414,17 @@ export default function BillingPage() {
 
   const getCurrentPlan = () => {
     if (!subscription) return GRATIS_PLAN; // Default to trial plan
+
+    console.log(subscription.plan);
+
     return (
-      [GRATIS_PLAN, PRO_PLANS.mensal, PRO_PLANS.semestral, PRO_PLANS.anual, PERSONALIZADO_PLAN].find((plan) => plan.id === subscription.plan) ||
-      GRATIS_PLAN
+      [
+        GRATIS_PLAN,
+        PRO_PLANS.mensal,
+        PRO_PLANS.semestral,
+        PRO_PLANS.anual,
+        PERSONALIZADO_PLAN,
+      ].find((plan) => plan.id === subscription.plan) || GRATIS_PLAN
     );
   };
 
@@ -674,10 +683,7 @@ export default function BillingPage() {
             <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
               <ul className="space-y-4 mb-8 flex-1">
                 {GRATIS_PLAN.features.map((feature, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3"
-                  >
+                  <li key={index} className="flex items-start gap-3">
                     <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
                       <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                     </div>
@@ -695,7 +701,9 @@ export default function BillingPage() {
                     : "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl"
                 }`}
                 onClick={() => handleSubscribe(GRATIS_PLAN)}
-                disabled={currentPlan.id === "gratis" || processingPlan === "gratis"}
+                disabled={
+                  currentPlan.id === "gratis" || processingPlan === "gratis"
+                }
               >
                 {processingPlan === "gratis" ? (
                   <div className="flex items-center gap-2">
@@ -715,100 +723,105 @@ export default function BillingPage() {
           </Card>
 
           {/* Pro Card */}
-          <Card className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40 ${
-            currentProPlan.savings && currentProPlan.id !== "pro-mensal"
-              ? "shadow-2xl ring-2 ring-green-500/30 border-green-200 dark:border-green-600/60 dark:ring-green-400/40 transform scale-105"
-                      : ""
-                  } ${
-            currentPlan.id === currentProPlan.id
-                      ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-600/60 dark:ring-teal-400/50"
-                      : ""
-          }`}>
+          <Card
+            className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40 ${
+              currentProPlan.savings && currentProPlan.id !== "pro-mensal"
+                ? "shadow-2xl ring-2 ring-green-500/30 border-green-200 dark:border-green-600/60 dark:ring-green-400/40 transform scale-105"
+                : ""
+            } ${
+              currentPlan.id === currentProPlan.id
+                ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-600/60 dark:ring-teal-400/50"
+                : ""
+            }`}
+          >
             {currentProPlan.savings && currentProPlan.id !== "pro-mensal" && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                 <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg dark:shadow-green-900/40 whitespace-nowrap">
                   {currentProPlan.savings}
-                      </div>
-                    </div>
-                  )}
+                </div>
+              </div>
+            )}
 
             {currentPlan.id === currentProPlan.id && (
               <div className="absolute -top-3 right-4 z-20">
                 <Badge className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white border-0 shadow-lg">
                   <Check className="w-4 h-4 mr-1" />
-                        Atual
-                      </Badge>
-                    </div>
-                  )}
+                  Atual
+                </Badge>
+              </div>
+            )}
 
             <CardHeader className="pb-4 pt-8">
               <div className="text-center mb-6">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center shadow-lg`}>
+                <div
+                  className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center shadow-lg`}
+                >
                   <currentProPlan.icon className="w-8 h-8 text-white" />
-                      </div>
+                </div>
                 <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
                   {currentProPlan.name}
-                      </CardTitle>
+                </CardTitle>
                 <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
                   {currentProPlan.price}
-                      </div>
+                </div>
                 <div className="text-sm text-muted-foreground font-medium">
                   {currentProPlan.period}
-                      </div>
+                </div>
                 {getMonthlyEquivalent(currentProPlan) && (
                   <div className="text-sm text-muted-foreground mt-1 font-medium">
                     {getMonthlyEquivalent(currentProPlan)}
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
 
             <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
               <ul className="space-y-4 mb-8 flex-1">
                 {currentProPlan.features.map((feature, index) => (
-                        <li
-                          key={index}
-                    className="flex items-start gap-3"
-                        >
+                  <li key={index} className="flex items-start gap-3">
                     <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
                       <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                          </div>
+                    </div>
                     <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
 
-                    <Button
+              <Button
                 className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
                   currentPlan.id === currentProPlan.id
-                          ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
-                    : currentProPlan.savings && currentProPlan.id !== "pro-mensal"
+                    ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
+                    : currentProPlan.savings &&
+                      currentProPlan.id !== "pro-mensal"
                     ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
-                          : "bg-gradient-to-r " +
+                    : "bg-gradient-to-r " +
                       currentProPlan.gradient +
-                            " hover:shadow-lg text-white"
-                      }`}
+                      " hover:shadow-lg text-white"
+                }`}
                 onClick={() => handleSubscribe(currentProPlan)}
-                disabled={currentPlan.id === currentProPlan.id || processingPlan === currentProPlan.id}
-                    >
+                disabled={
+                  currentPlan.id === currentProPlan.id ||
+                  processingPlan === currentProPlan.id
+                }
+              >
                 {processingPlan === currentProPlan.id ? (
-                        <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Processando...
-                        </div>
+                    Processando...
+                  </div>
                 ) : currentPlan.id === currentProPlan.id ? (
-                        <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <Check className="w-4 h-4" />
-                          Plano Atual
-                        </div>
-                      ) : (
-                        "Assinar Agora"
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
+                    Plano Atual
+                  </div>
+                ) : (
+                  "Assinar Agora"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Personalizado Card */}
           <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40">
@@ -816,7 +829,7 @@ export default function BillingPage() {
               <div className="text-center mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
                   <GraduationCap className="w-8 h-8 text-white" />
-          </div>
+                </div>
                 <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
                   Personalizado
                 </CardTitle>
@@ -832,10 +845,7 @@ export default function BillingPage() {
             <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
               <ul className="space-y-4 mb-8 flex-1">
                 {PERSONALIZADO_PLAN.features.map((feature, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3"
-                  >
+                  <li key={index} className="flex items-start gap-3">
                     <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
                       <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                     </div>
@@ -1017,9 +1027,9 @@ export default function BillingPage() {
         </AlertDialog>
 
         {/* Contact Modal */}
-        <ContactModal 
-          open={showContactModal} 
-          onOpenChange={setShowContactModal} 
+        <ContactModal
+          open={showContactModal}
+          onOpenChange={setShowContactModal}
         />
       </div>
     </>

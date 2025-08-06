@@ -19,7 +19,10 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+          <Card
+            key={i}
+            className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90"
+          >
             <CardContent className="flex items-start justify-between p-6">
               <div className="space-y-1">
                 <div className="h-4 w-24 bg-muted rounded animate-pulse" />
@@ -72,8 +75,9 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
 
         const limits = {
           trial: 3,
+          monthly: 10,
           "semi-annual": 10,
-          annual: 30,
+          annual: 10,
           custom: -1, // unlimited
         };
 
@@ -91,8 +95,9 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
         const plan = userData.user?.subscription?.plan || "trial";
         const planNames = {
           trial: "Plano Grátis",
-          "semi-annual": "Plano Semestral", 
+          "semi-annual": "Plano Semestral",
           annual: "Plano Anual",
+          monthly: "Plano Mensal",
           custom: "Plano Personalizado",
         };
         return planNames[plan as keyof typeof planNames] || "Plano Grátis";
@@ -147,20 +152,27 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {stats.map((stat, i) => (
-        <Card key={i} className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+        <Card
+          key={i}
+          className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90"
+        >
           <CardContent className="flex items-start justify-between p-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
                 {stat.title}
               </p>
-              <div className={`text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}>
+              <div
+                className={`text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}
+              >
                 {stat.value}
               </div>
               <p className="text-xs text-gray-500 dark:text-zinc-500">
                 {stat.description}
               </p>
             </div>
-            <div className={`p-3 bg-${stat.color}-50 dark:bg-${stat.color}-900/20 rounded-lg`}>
+            <div
+              className={`p-3 bg-${stat.color}-50 dark:bg-${stat.color}-900/20 rounded-lg`}
+            >
               {stat.icon}
             </div>
           </CardContent>
