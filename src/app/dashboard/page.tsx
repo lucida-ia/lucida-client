@@ -61,6 +61,71 @@ export default function DashboardPage() {
     fetchUserData();
   }, [fetchUserData]);
 
+  // Check for selected plan from pricing page and trigger checkout
+  React.useEffect(() => {
+    const selectedPlan = localStorage.getItem("selectedPlan");
+
+    if (selectedPlan && userData.user) {
+      try {
+        const planData = JSON.parse(selectedPlan);
+
+        // Clear the stored plan to prevent multiple triggers
+        localStorage.removeItem("selectedPlan");
+
+        // Show a toast to inform user
+        toast({
+          title: "Redirecionando para o checkout...",
+          description: `Processando assinatura do plano ${planData.planName}`,
+        });
+
+        // Trigger checkout
+        handleCheckoutFromPricing(planData);
+      } catch (error) {
+        console.error("Error processing selected plan:", error);
+        localStorage.removeItem("selectedPlan"); // Clean up invalid data
+      }
+    }
+  }, [userData.user, toast]);
+
+  // Function to handle checkout after authentication
+  const handleCheckoutFromPricing = async (planData: any) => {
+    try {
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          priceId: planData.priceId,
+          planId: planData.planId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.details || "Failed to create checkout session"
+        );
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.url) {
+        window.location.href = responseData.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro no checkout",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Erro inesperado ao processar o pagamento",
+      });
+    }
+  };
+
   // Check if user is on trial plan
   const isTrialUser = userData.user?.subscription?.plan === "trial";
 
