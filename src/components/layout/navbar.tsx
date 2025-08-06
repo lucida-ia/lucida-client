@@ -17,6 +17,7 @@ export function NavBar() {
   const navigation = [
     { name: "Features", href: "#features" },
     { name: "Como Funciona", href: "#how-it-works" },
+    { name: "Preços", href: "#pricing" },
     { name: "FAQ", href: "#faq" },
     { name: "Contato", href: "#contact" },
   ];
