@@ -17,12 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import {
   FileText,
@@ -62,9 +57,6 @@ export default function Home() {
 
   // Navbar scroll state
   const [isScrolled, setIsScrolled] = useState(false);
-
-  // Video modal state
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -266,7 +258,10 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Mobile optimized */}
-      <section className="relative z-10 min-h-screen flex items-center justify-center px-3 sm:px-4 lg:px-8 pt-20 sm:pt-0">
+      <section
+        className="relative z-10 flex items-center justify-center px-3 sm:px-4 lg:px-8 pt-32 sm:pt-24 pb-0"
+        style={{ height: "75vh", minHeight: "700px" }}
+      >
         <div className="max-w-7xl mx-auto text-center">
           {/* Badge with Modern Design - Mobile optimized */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full px-4 sm:px-6 py-2 mb-6 sm:mb-8 backdrop-blur-sm">
@@ -280,8 +275,14 @@ export default function Home() {
           {/* Main Headline - Mobile responsive typography */}
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight px-2">
             Crie{" "}
-            <TypingAnimation 
-              words={["Provas", "Avaliações", "Quizzes", "Simulados", "Atividades"]}
+            <TypingAnimation
+              words={[
+                "Provas",
+                "Avaliações",
+                "Quizzes",
+                "Simulados",
+                "Atividades",
+              ]}
               typingSpeed={120}
               deletingSpeed={80}
               pauseDuration={1500}
@@ -304,7 +305,7 @@ export default function Home() {
           </p>
 
           {/* Modern CTA Buttons - Mobile optimized */}
-          <div className="flex flex-col md:flex-row	 gap-3 sm:gap-4 justify-center items-center mb-16 sm:mb-20 px-4">
+          <div className="flex flex-col md:flex-row	 gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-4 px-4">
             <Link href="/sign-up" className="w-full sm:w-auto">
               <Button
                 size="lg"
@@ -314,16 +315,26 @@ export default function Home() {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
 
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-slate-700 text-slate-300 bg-slate-800/50 hover:bg-slate-700/50 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg backdrop-blur-sm rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[44px]"
-              onClick={() => setIsVideoModalOpen(true)}
-            >
-              <span>Ver Demo</span>
-              <ArrowUpRight className="w-5 h-5 ml-2" />
-            </Button>
+      {/* Video Demo Section */}
+      <section className="relative z-10 px-3 sm:px-4 lg:px-8 pt-8 pb-16 sm:pb-32">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border border-slate-700/50 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-8">
+            <div className="aspect-video w-full">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/_B6nTvxtgI0"
+                title="Demo do Lucida"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="rounded-lg sm:rounded-xl"
+              ></iframe>
+            </div>
           </div>
         </div>
       </section>
@@ -670,31 +681,6 @@ export default function Home() {
           </p>
         </div>
       </footer>
-
-      {/* Video Demo Modal */}
-      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
-        <DialogContent className="max-w-4xl w-full p-0 bg-slate-900 border-slate-700">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-white text-xl font-semibold">
-              Demo do Lucida
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-6 pt-4">
-            <div className="aspect-video w-full">
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/_B6nTvxtgI0"
-                title="Demo do Lucida"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="rounded-lg"
-              ></iframe>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
