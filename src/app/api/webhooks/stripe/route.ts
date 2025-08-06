@@ -125,7 +125,7 @@ async function handleSubscriptionCreated(subscription: any) {
 
     // Determine plan based on environment variables
     let plan = "trial";
-    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MONTHLY) {
+    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL) {
       plan = "monthly";
     } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL) {
       plan = "annual";
@@ -226,7 +226,7 @@ async function handleSubscriptionUpdated(subscription: any) {
 
     // Determine plan based on environment variables
     let plan = "trial";
-    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MONTHLY) {
+    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL) {
       plan = "monthly";
     } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL) {
       plan = "annual";
