@@ -194,6 +194,9 @@ async function handleSubscriptionCreated(subscription: any) {
       user.subscription.currentPeriodEnd = null;
     }
 
+    user.usage.examsThisPeriod = 0;
+    user.usage.examsThisPeriodResetDate = new Date();
+
     await user.save();
   } catch (error) {
     console.error("[WEBHOOK] Error handling subscription created:", error);
