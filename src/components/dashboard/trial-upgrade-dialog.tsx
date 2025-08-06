@@ -24,7 +24,7 @@ export function TrialUpgradeDialog({
   isTrialUser,
   isLoading,
 }: TrialUpgradeDialogProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
