@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import { useTheme } from "next-themes";
 import { Bar as BarChart } from "react-chartjs-2";
+import { Chart as ChartJS } from "chart.js";
 import { applyChartDefaults } from "./chart-defaults";
 
 type BarProps = {
@@ -19,9 +21,15 @@ export function ShadcnBar({
   color = "#3b82f6",
   className,
 }: BarProps) {
+  const { resolvedTheme } = useTheme();
   React.useEffect(() => {
     applyChartDefaults();
   }, []);
+
+  const isDark = resolvedTheme === "dark";
+  const gridColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)";
+  const tickColor = isDark ? "#e5e7eb" : "#374151";
+  const axisBorder = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)";
 
   const chartData = {
     labels,
@@ -43,11 +51,17 @@ export function ShadcnBar({
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: "hsl(var(--muted-foreground))" },
+        ticks: { color: tickColor, font: { size: 12, family: ChartJS.defaults.font?.family } },
+        border: { color: axisBorder },
       },
       y: {
-        grid: { color: "hsl(var(--border))" },
-        ticks: { color: "hsl(var(--muted-foreground))" },
+        grid: { color: gridColor, drawBorder: false },
+        ticks: {
+          color: tickColor,
+          font: { size: 12, family: ChartJS.defaults.font?.family },
+          precision: 0,
+        },
+        border: { color: axisBorder },
         beginAtZero: true,
         precision: 0,
       },
@@ -73,7 +87,7 @@ export function ShadcnBar({
 
   return (
     <div className={className} style={{ height: 300 }}>
-      <BarChart data={chartData} options={options} />
+      <BarChart key={resolvedTheme} data={chartData} options={options} />
     </div>
   );
 }
