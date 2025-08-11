@@ -37,7 +37,19 @@ export function ShadcnDonut({ slices, className }: DonutProps) {
     cutout: "60%",
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: true },
+      tooltip: {
+        enabled: true,
+        // Force white tooltip with dark text for maximum contrast
+        backgroundColor: "#ffffff",
+        titleColor: "#111827",
+        bodyColor: "#111827",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        padding: 10,
+        callbacks: {
+          label: (ctx: any) => `${ctx.parsed} aluno${ctx.parsed !== 1 ? "s" : ""}`,
+        },
+      },
     },
   };
 

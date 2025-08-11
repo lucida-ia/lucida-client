@@ -54,7 +54,20 @@ export function ShadcnBar({
     },
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: true },
+      tooltip: {
+        enabled: true,
+        // Force white tooltip with dark text for maximum contrast
+        backgroundColor: "#ffffff",
+        titleColor: "#111827",
+        bodyColor: "#111827",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        padding: 10,
+        displayColors: false,
+        callbacks: {
+          label: (ctx: any) => `${ctx.parsed.y} aluno${ctx.parsed.y !== 1 ? "s" : ""}`,
+        },
+      },
     },
   };
 

@@ -27,32 +27,45 @@ ChartJS.register(
 );
 
 // Apply defaults that follow shadcn/ui tokens
-export function applyChartDefaults(): void {
-  // Colors rely on CSS variables so they adapt to theme automatically
-  ChartJS.defaults.color = getComputedStyle(document.documentElement)
-    .getPropertyValue("--foreground")
+function hslVar(name: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
     .trim();
+  return value ? `hsl(${value})` : fallback;
+}
 
-  ChartJS.defaults.borderColor =
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--border")
-      .trim() || "#e5e7eb";
+export function applyChartDefaults(): void {
+  // Global text and borders
+  ChartJS.defaults.color = hslVar("--foreground", "#111827");
+  ChartJS.defaults.borderColor = hslVar("--border", "#e5e7eb");
 
+  const fontFamily = getComputedStyle(document.documentElement)
+    .getPropertyValue("--font-sans")
+    .trim();
   ChartJS.defaults.font.family =
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--font-sans")
-      .trim() || "ui-sans-serif, system-ui, -apple-system";
+    fontFamily || "ui-sans-serif, system-ui, -apple-system";
 
-  // Tooltips
-  ChartJS.defaults.plugins.tooltip.backgroundColor =
-    "hsl(var(--popover))";
-  ChartJS.defaults.plugins.tooltip.titleColor = "hsl(var(--popover-foreground))";
-  ChartJS.defaults.plugins.tooltip.bodyColor = "hsl(var(--popover-foreground))";
-  ChartJS.defaults.plugins.tooltip.borderColor = "hsl(var(--border))";
+  // Tooltips (computed from CSS vars so they are theme-aware)
+  ChartJS.defaults.plugins.tooltip.backgroundColor = hslVar(
+    "--popover",
+    "#ffffff"
+  );
+  ChartJS.defaults.plugins.tooltip.titleColor = hslVar(
+    "--popover-foreground",
+    "#111827"
+  );
+  ChartJS.defaults.plugins.tooltip.bodyColor = hslVar(
+    "--popover-foreground",
+    "#111827"
+  );
+  ChartJS.defaults.plugins.tooltip.borderColor = hslVar("--border", "#e5e7eb");
   ChartJS.defaults.plugins.tooltip.borderWidth = 1;
 
   // Legend
-  ChartJS.defaults.plugins.legend.labels.color = "hsl(var(--muted-foreground))";
+  ChartJS.defaults.plugins.legend.labels.color = hslVar(
+    "--muted-foreground",
+    "#6b7280"
+  );
 }
 
 
