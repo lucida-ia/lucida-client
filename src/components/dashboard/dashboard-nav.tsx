@@ -20,6 +20,7 @@ import {
   Menu,
   HelpCircle,
   FileCheck,
+  BarChart3,
 } from "lucide-react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -94,6 +95,12 @@ export function useNavItems() {
       title: "Minhas Avaliações",
       href: "/dashboard/overview",
       icon: <FileCheck className="h-5 w-5" />,
+      role: ["admin", "teacher"],
+    },
+    {
+      title: "Analytics",
+      href: "/dashboard/analytics",
+      icon: <BarChart3 className="h-5 w-5" />,
       role: ["admin", "teacher"],
     },
     {
