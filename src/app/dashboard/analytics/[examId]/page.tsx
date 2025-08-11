@@ -22,6 +22,9 @@ import {
 import axios from "axios";
 import { ScoreDistributionChart } from "@/components/analytics/ScoreDistributionChart";
 import { GradeBreakdownChart } from "@/components/analytics/GradeBreakdownChart";
+import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
 
 interface AnalyticsData {
   exam: {
@@ -138,6 +141,8 @@ export default function ExamAnalyticsPage() {
   const params = useParams();
   const router = useRouter();
   const examId = params?.examId as string;
+  const { subscription, loading: subscriptionLoading } = useSubscription();
+  const isTrialUser = subscription?.plan === "trial";
 
   useEffect(() => {
     if (examId) {
@@ -243,6 +248,7 @@ export default function ExamAnalyticsPage() {
 
   return (
     <>
+      <TrialUpgradeDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -257,131 +263,139 @@ export default function ExamAnalyticsPage() {
 
       <div className="space-y-6 mt-6">
         {/* Key Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="flex items-start justify-between p-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Média Geral</p>
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  {analytics.media}%
+        <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="flex items-start justify-between p-6">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Média Geral</p>
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    {analytics.media}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {analytics.totalSubmissions} submissões
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {analytics.totalSubmissions} submissões
-                </p>
-              </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="flex items-start justify-between p-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Nota Máxima</p>
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                  {analytics.notaMaxima}%
+            <Card>
+              <CardContent className="flex items-start justify-between p-6">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Nota Máxima</p>
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                    {analytics.notaMaxima}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">Melhor resultado</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Melhor resultado</p>
-              </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="flex items-start justify-between p-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Nota Mínima</p>
-                <div className="text-3xl font-bold text-red-600 dark:text-red-400">
-                  {analytics.notaMinima}%
+            <Card>
+              <CardContent className="flex items-start justify-between p-6">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Nota Mínima</p>
+                  <div className="text-3xl font-bold text-red-600 dark:text-red-400">
+                    {analytics.notaMinima}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">Menor resultado</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Menor resultado</p>
-              </div>
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="flex items-start justify-between p-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Total de Submissões</p>
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                  {analytics.totalSubmissions}
+            <Card>
+              <CardContent className="flex items-start justify-between p-6">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Total de Submissões</p>
+                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    {analytics.totalSubmissions}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {exam.questionCount} questões
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {exam.questionCount} questões
-                </p>
-              </div>
-              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </UpgradeOverlay>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ScoreDistributionChart
-            buckets={analytics.scoreDistribution.map((b) => ({ range: b.range, count: b.count }))}
-          />
-          <GradeBreakdownChart
-            gradeCounts={analytics.gradeRanges}
-            total={analytics.totalSubmissions}
-          />
+          <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+            <ScoreDistributionChart
+              buckets={analytics.scoreDistribution.map((b) => ({ range: b.range, count: b.count }))}
+            />
+          </UpgradeOverlay>
+          <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+            <GradeBreakdownChart
+              gradeCounts={analytics.gradeRanges}
+              total={analytics.totalSubmissions}
+            />
+          </UpgradeOverlay>
         </div>
 
         {/* Recent Submissions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Submissões Recentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analytics.recentSubmissions.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                Nenhuma submissão encontrada
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {analytics.recentSubmissions.map((submission, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium">{submission.email}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(submission.submittedAt)}
-                      </p>
+        <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Submissões Recentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analytics.recentSubmissions.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  Nenhuma submissão encontrada
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {analytics.recentSubmissions.map((submission, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium">{submission.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(submission.submittedAt)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <Badge
+                          variant={
+                            submission.percentage >= 70
+                              ? "default"
+                              : submission.percentage >= 60
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {submission.percentage}%
+                        </Badge>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {submission.score}/{exam.questionCount}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <Badge
-                        variant={
-                          submission.percentage >= 70
-                            ? "default"
-                            : submission.percentage >= 60
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {submission.percentage}%
-                      </Badge>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {submission.score}/{exam.questionCount}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </UpgradeOverlay>
       </div>
     </>
   );

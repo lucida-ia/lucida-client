@@ -10,6 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, FileText, Users, Calendar, AlertCircle } from "lucide-react";
 import axios from "axios";
+import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
 
 interface ExamData {
   id: string;
@@ -56,6 +59,8 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const { subscription, loading: subscriptionLoading } = useSubscription();
+  const isTrialUser = subscription?.plan === "trial";
 
   useEffect(() => {
     fetchExams();
@@ -121,6 +126,7 @@ export default function AnalyticsPage() {
 
   return (
     <>
+      <TrialUpgradeDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
       <DashboardHeader
         heading="Analytics das Provas"
         text="Visualize dados detalhados e estatísticas das suas avaliações"
@@ -148,48 +154,50 @@ export default function AnalyticsPage() {
                 <BarChart3 className="h-5 w-5" />
                 Provas com Dados Disponíveis ({examsWithSubmissions.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {examsWithSubmissions.map((exam) => (
-                  <Card key={exam.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg font-medium text-left leading-tight">
-                          {exam.title}
-                        </CardTitle>
-                        <Badge variant="secondary" className="ml-2 shrink-0">
-                          {exam.submissionCount} respostas
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{exam.className}</p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-1">
-                            <FileText className="h-4 w-4" />
-                            Questões:
-                          </span>
-                          <span className="font-medium">{exam.questionCount}</span>
+              <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {examsWithSubmissions.map((exam) => (
+                    <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-lg font-medium text-left leading-tight">
+                            {exam.title}
+                          </CardTitle>
+                          <Badge variant="secondary" className="ml-2 shrink-0">
+                            {exam.submissionCount} respostas
+                          </Badge>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            Criada em:
-                          </span>
-                          <span className="font-medium">{formatDate(exam.createdAt)}</span>
+                        <p className="text-sm text-muted-foreground">{exam.className}</p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-1">
+                              <FileText className="h-4 w-4" />
+                              Questões:
+                            </span>
+                            <span className="font-medium">{exam.questionCount}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              Criada em:
+                            </span>
+                            <span className="font-medium">{formatDate(exam.createdAt)}</span>
+                          </div>
+                          <Button
+                            className="w-full mt-4"
+                            onClick={() => handleViewAnalytics(exam.id)}
+                          >
+                            <BarChart3 className="h-4 w-4 mr-2" />
+                            Ver Analytics
+                          </Button>
                         </div>
-                        <Button
-                          className="w-full mt-4"
-                          onClick={() => handleViewAnalytics(exam.id)}
-                        >
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          Ver Analytics
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </UpgradeOverlay>
             </div>
           )}
 
@@ -200,46 +208,48 @@ export default function AnalyticsPage() {
                 <AlertCircle className="h-5 w-5 text-muted-foreground" />
                 Provas sem Dados ({examsWithoutSubmissions.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {examsWithoutSubmissions.map((exam) => (
-                  <Card key={exam.id} className="opacity-75">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg font-medium text-left leading-tight">
-                          {exam.title}
-                        </CardTitle>
-                        <Badge variant="outline" className="ml-2 shrink-0">
-                          Sem respostas
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{exam.className}</p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-1">
-                            <FileText className="h-4 w-4" />
-                            Questões:
-                          </span>
-                          <span className="font-medium">{exam.questionCount}</span>
+              <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {examsWithoutSubmissions.map((exam) => (
+                    <Card key={exam.id} className="opacity-75">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-lg font-medium text-left leading-tight">
+                            {exam.title}
+                          </CardTitle>
+                          <Badge variant="outline" className="ml-2 shrink-0">
+                            Sem respostas
+                          </Badge>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            Criada em:
-                          </span>
-                          <span className="font-medium">{formatDate(exam.createdAt)}</span>
+                        <p className="text-sm text-muted-foreground">{exam.className}</p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-1">
+                              <FileText className="h-4 w-4" />
+                              Questões:
+                            </span>
+                            <span className="font-medium">{exam.questionCount}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              Criada em:
+                            </span>
+                            <span className="font-medium">{formatDate(exam.createdAt)}</span>
+                          </div>
+                          <div className="mt-4 p-3 bg-muted rounded-lg">
+                            <p className="text-sm text-muted-foreground text-center">
+                              Esta prova ainda não possui respostas para gerar análises
+                            </p>
+                          </div>
                         </div>
-                        <div className="mt-4 p-3 bg-muted rounded-lg">
-                          <p className="text-sm text-muted-foreground text-center">
-                            Esta prova ainda não possui respostas para gerar análises
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </UpgradeOverlay>
             </div>
           )}
         </div>
