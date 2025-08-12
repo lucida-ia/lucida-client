@@ -122,7 +122,7 @@ export function useNavItems() {
   // Derive a simple role from subscription plan
   const plan = subscription?.plan;
   const currentRole: string =
-    plan === "admin" ? "admin" : plan === "trial" ? "student" : "teacher";
+    plan === "admin" ? "admin" : plan === "trial" ? "teacher" : "teacher";
 
   // Filter items by role if specified
   const visibleNavItems = allNavItems.filter((item) => {
