@@ -1,6 +1,7 @@
 import { connectToDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
+import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
     let user = await User.findOne({ id: userId });
     if (!user) {
       user = new User({ id: userId });
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) user.username = username;
+      if (email) user.email = email;
     }
 
     user.subscription.plan = "admin";

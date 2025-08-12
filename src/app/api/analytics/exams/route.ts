@@ -4,6 +4,7 @@ import { Result } from "@/models/Result";
 import { User } from "@/models/User";
 import { Class } from "@/models/Class";
 import { auth } from "@clerk/nextjs/server";
+import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -30,6 +31,9 @@ export async function GET(request: NextRequest) {
       requester.subscription.status = "active";
       requester.usage.examsThisPeriod = 0;
       requester.usage.examsThisPeriodResetDate = new Date();
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) requester.username = username;
+      if (email) requester.email = email;
       await requester.save();
     }
     const isAdmin = requester.subscription?.plan === "admin";

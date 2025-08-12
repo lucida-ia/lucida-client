@@ -1,6 +1,7 @@
 import { connectToDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
+import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
       user.usage.examsThisPeriod = 0;
       user.usage.examsThisPeriodResetDate = new Date();
 
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) user.username = username;
+      if (email) user.email = email;
       await user.save();
     }
 
@@ -155,6 +159,9 @@ export async function POST(request: NextRequest) {
       user.usage.examsThisPeriod = 0;
       user.usage.examsThisPeriodResetDate = new Date();
 
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) user.username = username;
+      if (email) user.email = email;
       await user.save();
     }
 

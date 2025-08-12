@@ -3,6 +3,7 @@ import { Class } from "@/models/Class";
 import { Exam } from "@/models/Exam";
 import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
+import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -30,6 +31,9 @@ export async function GET(request: NextRequest) {
       // Set usage properties explicitly
       requester.usage.examsThisPeriod = 0;
       requester.usage.examsThisPeriodResetDate = new Date();
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) requester.username = username;
+      if (email) requester.email = email;
       await requester.save();
     }
 
@@ -47,6 +51,9 @@ export async function GET(request: NextRequest) {
         user.subscription.status = "active";
         user.usage.examsThisPeriod = 0;
         user.usage.examsThisPeriodResetDate = new Date();
+        const { username, email } = await getClerkIdentity(targetUserId);
+        if (username) user.username = username;
+        if (email) user.email = email;
         await user.save();
       } else {
         return NextResponse.json(
@@ -55,6 +62,21 @@ export async function GET(request: NextRequest) {
         );
       }
     }
+
+    // Light sync if missing/outdated
+    try {
+      const { username, email } = await getClerkIdentity(targetUserId);
+      let changed = false;
+      if (username && user.username !== username) {
+        user.username = username;
+        changed = true;
+      }
+      if (email && user.email !== email) {
+        user.email = email;
+        changed = true;
+      }
+      if (changed) await user.save();
+    } catch {}
 
     // Check if usage needs to be reset based on plan duration
     const now = new Date();
@@ -102,6 +124,8 @@ export async function GET(request: NextRequest) {
       data: {
         user: {
           id: user.id,
+          username: user.username,
+          email: user.email,
           subscription: user.subscription,
           usage: user.usage,
           createdAt: user.createdAt,

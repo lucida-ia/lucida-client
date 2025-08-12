@@ -6,6 +6,14 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  username: {
+    type: String,
+    default: null,
+  },
+  email: {
+    type: String,
+    default: null,
+  },
   // Subscription information
   subscription: {
     plan: {

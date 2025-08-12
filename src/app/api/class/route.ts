@@ -3,6 +3,7 @@ import { User } from "@/models/User";
 import { Exam } from "@/models/Exam";
 import { Result } from "@/models/Result";
 import { auth } from "@clerk/nextjs/server";
+import { getClerkIdentity } from "@/lib/clerk";
 
 import { NextRequest, NextResponse } from "next/server";
 import { Class } from "@/models/Class";
@@ -38,6 +39,13 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
 
+    if (!userId) {
+      return NextResponse.json(
+        { status: "unauthorized", message: "Usuário não autenticado" },
+        { status: 401 }
+      );
+    }
+
     await connectToDB();
 
     const url = new URL(request.url);
@@ -50,6 +58,9 @@ export async function GET(request: NextRequest) {
       requester.subscription.status = "active";
       requester.usage.examsThisPeriod = 0;
       requester.usage.examsThisPeriodResetDate = new Date();
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) requester.username = username;
+      if (email) requester.email = email;
       await requester.save();
     }
     const isAdmin = requester.subscription?.plan === "admin";
