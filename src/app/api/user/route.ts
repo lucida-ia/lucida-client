@@ -18,22 +18,42 @@ export async function GET(request: NextRequest) {
 
     await connectToDB();
 
-    let user = await User.findOne({ id: userId });
+    const url = new URL(request.url);
+    const asUser = url.searchParams.get("asUser");
+
+    let requester = await User.findOne({ id: userId });
+    if (!requester) {
+      requester = new User({ id: userId });
+      // Set subscription properties explicitly
+      requester.subscription.plan = "trial";
+      requester.subscription.status = "active";
+      // Set usage properties explicitly
+      requester.usage.examsThisPeriod = 0;
+      requester.usage.examsThisPeriodResetDate = new Date();
+      await requester.save();
+    }
+
+    const isAdmin = requester.subscription?.plan === "admin";
+
+    // Target user to view
+    const targetUserId = isAdmin && asUser ? asUser : userId || "";
+    let user = await User.findOne({ id: targetUserId });
 
     if (!user) {
-      user = new User({
-        id: userId,
-      });
-
-      // Set subscription properties explicitly
-      user.subscription.plan = "trial";
-      user.subscription.status = "active";
-
-      // Set usage properties explicitly
-      user.usage.examsThisPeriod = 0;
-      user.usage.examsThisPeriodResetDate = new Date();
-
-      await user.save();
+      // Only auto-create for self, not when impersonating
+      if (!asUser) {
+        user = new User({ id: targetUserId });
+        user.subscription.plan = "trial";
+        user.subscription.status = "active";
+        user.usage.examsThisPeriod = 0;
+        user.usage.examsThisPeriodResetDate = new Date();
+        await user.save();
+      } else {
+        return NextResponse.json(
+          { status: "error", message: "Usuário não encontrado" },
+          { status: 404 }
+        );
+      }
     }
 
     // Check if usage needs to be reset based on plan duration
@@ -41,17 +61,19 @@ export async function GET(request: NextRequest) {
     const resetDate = new Date(user.usage.examsThisPeriodResetDate);
     let shouldReset = false;
 
-    if (user.subscription.plan === "trial") {
+    const isSelfView = !asUser || targetUserId === userId;
+
+    if (isSelfView && user.subscription.plan === "trial") {
       // Reset every 30 days for trial users
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       shouldReset = resetDate < thirtyDaysAgo;
-    } else if (user.subscription.plan === "semi-annual") {
+    } else if (isSelfView && user.subscription.plan === "semi-annual") {
       // Reset every 6 months
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       shouldReset = resetDate < sixMonthsAgo;
-    } else if (user.subscription.plan === "annual") {
+    } else if (isSelfView && user.subscription.plan === "annual") {
       // Reset every year
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -61,7 +83,7 @@ export async function GET(request: NextRequest) {
       shouldReset = false;
     }
 
-    if (shouldReset) {
+    if (isSelfView && shouldReset) {
       user.usage.examsThisPeriod = 0;
       user.usage.examsThisPeriodResetDate = now;
       await user.save();

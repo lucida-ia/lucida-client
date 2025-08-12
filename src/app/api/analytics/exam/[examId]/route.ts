@@ -21,7 +21,17 @@ export async function GET(
     await connectToDB();
     const { examId } = await params;
 
-    // First verify that the exam belongs to this user
+    const url = new URL(request.url);
+    const asUser = url.searchParams.get("asUser");
+
+    // Resolve requester and admin impersonation
+    // If admin and asUser provided, allow access if exam belongs to asUser
+    let requester = await Exam.db?.collection; // dummy to keep type satisfied
+    const requesterUser = await (await import("@/models/User")).User.findOne({ id: userId });
+
+    const isAdmin = requesterUser?.subscription?.plan === "admin";
+
+    // First verify that the exam exists
     const exam = await Exam.findById(examId);
     if (!exam) {
       return NextResponse.json(
@@ -30,7 +40,7 @@ export async function GET(
       );
     }
 
-    if (exam.userId !== userId) {
+    if (!(isAdmin && asUser && exam.userId === asUser) && exam.userId !== userId) {
       return NextResponse.json(
         { status: "unauthorized", message: "Acesso negado" },
         { status: 403 }

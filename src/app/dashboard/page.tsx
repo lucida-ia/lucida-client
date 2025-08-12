@@ -9,6 +9,7 @@ import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog"
 import { useToast } from "@/hooks/use-toast";
 import React, { Suspense, useCallback } from "react";
 import axios from "axios";
+import { getImpersonateUserId } from "@/lib/utils";
 
 interface UserData {
   user: any;
@@ -28,7 +29,8 @@ export default function DashboardPage() {
   const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/user");
+      const asUser = getImpersonateUserId();
+      const response = await axios.get("/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
 
       if (response.data.status === "success") {
         const data = response.data.data;

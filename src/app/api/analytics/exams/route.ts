@@ -19,8 +19,24 @@ export async function GET(request: NextRequest) {
 
     await connectToDB();
 
-    // Get user's classes
-    const user = await User.findOne({ id: userId });
+    const url = new URL(request.url);
+    const asUser = url.searchParams.get("asUser");
+
+    // Get requester's user and decide target
+    let requester = await User.findOne({ id: userId });
+    if (!requester) {
+      requester = new User({ id: userId });
+      requester.subscription.plan = "trial";
+      requester.subscription.status = "active";
+      requester.usage.examsThisPeriod = 0;
+      requester.usage.examsThisPeriodResetDate = new Date();
+      await requester.save();
+    }
+    const isAdmin = requester.subscription?.plan === "admin";
+    const targetUserId = isAdmin && asUser ? asUser : requester.id;
+
+    // Get target user's classes
+    const user = await User.findOne({ id: targetUserId });
     if (!user) {
       return NextResponse.json(
         { status: "error", message: "Usuário não encontrado" },

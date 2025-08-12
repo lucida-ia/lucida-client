@@ -22,6 +22,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DBExam } from "@/types/exam";
 import axios from "axios";
+import { getImpersonateUserId } from "@/lib/utils";
 import { TooltipContent } from "@radix-ui/react-tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { Tooltip } from "@radix-ui/react-tooltip";
@@ -45,7 +46,8 @@ export function RecentExams({ onExamDeleted }: RecentExamsProps) {
   const fetchExams = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("/api/exam/recent");
+      const asUser = getImpersonateUserId();
+      const response = await axios.get("/api/exam/recent" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
       setExams(response.data.data);
     } catch (error) {
       console.error("Error fetching exams:", error);

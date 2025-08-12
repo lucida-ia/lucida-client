@@ -20,6 +20,7 @@ import {
   Target,
 } from "lucide-react";
 import axios from "axios";
+import { getImpersonateUserId } from "@/lib/utils";
 import { ScoreDistributionChart } from "@/components/analytics/ScoreDistributionChart";
 import { GradeBreakdownChart } from "@/components/analytics/GradeBreakdownChart";
 import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
@@ -153,7 +154,8 @@ export default function ExamAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/analytics/exam/${examId}`);
+      const asUser = getImpersonateUserId();
+      const response = await axios.get(`/api/analytics/exam/${examId}` + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
 
       if (response.data.status === "success") {
         setData(response.data.data);
