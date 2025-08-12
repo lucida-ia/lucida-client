@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, FileText, Users, Calendar, AlertCircle } from "lucide-react";
 import axios from "axios";
+import { getImpersonateUserId } from "@/lib/utils";
 import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
@@ -69,7 +70,8 @@ export default function AnalyticsPage() {
   const fetchExams = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/analytics/exams");
+      const asUser = getImpersonateUserId();
+      const response = await axios.get("/api/analytics/exams" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
 
       if (response.data.status === "success") {
         setExams(response.data.data);

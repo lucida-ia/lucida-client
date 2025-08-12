@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import axios from "axios";
+import { getImpersonateUserId } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { exportExamToWord } from "@/lib/word-export";
 import { exportResultsToCSV } from "@/lib/csv-export";
@@ -168,9 +169,11 @@ export default function UnifiedOverviewPage() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      const asUser = getImpersonateUserId();
+      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
       const [examsResponse, resultsResponse] = await Promise.all([
-        axios.get("/api/exam/all"),
-        axios.get("/api/class")
+        axios.get("/api/exam/all" + qs),
+        axios.get("/api/class" + qs)
       ]);
       
       const classesData = examsResponse.data.data;

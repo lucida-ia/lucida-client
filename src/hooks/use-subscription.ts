@@ -50,13 +50,15 @@ export function useSubscription() {
   }, [user]);
 
   const isCustomSubscription = subscription?.plan === "custom";
-  const shouldHideBilling = isCustomSubscription;
+  const isAdmin = subscription?.plan === "admin";
+  const shouldHideBilling = isCustomSubscription && !isAdmin;
 
   return {
     subscription,
     loading,
     error,
     isCustomSubscription,
+    isAdmin,
     shouldHideBilling,
     refetchSubscription: fetchSubscription,
   };
