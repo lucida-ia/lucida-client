@@ -90,5 +90,8 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.25.43"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.1"
   }
 }
