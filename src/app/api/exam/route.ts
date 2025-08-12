@@ -14,6 +14,7 @@ const PLAN_LIMITS = {
   "semi-annual": 10,
   annual: 10,
   custom: -1, // unlimited
+  admin: -1, // unlimited
 };
 
 export async function POST(request: NextRequest) {

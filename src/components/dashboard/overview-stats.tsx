@@ -79,6 +79,7 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
           "semi-annual": 10,
           annual: 10,
           custom: -1, // unlimited
+          admin: -1, // unlimited
         };
 
         const limit = limits[plan as keyof typeof limits] || 3;
@@ -99,6 +100,7 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
           annual: "Plano Anual",
           monthly: "Plano Mensal",
           custom: "Plano Personalizado",
+          admin: "Plano Admin",
         };
         return planNames[plan as keyof typeof planNames] || "Plano Grátis";
       })(),

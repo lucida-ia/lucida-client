@@ -127,6 +127,25 @@ const PERSONALIZADO_PLAN: PricingPlan = {
   gradient: "from-emerald-500 to-green-600",
 };
 
+const ADMIN_PLAN: PricingPlan = {
+  id: "admin",
+  name: "Admin",
+  price: "—",
+  priceId: "",
+  period: "",
+  features: [
+    "Provas ilimitadas",
+    "Todos os formatos de questões",
+    "Acesso total ao painel e faturamento",
+  ],
+  popular: false,
+  checkoutUrl: "",
+  maxExams: -1,
+  examFormats: ["simples", "enem", "enade"],
+  icon: Shield,
+  gradient: "from-slate-500 to-slate-700",
+};
+
 const PRO_PLANS: Record<PeriodType, PricingPlan> = {
   mensal: {
     id: "monthly",
@@ -252,7 +271,7 @@ export default function BillingPage() {
     }
   }, [user]);
 
-  // Redirect users with custom subscription away from billing page
+  // Redirect users with custom subscription away from billing page (admins can access)
   useEffect(() => {
     if (subscription && subscription.plan === "custom") {
       router.push("/dashboard");
@@ -424,6 +443,7 @@ export default function BillingPage() {
         PRO_PLANS.semestral,
         PRO_PLANS.anual,
         PERSONALIZADO_PLAN,
+        ADMIN_PLAN,
       ].find((plan) => plan.id === subscription.plan) || GRATIS_PLAN
     );
   };
@@ -443,7 +463,7 @@ export default function BillingPage() {
 
   const getUsagePercentage = () => {
     if (!subscription?.usage || !currentPlan) return 0;
-    if (currentPlan.maxExams === -1) return 0; // unlimited
+    if (currentPlan.maxExams === -1 || subscription.plan === "admin") return 0; // unlimited
     return (subscription.usage.examsThisPeriod / currentPlan.maxExams) * 100;
   };
 
@@ -451,7 +471,7 @@ export default function BillingPage() {
     return <BillingSkeleton />;
   }
 
-  // Don't render billing page for custom subscription users
+  // Don't render billing page for custom subscription users (admins can access)
   if (subscription && subscription.plan === "custom") {
     return null; // Return null while redirecting
   }
@@ -878,7 +898,8 @@ export default function BillingPage() {
         {subscription &&
           subscription.status === "active" &&
           subscription.plan !== "trial" &&
-          subscription.plan !== "semi-annual" && (
+          subscription.plan !== "semi-annual" &&
+          subscription.plan !== "admin" && (
             <Card className="border rounded-lg shadow-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 dark:shadow-slate-900/40">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-lg text-slate-900 dark:text-slate-100">

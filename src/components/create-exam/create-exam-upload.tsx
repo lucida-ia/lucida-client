@@ -27,6 +27,7 @@ const PLAN_LIMITS = {
   "semi-annual": 10,
   annual: 10,
   custom: -1, // unlimited
+  admin: -1, // unlimited
 };
 
 interface CreateExamUploadProps {

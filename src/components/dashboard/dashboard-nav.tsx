@@ -76,7 +76,7 @@ type NavItem = {
 
 // Export navigation items for reuse in mobile component
 export function useNavItems() {
-  const { shouldHideBilling } = useSubscription();
+  const { shouldHideBilling, subscription } = useSubscription();
 
   const allNavItems: NavItem[] = [
     {
@@ -116,7 +116,18 @@ export function useNavItems() {
     },
   ];
 
-  return allNavItems;
+  // Derive a simple role from subscription plan
+  const plan = subscription?.plan;
+  const currentRole: string =
+    plan === "admin" ? "admin" : plan === "trial" ? "student" : "teacher";
+
+  // Filter items by role if specified
+  const visibleNavItems = allNavItems.filter((item) => {
+    if (!item.role) return true;
+    return item.role.includes(currentRole);
+  });
+
+  return visibleNavItems;
 }
 
 export function DashboardNav() {
