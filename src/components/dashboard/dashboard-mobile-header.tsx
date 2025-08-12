@@ -11,6 +11,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import LucidaLogo from "../lucida-logo";
 import { useNavItems } from "./dashboard-nav";
+import { Badge } from "@/components/ui/badge";
 
 export function DashboardMobileHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,7 +58,14 @@ export function DashboardMobileHeader() {
                     )}
                   >
                     {item.icon}
-                    <span className="text-sm">{item.title}</span>
+                    <span className="text-sm flex items-center gap-2">
+                      {item.title}
+                      {item.isNew && (
+                        <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-semibold px-2 py-0.5 tracking-wide shadow-sm">
+                          Novidade
+                        </span>
+                      )}
+                    </span>
                   </Link>
                 ))}
                 

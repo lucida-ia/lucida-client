@@ -65,6 +65,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+ 
 
 type NavItem = {
   title: string;
@@ -72,6 +73,7 @@ type NavItem = {
   icon: React.ReactNode;
   role?: string[];
   disabled?: boolean;
+  isNew?: boolean;
 };
 
 // Export navigation items for reuse in mobile component
@@ -102,6 +104,7 @@ export function useNavItems() {
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,
       role: ["admin", "teacher"],
+      isNew: true,
     },
     {
       title: "Planos",
@@ -197,11 +200,25 @@ export function DashboardNav() {
                           )}
                           asChild
                         >
-                          <Link href={item.href}>{item.icon}</Link>
+                          <Link href={item.href} className="relative">
+                            <div className="relative flex items-center justify-center">
+                              {item.icon}
+                              {item.isNew && (
+                                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600" />
+                              )}
+                            </div>
+                          </Link>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="right">
-                        <p>{item.title}</p>
+                        <div className="flex items-center gap-2">
+                          <p>{item.title}</p>
+                          {item.isNew && (
+                            <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-semibold px-2 py-0.5 tracking-wide shadow-sm">
+                              Novidade
+                            </span>
+                          )}
+                        </div>
                       </TooltipContent>
                     </Tooltip>
                   ) : (
@@ -223,7 +240,14 @@ export function DashboardNav() {
                         )}
                       >
                         {item.icon}
-                        {item.title}
+                        <span className="flex items-center gap-2">
+                          {item.title}
+                          {item.isNew && (
+                            <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-semibold px-2 py-0.5  tracking-wide shadow-sm">
+                              Novidade
+                            </span>
+                          )}
+                        </span>
                       </Link>
                     </Button>
                   )}
