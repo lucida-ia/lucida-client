@@ -46,7 +46,6 @@ export function UpgradeOverlay({ isBlocked, children, className }: UpgradeOverla
               >
                 Fazer upgrade para Pro
               </Button>
-              <Button variant="ghost" onClick={() => router.push("/dashboard/help")}>Saiba mais</Button>
             </div>
           </div>
         </div>
