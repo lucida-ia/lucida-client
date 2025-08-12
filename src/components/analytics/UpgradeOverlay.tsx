@@ -41,7 +41,7 @@ export function UpgradeOverlay({ isBlocked, children, className }: UpgradeOverla
             </div>
             <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
               <Button
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                 onClick={() => router.push("/dashboard/billing")}
               >
                 Fazer upgrade para Pro
