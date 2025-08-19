@@ -8,7 +8,7 @@ import Link from "next/link";
 export function HeroSection() {
   return (
     <section
-      className="relative z-10 flex items-center justify-center px-3 sm:px-4 lg:px-8 pt-32 sm:pt-24 pb-0"
+      className="relative z-10 flex items-center justify-center px-3 sm:px-4 lg:px-8 sm:pt-24 pt-8 pb-0"
       style={{ height: "75vh", minHeight: "700px" }}
     >
       <div className="max-w-7xl mx-auto text-center">
@@ -22,7 +22,7 @@ export function HeroSection() {
         </div>
 
         {/* Main Headline - Mobile responsive typography */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight px-2">
+        <h1 className="text-5xl lg:text-8xl font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight px-2">
           Crie{" "}
           <TypingAnimation
             words={[
