@@ -19,6 +19,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useRouter } from "next/navigation";
 
 const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todo o material
+const API_URL = "https://lucida-api-production.up.railway.app"
+  // "http://localhost:8080";
 
 // Plan limits - keep in sync with backend
 const PLAN_LIMITS = {
@@ -40,6 +42,7 @@ export function CreateExamUpload({
   onFilesUploaded,
 }: Readonly<CreateExamUploadProps>) {
   const [files, setFiles] = useState<File[]>([]);
+  const [fileTokens, setFileTokens] = useState<Record<string, number>>({});
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const { subscription, loading: subscriptionLoading } = useSubscription();
@@ -48,6 +51,70 @@ export function CreateExamUpload({
   React.useEffect(() => {
     setFiles(uploadedFiles);
   }, [uploadedFiles]);
+
+  // Always fetch token counts for files that don't have them yet
+  React.useEffect(() => {
+    const missing = files.filter((f) => fileTokens[f.name] == null);
+    if (missing.length === 0) return;
+    (async () => {
+      try {
+        const formData = new FormData();
+        missing.forEach((f) => formData.append("files", f));
+        const res = await fetch(`${API_URL}/ai-ops/count-tokens`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data: any = await res.json();
+        const results: any[] = Array.isArray(data?.files) ? data.files : [];
+
+        const normalize = (s: string) =>
+          String(s)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        const nameToTokens: Record<string, number> = {};
+        for (const r of results) {
+          if (r?.success) nameToTokens[normalize(r.fileName)] = Number(r.tokens);
+        }
+
+        const merged: Record<string, number> = {};
+        missing.forEach((f) => {
+          const key = normalize(f.name);
+          if (nameToTokens[key] != null) merged[f.name] = nameToTokens[key];
+        });
+
+        // Fallback by order if name normalization still fails
+        if (Object.keys(merged).length < missing.length) {
+          const successTokens = results
+            .filter((r) => r?.success)
+            .map((r) => Number(r.tokens));
+          let idx = 0;
+          for (const f of missing) {
+            if (merged[f.name] == null && idx < successTokens.length) {
+              merged[f.name] = successTokens[idx++];
+            } else if (merged[f.name] != null) {
+              idx++;
+            }
+          }
+        }
+
+        if (Object.keys(merged).length > 0) {
+          setFileTokens((prev) => ({ ...prev, ...merged }));
+        }
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: "Falha ao contar tokens",
+          description:
+            "Não foi possível calcular os tokens no servidor. Exibindo estimativa pelo tamanho do arquivo.",
+        });
+      }
+    })();
+  }, [files, fileTokens, toast]);
 
   // Check if user has reached their exam limit
   const hasReachedExamLimit = React.useMemo(() => {
@@ -83,8 +150,9 @@ export function CreateExamUpload({
   // Calculate upload progress metrics
   const uploadMetrics = React.useMemo(() => {
     const estimateTokens = (file: File) => Math.ceil(file.size / 4);
+    const tokenFor = (file: File) => fileTokens[file.name] ?? estimateTokens(file);
     const totalTokensUsed = files.reduce(
-      (sum, file) => sum + estimateTokens(file),
+      (sum, file) => sum + tokenFor(file),
       0
     );
     const usagePercentage = Math.round(
@@ -99,7 +167,7 @@ export function CreateExamUpload({
       totalSizeMB,
       remainingTokens: Math.max(0, TOTAL_TOKEN_LIMIT - totalTokensUsed),
     };
-  }, [files]);
+  }, [files, fileTokens]);
 
   // Get progress bar color based on usage
   const getProgressColor = (percentage: number) => {
@@ -109,7 +177,7 @@ export function CreateExamUpload({
   };
 
   const validateAndAddFiles = useCallback(
-    (newFiles: File[]) => {
+    async (newFiles: File[]) => {
       // Block file upload if user has reached exam limit
       if (hasReachedExamLimit) {
         toast({
@@ -129,16 +197,16 @@ export function CreateExamUpload({
       ];
       const maxFileSize = 100 * 1024 * 1024; // 100MB - increased limit for larger files
 
-      // Função utilitária simples para estimar tokens a partir do tamanho do arquivo
+      // Função utilitária simples para estimar tokens a partir do tamanho do arquivo (fallback)
       // Assume-se ~4 bytes por token como aproximação
       const estimateTokens = (file: File) => Math.ceil(file.size / 4);
 
       const invalidFiles: string[] = [];
       const validFiles: File[] = [];
 
-      // Calculate current tokens from existing files
+      // Calculate current tokens from existing files, preferindo valores do servidor
       const currentTokens = files.reduce(
-        (sum, file) => sum + estimateTokens(file),
+        (sum, file) => sum + (fileTokens[file.name] ?? estimateTokens(file)),
         0
       );
 
@@ -176,19 +244,75 @@ export function CreateExamUpload({
         }
       });
 
-      // Check if adding new files would exceed token limit
-      const newTokens = validFiles.reduce(
-        (sum, file) => sum + estimateTokens(file),
-        0
-      );
+      // Preferir contagem de tokens do servidor para os novos arquivos
+      let newTokens = 0;
+      let newTokenMap: Record<string, number> = {};
+      if (validFiles.length > 0) {
+        try {
+          const formData = new FormData();
+          validFiles.forEach((f) => formData.append("files", f));
+          const res = await fetch(`${API_URL}/ai-ops/count-tokens`, {
+            method: "POST",
+            body: formData,
+          });
+          if (res.ok) {
+            const data: any = await res.json();
+            const results: any[] = Array.isArray(data?.files) ? data.files : [];
+
+            const normalize = (s: string) =>
+              String(s)
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+            // First pass: map by normalized filename
+            const nameToTokens: Record<string, number> = {};
+            for (const r of results) {
+              if (r?.success) {
+                nameToTokens[normalize(r.fileName)] = Number(r.tokens);
+              }
+            }
+
+            validFiles.forEach((f) => {
+              const key = normalize(f.name);
+              if (nameToTokens[key] != null) {
+                newTokenMap[f.name] = nameToTokens[key];
+              }
+            });
+
+            // Second pass: fill any remaining by index order of successes
+            const successTokens = results
+              .filter((r) => r?.success)
+              .map((r) => Number(r.tokens));
+            let idx = 0;
+            for (const f of validFiles) {
+              if (newTokenMap[f.name] == null && idx < successTokens.length) {
+                newTokenMap[f.name] = successTokens[idx++];
+              } else if (newTokenMap[f.name] != null) {
+                idx++;
+              }
+            }
+
+            newTokens = validFiles.reduce(
+              (sum, f) => sum + (newTokenMap[f.name] ?? estimateTokens(f)),
+              0
+            );
+          } else {
+            newTokens = validFiles.reduce((sum, f) => sum + estimateTokens(f), 0);
+          }
+        } catch {
+          newTokens = validFiles.reduce((sum, f) => sum + estimateTokens(f), 0);
+        }
+      }
+
       if (currentTokens + newTokens > TOTAL_TOKEN_LIMIT) {
         const newPercentage = Math.round(
           ((currentTokens + newTokens) / TOTAL_TOKEN_LIMIT) * 100
         );
         toast({
           variant: "destructive",
-          title: "Limite de upload excedido",
-          description: `Adicionando este material excederia o limite de upload (${newPercentage}% do limite)`,
+          title: "Limite de conteúdo excedido",
+          description: `Adicionando este material excederia o limite de conteúdo (${newPercentage}% do limite)`,
         });
         return;
       }
@@ -203,13 +327,16 @@ export function CreateExamUpload({
 
       if (validFiles.length > 0) {
         setFiles((prev) => [...prev, ...validFiles]);
+        if (Object.keys(newTokenMap).length > 0) {
+          setFileTokens((prev) => ({ ...prev, ...newTokenMap }));
+        }
         toast({
           title: "Material adicionado",
           description: `${validFiles.length} arquivo(s) de material adicionado(s) com sucesso`,
         });
       }
     },
-    [subscription, files, toast, hasReachedExamLimit]
+    [subscription, files, fileTokens, toast, hasReachedExamLimit]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -379,7 +506,7 @@ export function CreateExamUpload({
             <div className="space-y-2 mb-6">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  Uso do limite de upload
+                  Uso do limite de conteúdo (tokens)
                 </span>
                 <span
                   className={`font-medium ${
@@ -408,6 +535,9 @@ export function CreateExamUpload({
                 <span>50%</span>
                 <span>100%</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Os tokens são calculados a partir do texto dos arquivos. O tamanho do arquivo não é usado.
+              </p>
             </div>
 
             <ul className="space-y-2 md:space-y-3">
@@ -423,6 +553,8 @@ export function CreateExamUpload({
                       <div className="text-xs text-muted-foreground">
                         {(file.size / 1024 / 1024).toFixed(1)} MB •{" "}
                         {file.type.split("/")[1]?.toUpperCase() || "Arquivo"}
+                        {" • ~"}
+                        {(fileTokens[file.name] ?? Math.ceil(file.size / 4)).toLocaleString()} tokens
                       </div>
                     </div>
                   </div>
