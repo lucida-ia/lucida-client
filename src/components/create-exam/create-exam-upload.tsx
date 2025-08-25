@@ -19,7 +19,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useRouter } from "next/navigation";
 
 const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todo o material
-const API_URL = "https://lucida-api-production.up.railway.app"
+const API_URL = 
+"https://lucida-api-production.up.railway.app"
   // "http://localhost:8080";
 
 // Plan limits - keep in sync with backend
@@ -108,9 +109,9 @@ export function CreateExamUpload({
       } catch (err) {
         toast({
           variant: "destructive",
-          title: "Falha ao contar tokens",
+          title: "Falha ao analisar conteúdo",
           description:
-            "Não foi possível calcular os tokens no servidor. Exibindo estimativa pelo tamanho do arquivo.",
+            "Não foi possível analisar o conteúdo no servidor. Exibindo estimativa pelo tamanho do arquivo.",
         });
       }
     })();
@@ -504,10 +505,7 @@ export function CreateExamUpload({
 
             {/* Progress Bar */}
             <div className="space-y-2 mb-6">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Uso do limite de conteúdo (tokens)
-                </span>
+              <div className="flex items-center justify-end text-sm">
                 <span
                   className={`font-medium ${
                     uploadMetrics.usagePercentage < 60
@@ -535,9 +533,6 @@ export function CreateExamUpload({
                 <span>50%</span>
                 <span>100%</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Os tokens são calculados a partir do texto dos arquivos. O tamanho do arquivo não é usado.
-              </p>
             </div>
 
             <ul className="space-y-2 md:space-y-3">
@@ -553,8 +548,8 @@ export function CreateExamUpload({
                       <div className="text-xs text-muted-foreground">
                         {(file.size / 1024 / 1024).toFixed(1)} MB •{" "}
                         {file.type.split("/")[1]?.toUpperCase() || "Arquivo"}
-                        {" • ~"}
-                        {(fileTokens[file.name] ?? Math.ceil(file.size / 4)).toLocaleString()} tokens
+                        {" • ≈"}
+                        {Math.round((fileTokens[file.name] ?? Math.ceil(file.size / 4)) * 0.75).toLocaleString()} palavras
                       </div>
                     </div>
                   </div>

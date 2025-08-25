@@ -50,7 +50,7 @@ const UploadArea = ({
                   Faça upload de múltiplos arquivos PDF, DOC, DOCX ou TXT
                 </p>
                 <p className="text-xs text-muted-foreground px-2">
-                  Limites: até 100MB por arquivo • até 500.000 tokens no total
+                  Limites: até ≈ 375.000 palavras no total
                 </p>
               </div>
               <div>
