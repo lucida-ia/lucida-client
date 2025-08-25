@@ -187,10 +187,11 @@ export function CreateExamPreview({
             (sum: number, result: any) => sum + result.extractedTokens,
             0
           );
+          const totalWords = Math.round(totalTokens * 0.75);
           toast({
             variant: "default",
             title: "Arquivos processados com sucesso",
-            description: `${successes.length} arquivo(s) processado(s) (≈${totalTokens} tokens)`,
+            description: `${successes.length} arquivo(s) processado(s) (≈${totalWords.toLocaleString()} palavras)`,
           });
         }
 
