@@ -4,10 +4,89 @@ import { auth } from "@clerk/nextjs/server";
 import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import {
+  withCache,
+  generateCacheKey,
+  CACHE_TTL,
+  createCachedResponse,
+  invalidateUserCache,
+} from "@/lib/cache";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-06-30.basil",
 });
+
+// Helper function to fetch subscription data (cacheable)
+async function fetchSubscriptionData(userId: string) {
+  await connectToDB();
+
+  let user = await User.findOne({ id: userId });
+
+  if (!user) {
+    // Create user with default trial plan
+    user = new User({
+      id: userId,
+    });
+
+    user.subscription.plan = "trial";
+    user.subscription.status = "active";
+    user.usage.examsThisPeriod = 0;
+    user.usage.examsThisPeriodResetDate = new Date();
+
+    try {
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) user.username = username;
+      if (email) user.email = email;
+    } catch {}
+
+    await user.save();
+  }
+
+  // Check if subscription data needs syncing from Stripe (for active subscriptions only)
+  if (
+    user.subscription.stripeSubscriptionId &&
+    user.subscription.status === "active" &&
+    (!user.subscription.currentPeriodStart ||
+      !user.subscription.currentPeriodEnd)
+  ) {
+    try {
+      const stripeSubscription = await stripe.subscriptions.retrieve(
+        user.subscription.stripeSubscriptionId
+      );
+
+      // Update user subscription with Stripe data
+      const subscriptionItem = (stripeSubscription as any).items?.data?.[0];
+      const currentPeriodStart =
+        subscriptionItem?.current_period_start ||
+        (stripeSubscription as any).current_period_start;
+      const currentPeriodEnd =
+        subscriptionItem?.current_period_end ||
+        (stripeSubscription as any).current_period_end;
+
+      user.subscription.status = stripeSubscription.status;
+
+      if (currentPeriodStart && typeof currentPeriodStart === "number") {
+        user.subscription.currentPeriodStart = new Date(
+          currentPeriodStart * 1000
+        );
+      }
+      if (currentPeriodEnd && typeof currentPeriodEnd === "number") {
+        user.subscription.currentPeriodEnd = new Date(currentPeriodEnd * 1000);
+      }
+
+      // Save updated user data
+      await user.save();
+    } catch (stripeError) {
+      console.error("Error syncing with Stripe:", stripeError);
+      // Continue with existing user data if Stripe sync fails
+    }
+  }
+
+  return {
+    subscription: user.subscription,
+    userId: user.id,
+  };
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,98 +99,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    await connectToDB();
+    // Generate cache key for subscription data
+    const cacheKey = generateCacheKey("subscription", userId);
 
-    let user = await User.findOne({ id: userId });
+    // Use cached data if available, otherwise fetch fresh data
+    const data = await withCache(cacheKey, CACHE_TTL.SUBSCRIPTION_DATA, () =>
+      fetchSubscriptionData(userId)
+    );
 
-    if (!user) {
-      // Create user with default trial plan
-      user = new User({
-        id: userId,
-      });
-
-      // Set subscription properties explicitly
-      user.subscription.plan = "trial";
-      user.subscription.status = "active";
-
-      // Set usage properties explicitly
-      user.usage.examsThisPeriod = 0;
-      user.usage.examsThisPeriodResetDate = new Date();
-
-      const { username, email } = await getClerkIdentity(userId);
-      if (username) user.username = username;
-      if (email) user.email = email;
-      await user.save();
-    }
-
-    // Check if subscription data needs syncing from Stripe
-    if (
-      user.subscription.stripeSubscriptionId &&
-      (!user.subscription.currentPeriodStart ||
-        !user.subscription.currentPeriodEnd)
-    ) {
-      try {
-        const stripeSubscription = await stripe.subscriptions.retrieve(
-          user.subscription.stripeSubscriptionId
-        );
-
-        // Update user subscription with Stripe data
-        user.subscription.status = stripeSubscription.status;
-
-        // Safely handle date fields - get from subscription items or direct
-        const subscriptionItem = (stripeSubscription as any).items?.data?.[0];
-        const currentPeriodStart =
-          subscriptionItem?.current_period_start ||
-          (stripeSubscription as any).current_period_start;
-        const currentPeriodEnd =
-          subscriptionItem?.current_period_end ||
-          (stripeSubscription as any).current_period_end;
-        const cancelAtPeriodEnd = (stripeSubscription as any)
-          .cancel_at_period_end;
-
-        if (currentPeriodStart && typeof currentPeriodStart === "number") {
-          user.subscription.currentPeriodStart = new Date(
-            currentPeriodStart * 1000
-          );
-        } else {
-          user.subscription.currentPeriodStart = null;
-        }
-
-        if (currentPeriodEnd && typeof currentPeriodEnd === "number") {
-          user.subscription.currentPeriodEnd = new Date(
-            currentPeriodEnd * 1000
-          );
-        } else {
-          user.subscription.currentPeriodEnd = null;
-        }
-
-        if (typeof cancelAtPeriodEnd === "boolean") {
-          user.subscription.cancelAtPeriodEnd = cancelAtPeriodEnd;
-        } else {
-          user.subscription.cancelAtPeriodEnd = false;
-        }
-
-        await user.save();
-      } catch (stripeError) {
-        console.error(
-          `[SUBSCRIPTION_SYNC] Error syncing subscription data:`,
-          stripeError
-        );
-      }
-    }
-
-    return NextResponse.json({
+    // Return cached response with proper headers
+    return createCachedResponse({
       status: "success",
       message: "Subscription fetched successfully",
       subscription: {
-        id: user.id,
-        plan: user.subscription.plan,
-        status: user.subscription.status,
-        currentPeriodEnd: user.subscription.currentPeriodEnd,
-        cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd,
-        stripeCustomerId: user.subscription.stripeCustomerId,
-        stripeSubscriptionId: user.subscription.stripeSubscriptionId,
-        usage: user.usage,
+        id: data.userId,
+        plan: data.subscription.plan,
+        status: data.subscription.status,
+        currentPeriodEnd: data.subscription.currentPeriodEnd,
+        currentPeriodStart: data.subscription.currentPeriodStart,
+        cancelAtPeriodEnd: data.subscription.cancelAtPeriodEnd,
+        stripeCustomerId: data.subscription.stripeCustomerId,
+        stripeSubscriptionId: data.subscription.stripeSubscriptionId,
       },
     });
   } catch (error) {
@@ -210,6 +218,9 @@ export async function POST(request: NextRequest) {
     }
 
     await user.save();
+
+    // Invalidate cache after updating subscription
+    invalidateUserCache(userId);
 
     return NextResponse.json({
       status: "success",

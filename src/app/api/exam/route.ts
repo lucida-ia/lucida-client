@@ -6,6 +6,7 @@ import { Result } from "@/models/Result";
 import { auth } from "@clerk/nextjs/server";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
+import { invalidateUserCache, invalidateExamCache } from "@/lib/cache";
 
 // Plan limits
 const PLAN_LIMITS = {
@@ -120,6 +121,10 @@ export async function POST(request: NextRequest) {
     // Increment usage count
     user.usage.examsThisPeriod += 1;
     await user.save();
+
+    // Invalidate cache after creating new exam
+    invalidateUserCache(userId);
+    invalidateExamCache(userId, savedExam._id.toString());
 
     return NextResponse.json({
       status: "success",
