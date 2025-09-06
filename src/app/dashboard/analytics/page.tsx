@@ -13,7 +13,7 @@ import axios from "axios";
 import { getImpersonateUserId } from "@/lib/utils";
 import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
 import { useSubscription } from "@/hooks/use-subscription";
-import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
+import { PromoDialog } from "@/components/dashboard/promo-dialog";
 
 interface ExamData {
   id: string;
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
 
   return (
     <>
-      <TrialUpgradeDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
+      <PromoDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
       <DashboardHeader
         heading="Analytics das Provas"
         text="Visualize dados detalhados e estatísticas das suas avaliações"

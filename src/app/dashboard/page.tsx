@@ -5,7 +5,7 @@ import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentExams } from "@/components/dashboard/recent-exams";
 import { CreateExamCTA } from "@/components/dashboard/create-exam-cta";
 import { URLParamsHandler } from "@/components/dashboard/url-params-handler";
-import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
+import { PromoDialog } from "@/components/dashboard/promo-dialog";
 import { useToast } from "@/hooks/use-toast";
 import React, { Suspense, useCallback } from "react";
 import axios from "axios";
@@ -137,7 +137,7 @@ export default function DashboardPage() {
         <URLParamsHandler />
       </Suspense>
 
-      <TrialUpgradeDialog isTrialUser={isTrialUser} isLoading={loading} />
+      <PromoDialog isTrialUser={isTrialUser} isLoading={loading} />
 
       <div className="flex items-center justify-between">
         <DashboardHeader

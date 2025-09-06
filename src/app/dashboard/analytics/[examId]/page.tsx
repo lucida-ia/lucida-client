@@ -25,7 +25,7 @@ import { ScoreDistributionChart } from "@/components/analytics/ScoreDistribution
 import { GradeBreakdownChart } from "@/components/analytics/GradeBreakdownChart";
 import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
 import { useSubscription } from "@/hooks/use-subscription";
-import { TrialUpgradeDialog } from "@/components/dashboard/trial-upgrade-dialog";
+import { PromoDialog } from "@/components/dashboard/promo-dialog";
 
 interface AnalyticsData {
   exam: {
@@ -250,7 +250,7 @@ export default function ExamAnalyticsPage() {
 
   return (
     <>
-      <TrialUpgradeDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
+      <PromoDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
