@@ -54,7 +54,14 @@ export function NavBar() {
                 }
               }}
             >
-              {item.name}
+              <span className="flex items-center gap-2">
+                {item.name}
+                {item.name === "Preços" && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white animate-pulse">
+                    PROMO
+                  </span>
+                )}
+              </span>
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-200 group-hover:w-full"></span>
             </Link>
           ))}
@@ -124,7 +131,14 @@ export function NavBar() {
                     }
                   }}
                 >
-                  {item.name}
+                  <span className="flex items-center justify-between">
+                    {item.name}
+                    {item.name === "Preços" && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white animate-pulse">
+                        PROMO
+                      </span>
+                    )}
+                  </span>
                 </Link>
               ))}
 

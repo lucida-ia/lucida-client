@@ -44,8 +44,15 @@ export async function POST(request: NextRequest) {
       cancel_url: `${
         process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
       }/dashboard/billing`,
-      allow_promotion_codes: true,
-      billing_address_collection: "required",
+      phone_number_collection: {
+        enabled: true,
+      },
+      discounts: [
+        {
+          coupon: process.env.STRIPE_CUPOM_EXPLORA || "",
+        },
+      ],
+
       // Note: customer_creation is not needed for subscription mode
       // Stripe will automatically create a customer for subscriptions
     });

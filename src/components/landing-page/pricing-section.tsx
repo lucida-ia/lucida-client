@@ -43,6 +43,7 @@ const PRO_PLANS = {
     id: "monthly",
     name: "Pro",
     price: "R$ 35,00",
+    promoPrice: "R$ 1,99",
     period: "por mês",
     features: [
       "Até 10 avaliações por mês",
@@ -60,11 +61,13 @@ const PRO_PLANS = {
     gradient: "from-blue-500 to-indigo-600",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL || "",
     savings: undefined as string | undefined,
+    hasPromo: true,
   },
   semestral: {
     id: "semi-annual",
     name: "Pro Semestral",
     price: "R$ 189,90",
+    promoPrice: "R$ 1,99",
     period: "por 6 meses",
     features: [
       "Até 10 avaliações por mês",
@@ -82,11 +85,13 @@ const PRO_PLANS = {
     gradient: "from-indigo-500 to-purple-600",
     savings: "Salve 10%",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
+    hasPromo: true,
   },
   anual: {
     id: "annual",
     name: "Pro Anual",
     price: "R$ 334,80",
+    promoPrice: "R$ 1,99",
     period: "por ano",
     features: [
       "Até 10 avaliações por mês",
@@ -104,6 +109,7 @@ const PRO_PLANS = {
     gradient: "from-rose-500 to-pink-600",
     savings: "Salve 20%",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
+    hasPromo: true,
   },
 };
 
@@ -269,18 +275,29 @@ export function PricingSection() {
             return (
               <Card
                 className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-slate-800/30 border-slate-700/50 backdrop-blur-sm shadow-lg ${
-                  currentProPlan.savings && currentProPlan.id !== "monthly"
-                    ? "shadow-2xl ring-2 ring-green-500/30 border-green-600/60 transform scale-105"
+                  currentProPlan.hasPromo
+                    ? "ring-1 ring-red-500/20 border-red-500/30"
+                    : currentProPlan.savings && currentProPlan.id !== "monthly"
+                    ? "ring-1 ring-green-500/20 border-green-500/30"
                     : ""
                 }`}
               >
-                {currentProPlan.savings && currentProPlan.id !== "monthly" && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
-                      {currentProPlan.savings}
+                {currentProPlan.hasPromo && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                      OFERTA ESPECIAL
                     </div>
                   </div>
                 )}
+                {currentProPlan.savings &&
+                  currentProPlan.id !== "monthly" &&
+                  !currentProPlan.hasPromo && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                        {currentProPlan.savings}
+                      </div>
+                    </div>
+                  )}
 
                 <CardHeader className="pb-4 pt-8">
                   <div className="text-center mb-6">
@@ -292,12 +309,26 @@ export function PricingSection() {
                     <CardTitle className="text-2xl font-bold mb-3 text-white">
                       {currentProPlan.name}
                     </CardTitle>
-                    <div className="text-4xl font-bold mb-2 text-white">
-                      {currentProPlan.price}
-                    </div>
-                    <div className="text-sm text-slate-400 font-medium">
+                    {currentProPlan.hasPromo ? (
+                      <div className="mb-2">
+                        <div className="text-lg font-medium text-red-500 line-through mb-1">
+                          {currentProPlan.price}
+                        </div>
+                        <div className="text-4xl font-bold text-white mb-1">
+                          {currentProPlan.promoPrice}
+                        </div>
+                        <div className="text-sm text-slate-400 font-medium">
+                          primeiro mês, depois {currentProPlan.price}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-4xl font-bold mb-2 text-white">
+                        {currentProPlan.price}
+                      </div>
+                    )}
+                    {/* <div className="text-sm text-slate-400 font-medium">
                       {currentProPlan.period}
-                    </div>
+                    </div> */}
                     {getMonthlyEquivalent(currentProPlan) && (
                       <div className="text-sm text-slate-400 mt-1 font-medium">
                         {getMonthlyEquivalent(currentProPlan)}
@@ -323,14 +354,19 @@ export function PricingSection() {
                   <Button
                     onClick={() => handlePlanSelection(currentProPlan)}
                     className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
-                      currentProPlan.savings && currentProPlan.id !== "monthly"
+                      currentProPlan.hasPromo
+                        ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
+                        : currentProPlan.savings &&
+                          currentProPlan.id !== "monthly"
                         ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
                         : "bg-gradient-to-r " +
                           currentProPlan.gradient +
                           " hover:shadow-lg text-white"
                     }`}
                   >
-                    Assinar Agora
+                    {currentProPlan.hasPromo
+                      ? "Começar por R$ 1,99"
+                      : "Assinar Agora"}
                   </Button>
                 </CardContent>
               </Card>

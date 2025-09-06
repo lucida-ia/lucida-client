@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { TypingAnimation } from "@/components/typing-animation";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export function HeroSection() {
@@ -13,12 +13,26 @@ export function HeroSection() {
     >
       <div className="max-w-7xl mx-auto text-center">
         {/* Badge with Modern Design - Mobile optimized */}
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full px-4 sm:px-6 py-2 mb-6 sm:mb-8 backdrop-blur-sm">
-          <Sparkles className="w-4 h-4 text-blue-400" />
+        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full px-4 sm:px-6 py-2 mb-6 sm:mb-8 backdrop-blur-sm">
+          {/* User Avatars Stack */}
+          <div className="flex -space-x-2">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white/20 flex items-center justify-center text-white text-xs font-semibold">
+              J
+            </div>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white/20 flex items-center justify-center text-white text-xs font-semibold">
+              M
+            </div>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-white/20 flex items-center justify-center text-white text-xs font-semibold">
+              A
+            </div>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-white/20 flex items-center justify-center text-white text-xs font-semibold">
+              +
+            </div>
+          </div>
           <span className="text-blue-300 text-xs sm:text-sm font-medium">
-            Powered by AI
+            Junte-se à mais de <span className="text-white/80">1.000</span>{" "}
+            professores
           </span>
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
         </div>
 
         {/* Main Headline - Mobile responsive typography */}
