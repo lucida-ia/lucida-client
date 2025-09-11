@@ -19,9 +19,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useRouter } from "next/navigation";
 
 const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todo o material
-const API_URL = 
-"https://lucida-api-production.up.railway.app"
-  // "http://localhost:8080";
+const API_URL = "https://lucida-api-production.up.railway.app";
+// "http://localhost:8080";
 
 // Plan limits - keep in sync with backend
 const PLAN_LIMITS = {
@@ -36,11 +35,13 @@ const PLAN_LIMITS = {
 interface CreateExamUploadProps {
   uploadedFiles: File[];
   onFilesUploaded: (files: File[]) => void;
+  shouldDisableActions?: boolean;
 }
 
 export function CreateExamUpload({
   uploadedFiles,
   onFilesUploaded,
+  shouldDisableActions = false,
 }: Readonly<CreateExamUploadProps>) {
   const [files, setFiles] = useState<File[]>([]);
   const [fileTokens, setFileTokens] = useState<Record<string, number>>({});
@@ -79,7 +80,8 @@ export function CreateExamUpload({
 
         const nameToTokens: Record<string, number> = {};
         for (const r of results) {
-          if (r?.success) nameToTokens[normalize(r.fileName)] = Number(r.tokens);
+          if (r?.success)
+            nameToTokens[normalize(r.fileName)] = Number(r.tokens);
         }
 
         const merged: Record<string, number> = {};
@@ -151,7 +153,8 @@ export function CreateExamUpload({
   // Calculate upload progress metrics
   const uploadMetrics = React.useMemo(() => {
     const estimateTokens = (file: File) => Math.ceil(file.size / 4);
-    const tokenFor = (file: File) => fileTokens[file.name] ?? estimateTokens(file);
+    const tokenFor = (file: File) =>
+      fileTokens[file.name] ?? estimateTokens(file);
     const totalTokensUsed = files.reduce(
       (sum, file) => sum + tokenFor(file),
       0
@@ -299,7 +302,10 @@ export function CreateExamUpload({
               0
             );
           } else {
-            newTokens = validFiles.reduce((sum, f) => sum + estimateTokens(f), 0);
+            newTokens = validFiles.reduce(
+              (sum, f) => sum + estimateTokens(f),
+              0
+            );
           }
         } catch {
           newTokens = validFiles.reduce((sum, f) => sum + estimateTokens(f), 0);
@@ -465,24 +471,13 @@ export function CreateExamUpload({
 
   return (
     <div className="space-y-6">
-      {/* Show exam limit warning for users close to limit */}
-      {getRemainingExams !== -1 && getRemainingExams <= 2 && (
-        <Alert className="bg-yellow-50 border-yellow-200 items-start dark:bg-yellow-950 dark:border-yellow-800">
-          <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-          <AlertDescription className="text-yellow-600 dark:text-yellow-400">
-            <strong>Atenção:</strong> Você tem apenas {getRemainingExams}{" "}
-            prova(s) restante(s) em seu plano atual. Considere fazer upgrade
-            para criar mais provas.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <UploadArea
         isDragging={isDragging}
         handleDragOver={handleDragOver}
         handleDragLeave={handleDragLeave}
         handleDrop={handleDrop}
         handleFileInput={handleFileInput}
+        disabled={shouldDisableActions}
       />
 
       {files.length > 0 && (
@@ -549,7 +544,11 @@ export function CreateExamUpload({
                         {(file.size / 1024 / 1024).toFixed(1)} MB •{" "}
                         {file.type.split("/")[1]?.toUpperCase() || "Arquivo"}
                         {" • ≈"}
-                        {Math.round((fileTokens[file.name] ?? Math.ceil(file.size / 4)) * 0.75).toLocaleString()} palavras
+                        {Math.round(
+                          (fileTokens[file.name] ?? Math.ceil(file.size / 4)) *
+                            0.75
+                        ).toLocaleString()}{" "}
+                        palavras
                       </div>
                     </div>
                   </div>
@@ -569,7 +568,7 @@ export function CreateExamUpload({
         </Card>
       )}
 
-      {subscription?.plan === "trial" && (
+      {!shouldDisableActions && subscription?.plan === "trial" && (
         <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">
           <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
           <AlertDescription className="text-orange-600 dark:text-orange-400">
@@ -591,6 +590,7 @@ export function CreateExamUpload({
       <div className="flex justify-end">
         <Button
           onClick={handleContinue}
+          disabled={shouldDisableActions}
           className="w-full sm:w-auto touch-manipulation"
         >
           <span className="hidden sm:inline">

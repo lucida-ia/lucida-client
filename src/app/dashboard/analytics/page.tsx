@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { BarChart3, FileText, Users, Calendar, AlertCircle } from "lucide-react";
+import {
+  BarChart3,
+  FileText,
+  Users,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
 import axios from "axios";
 import { getImpersonateUserId } from "@/lib/utils";
 import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
@@ -71,7 +77,10 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
       const asUser = getImpersonateUserId();
-      const response = await axios.get("/api/analytics/exams" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
+      const response = await axios.get(
+        "/api/analytics/exams" +
+          (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+      );
 
       if (response.data.status === "success") {
         setExams(response.data.data);
@@ -113,7 +122,7 @@ export default function AnalyticsPage() {
           heading="Analytics das Provas"
           text="Visualize dados detalhados e estatísticas das suas avaliações"
         />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <ExamCardSkeleton key={i} />
@@ -128,38 +137,48 @@ export default function AnalyticsPage() {
 
   return (
     <>
-      <PromoDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
+      <PromoDialog
+        isTrialUser={!!isTrialUser}
+        isLoading={subscriptionLoading}
+      />
       <DashboardHeader
         heading="Analytics das Provas"
         text="Visualize dados detalhados e estatísticas das suas avaliações"
       />
 
-      {exams.length === 0 ? (
-        <Card className="mt-6">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhuma prova encontrada</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              Você ainda não criou nenhuma prova. Crie sua primeira avaliação para ver as análises aqui.
-            </p>
-            <Button onClick={() => router.push("/dashboard/exams/create")}>
-              Criar Primeira Prova
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-8 mt-6">
-          {/* Exams with analytics */}
-          {examsWithSubmissions.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Provas com Dados Disponíveis ({examsWithSubmissions.length})
-              </h2>
-              <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+      <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+        {exams.length === 0 ? (
+          <Card className="mt-6">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                Nenhuma prova encontrada
+              </h3>
+              <p className="text-muted-foreground text-center mb-4">
+                Você ainda não criou nenhuma prova. Crie sua primeira avaliação
+                para ver as análises aqui.
+              </p>
+              <Button onClick={() => router.push("/dashboard/exams/create")}>
+                Criar Primeira Prova
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-8 mt-6">
+            {/* Exams with analytics */}
+            {examsWithSubmissions.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Provas com Dados Disponíveis ({examsWithSubmissions.length})
+                </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {examsWithSubmissions.map((exam) => (
-                    <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                    <Card
+                      key={exam.id}
+                      className="hover:shadow-lg transition-shadow"
+                    >
                       <CardHeader className="pb-4">
                         <div className="flex items-start justify-between">
                           <CardTitle className="text-lg font-medium text-left leading-tight">
@@ -169,7 +188,9 @@ export default function AnalyticsPage() {
                             {exam.submissionCount} respostas
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{exam.className}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {exam.className}
+                        </p>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
@@ -178,14 +199,18 @@ export default function AnalyticsPage() {
                               <FileText className="h-4 w-4" />
                               Questões:
                             </span>
-                            <span className="font-medium">{exam.questionCount}</span>
+                            <span className="font-medium">
+                              {exam.questionCount}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
                               Criada em:
                             </span>
-                            <span className="font-medium">{formatDate(exam.createdAt)}</span>
+                            <span className="font-medium">
+                              {formatDate(exam.createdAt)}
+                            </span>
                           </div>
                           <Button
                             className="w-full mt-4"
@@ -199,18 +224,17 @@ export default function AnalyticsPage() {
                     </Card>
                   ))}
                 </div>
-              </UpgradeOverlay>
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Exams without analytics */}
-          {examsWithoutSubmissions.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                Provas sem Dados ({examsWithoutSubmissions.length})
-              </h2>
-              <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
+            {/* Exams without analytics */}
+            {examsWithoutSubmissions.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                  Provas sem Dados ({examsWithoutSubmissions.length})
+                </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {examsWithoutSubmissions.map((exam) => (
                     <Card key={exam.id} className="opacity-75">
@@ -223,7 +247,9 @@ export default function AnalyticsPage() {
                             Sem respostas
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{exam.className}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {exam.className}
+                        </p>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
@@ -232,18 +258,23 @@ export default function AnalyticsPage() {
                               <FileText className="h-4 w-4" />
                               Questões:
                             </span>
-                            <span className="font-medium">{exam.questionCount}</span>
+                            <span className="font-medium">
+                              {exam.questionCount}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
                               Criada em:
                             </span>
-                            <span className="font-medium">{formatDate(exam.createdAt)}</span>
+                            <span className="font-medium">
+                              {formatDate(exam.createdAt)}
+                            </span>
                           </div>
                           <div className="mt-4 p-3 bg-muted rounded-lg">
                             <p className="text-sm text-muted-foreground text-center">
-                              Esta prova ainda não possui respostas para gerar análises
+                              Esta prova ainda não possui respostas para gerar
+                              análises
                             </p>
                           </div>
                         </div>
@@ -251,11 +282,11 @@ export default function AnalyticsPage() {
                     </Card>
                   ))}
                 </div>
-              </UpgradeOverlay>
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        )}
+      </UpgradeOverlay>
     </>
   );
 }

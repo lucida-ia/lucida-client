@@ -9,7 +9,8 @@ import { PromoDialog } from "@/components/dashboard/promo-dialog";
 import { useToast } from "@/hooks/use-toast";
 import React, { Suspense, useCallback } from "react";
 import axios from "axios";
-import { getImpersonateUserId } from "@/lib/utils";
+import { getImpersonateUserId, isTrialUserPastOneWeek } from "@/lib/utils";
+import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
 
 interface UserData {
   user: any;
@@ -30,7 +31,9 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const asUser = getImpersonateUserId();
-      const response = await axios.get("/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
+      const response = await axios.get(
+        "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+      );
 
       if (response.data.status === "success") {
         const data = response.data.data;
@@ -130,6 +133,9 @@ export default function DashboardPage() {
 
   // Check if user is on trial plan
   const isTrialUser = userData.user?.subscription?.plan === "trial";
+  const shouldShowExpiredBanner = userData?.user
+    ? isTrialUserPastOneWeek(userData.user)
+    : false;
 
   return (
     <>
@@ -144,12 +150,15 @@ export default function DashboardPage() {
           heading="Dashboard"
           text="Bem-vindo de volta! Aqui está um resumo das suas provas."
         />
-        <CreateExamCTA />
+        <CreateExamCTA userData={userData} />
       </div>
+
+      {/* Warning banner for trial users past one week */}
+      {shouldShowExpiredBanner && <ExpiredTrialAlert />}
 
       <div className="space-y-6 mt-4">
         <OverviewStats userData={userData} loading={loading} />
-        <RecentExams onExamDeleted={fetchUserData} />
+        <RecentExams onExamDeleted={fetchUserData} userData={userData} />
       </div>
     </>
   );

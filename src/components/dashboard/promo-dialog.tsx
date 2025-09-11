@@ -21,10 +21,7 @@ interface PromoDialogProps {
   isLoading: boolean;
 }
 
-export function PromoDialog({
-  isTrialUser,
-  isLoading,
-}: PromoDialogProps) {
+export function PromoDialog({ isTrialUser, isLoading }: PromoDialogProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -33,9 +30,7 @@ export function PromoDialog({
     // Only show dialog if user is on trial and data is loaded
     if (!isLoading && isTrialUser) {
       // Check if dialog was already shown in this session
-      const hasShownDialog = sessionStorage.getItem(
-        "promo-dialog-shown"
-      );
+      const hasShownDialog = sessionStorage.getItem("promo-dialog-shown");
 
       if (!hasShownDialog) {
         // Small delay to let the page load first
@@ -63,7 +58,8 @@ export function PromoDialog({
       await navigator.clipboard.writeText("LUCIDAEXPLORA");
       toast({
         title: "Cupom copiado!",
-        description: "O código LUCIDAEXPLORA foi copiado para sua área de transferência.",
+        description:
+          "O código LUCIDAEXPLORA foi copiado para sua área de transferência.",
       });
     } catch (error) {
       // Fallback for older browsers
@@ -73,10 +69,11 @@ export function PromoDialog({
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      
+
       toast({
         title: "Cupom copiado!",
-        description: "O código LUCIDAEXPLORA foi copiado para sua área de transferência.",
+        description:
+          "O código LUCIDAEXPLORA foi copiado para sua área de transferência.",
       });
     }
   };
@@ -95,7 +92,11 @@ export function PromoDialog({
             </DialogTitle>
             <DialogDescription className="text-center text-sm sm:text-base mt-2 px-2 sm:px-0 leading-relaxed text-gray-600 dark:text-gray-400">
               Experimente todos os recursos da Lucida <br />
-              pagando só{" "} <strong className="text-orange-600 dark:text-orange-300">R$ 1,99</strong> no seu primeiro mês!
+              pagando só{" "}
+              <strong className="text-orange-600 dark:text-orange-300">
+                R$ 1,99
+              </strong>{" "}
+              no seu primeiro mês!
             </DialogDescription>
           </DialogHeader>
 
@@ -172,14 +173,6 @@ export function PromoDialog({
               size="lg"
             >
               🎯 Aproveitar Oferta Agora
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleNotNow}
-              className="w-full text-sm py-2 min-h-[44px] backdrop-blur-sm text-gray-600 hover:bg-gray-100/50 dark:text-gray-400 dark:hover:bg-gray-800/40 dark:hover:text-gray-300"
-              size="sm"
-            >
-              Talvez mais tarde
             </Button>
           </DialogFooter>
         </DialogContent>

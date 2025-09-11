@@ -65,6 +65,7 @@ interface CreateExamPreviewProps {
   onBack: () => void;
   onExamGenerated: (exam: any) => void;
   onSetStopLoadingCallback: (callback: () => void) => void;
+  shouldDisableActions?: boolean;
 }
 
 export function CreateExamPreview({
@@ -73,6 +74,7 @@ export function CreateExamPreview({
   onBack,
   onExamGenerated,
   onSetStopLoadingCallback,
+  shouldDisableActions = false,
 }: CreateExamPreviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMessage, setProgressMessage] = useState(
@@ -131,7 +133,7 @@ export function CreateExamPreview({
           delayAcc += total * pct;
         });
       };
-      
+
       schedule(processingSteps, processingSec);
       schedule(generationSteps, generationSec);
 
@@ -191,7 +193,9 @@ export function CreateExamPreview({
           toast({
             variant: "default",
             title: "Arquivos processados com sucesso",
-            description: `${successes.length} arquivo(s) processado(s) (≈${totalWords.toLocaleString()} palavras)`,
+            description: `${
+              successes.length
+            } arquivo(s) processado(s) (≈${totalWords.toLocaleString()} palavras)`,
           });
         }
 
@@ -593,7 +597,7 @@ export function CreateExamPreview({
             type="button"
             variant="outline"
             onClick={onBack}
-            disabled={isGenerating}
+            disabled={isGenerating || shouldDisableActions}
             className="gap-2 w-full sm:w-auto touch-manipulation"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -602,7 +606,7 @@ export function CreateExamPreview({
           </Button>
           <Button
             onClick={() => handleUploadFilesAndGenerateQuestions(files)}
-            disabled={isGenerating}
+            disabled={isGenerating || shouldDisableActions}
             className="gap-2 w-full sm:w-auto touch-manipulation"
           >
             {isGenerating ? (

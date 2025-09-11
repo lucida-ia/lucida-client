@@ -42,6 +42,7 @@ import {
   Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ExpiredTrialAlertCompact } from "@/components/ui/expired-trial-alert-compact";
 
 interface DifficultyDistribution {
   fácil: number;
@@ -74,6 +75,7 @@ interface CreateExamCustomizeProps {
   initialConfig: ExamConfig;
   onConfigured: (config: ExamConfig) => void;
   onBack: () => void;
+  shouldDisableActions?: boolean;
 }
 
 export function CreateExamCustomize({
@@ -81,6 +83,7 @@ export function CreateExamCustomize({
   initialConfig,
   onConfigured,
   onBack,
+  shouldDisableActions = false,
 }: CreateExamCustomizeProps) {
   const [config, setConfig] = useState<ExamConfig>(initialConfig);
   const [classes, setClasses] = React.useState<any[]>([]);
@@ -562,7 +565,10 @@ export function CreateExamCustomize({
                   <Target className="h-5 w-5" />
                   <div className="font-semibold text-lg">ENADE</div>
                   {subscription?.plan === "trial" && (
-                    <Badge variant="outline" className="flex items-center gap-1">
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
                       <Star className="h-3 w-3" />
                       Premium
                     </Badge>
@@ -618,13 +624,17 @@ export function CreateExamCustomize({
                 <span>1</span>
                 <span>{maxQuestions}</span>
               </div>
-              {subscription?.plan === "trial" && (
-                <div className="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
-                  <p className="text-xs text-orange-600 dark:text-orange-400">
-                    <strong>Sem plano ativo:</strong> Máximo 10 questões por
-                    prova. Faça upgrade para criar provas com até 50 questões.
-                  </p>
-                </div>
+              {shouldDisableActions ? (
+                <ExpiredTrialAlertCompact />
+              ) : (
+                subscription?.plan === "trial" && (
+                  <div className="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
+                    <p className="text-xs text-orange-600 dark:text-orange-400">
+                      <strong>Sem plano ativo:</strong> Máximo 10 questões por
+                      prova. Faça upgrade para criar provas com até 50 questões.
+                    </p>
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -643,7 +653,10 @@ export function CreateExamCustomize({
                       checked as boolean
                     )
                   }
-                  disabled={config.questionStyle === "enem" || config.questionStyle === "enade"}
+                  disabled={
+                    config.questionStyle === "enem" ||
+                    config.questionStyle === "enade"
+                  }
                 />
                 <Label
                   htmlFor="multipleChoice"
@@ -662,7 +675,10 @@ export function CreateExamCustomize({
                   onCheckedChange={(checked) =>
                     handleQuestionTypeChange("trueFalse", checked as boolean)
                   }
-                  disabled={config.questionStyle === "enem" || config.questionStyle === "enade"}
+                  disabled={
+                    config.questionStyle === "enem" ||
+                    config.questionStyle === "enade"
+                  }
                 />
                 <Label
                   htmlFor="trueFalse"
@@ -675,10 +691,12 @@ export function CreateExamCustomize({
                 )}
               </div>
             </div>
-            {(config.questionStyle === "enem" || config.questionStyle === "enade") && (
+            {(config.questionStyle === "enem" ||
+              config.questionStyle === "enade") && (
               <p className="text-xs text-muted-foreground bg-blue-50 dark:bg-muted/50 p-3 rounded-lg border border-blue-200 dark:border-muted">
-                📝 No estilo {config.questionStyle === "enem" ? "ENEM" : "ENADE"}, apenas questões de múltipla escolha são
-                permitidas.
+                📝 No estilo{" "}
+                {config.questionStyle === "enem" ? "ENEM" : "ENADE"}, apenas
+                questões de múltipla escolha são permitidas.
               </p>
             )}
           </div>
@@ -853,6 +871,7 @@ export function CreateExamCustomize({
           type="button"
           variant="outline"
           onClick={onBack}
+          disabled={shouldDisableActions}
           className="gap-2 w-full sm:w-auto touch-manipulation"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -862,6 +881,7 @@ export function CreateExamCustomize({
 
         <Button
           onClick={handleReviewConfig}
+          disabled={shouldDisableActions}
           className="gap-2 w-full sm:w-auto touch-manipulation"
         >
           <span className="hidden sm:inline">Revisar Configurações</span>

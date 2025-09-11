@@ -10,6 +10,8 @@ import { CreateExamUpload } from "@/components/create-exam/create-exam-upload";
 import { CreateExamCustomize } from "@/components/create-exam/create-exam-customize";
 import { CreateExamPreview } from "@/components/create-exam/create-exam-preview";
 import { useToast } from "@/hooks/use-toast";
+import { isTrialUserPastOneWeek, getImpersonateUserId } from "@/lib/utils";
+import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
 
 export default function CreateExamPage() {
   const [activeTab, setActiveTab] = useState("upload");
@@ -33,10 +35,32 @@ export default function CreateExamPage() {
     timeLimit: 60,
   });
   const [isSavingExam, setIsSavingExam] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const stopLoadingRef = useRef<(() => void) | null>(null);
 
   const { toast } = useToast();
   const router = useRouter();
+
+  // Fetch user data to check trial status
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoadingUser(true);
+        const asUser = getImpersonateUserId();
+        const response = await axios.get(
+          "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+        );
+        setUserData(response.data.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -135,30 +159,44 @@ export default function CreateExamPage() {
     stopLoadingRef.current = callback;
   };
 
+  // Check if trial user is past one week and should have actions disabled
+  const shouldDisableActions = userData?.user
+    ? isTrialUserPastOneWeek(userData.user)
+    : false;
+
   return (
     <>
       <DashboardHeader
         heading="Criar Nova Prova"
         text="Envie conteúdo, personalize configurações e gere sua prova."
       />
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+
+      {/* Warning banner for trial users past one week */}
+      {shouldDisableActions && <ExpiredTrialAlert />}
+
+      <Tabs
+        value={activeTab}
+        onValueChange={shouldDisableActions ? undefined : setActiveTab}
+        className="mt-6"
+      >
         <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
           <TabsTrigger
             value="upload"
+            disabled={shouldDisableActions}
             className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
           >
             <span className="hidden sm:inline">1. </span>Enviar Conteúdo
           </TabsTrigger>
           <TabsTrigger
             value="customize"
-            disabled={uploadedFiles.length === 0}
+            disabled={uploadedFiles.length === 0 || shouldDisableActions}
             className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
           >
             <span className="hidden sm:inline">2. </span>Personalizar
           </TabsTrigger>
           <TabsTrigger
             value="preview"
-            disabled={!examConfig.title}
+            disabled={!examConfig.title || shouldDisableActions}
             className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
           >
             <span className="hidden sm:inline">3. </span>Visualizar e Gerar
@@ -169,6 +207,7 @@ export default function CreateExamPage() {
           <CreateExamUpload
             uploadedFiles={uploadedFiles}
             onFilesUploaded={handleFilesUploaded}
+            shouldDisableActions={shouldDisableActions}
           />
         </TabsContent>
 
@@ -178,6 +217,7 @@ export default function CreateExamPage() {
             initialConfig={examConfig}
             onConfigured={handleExamConfigured}
             onBack={handleBackToUpload}
+            shouldDisableActions={shouldDisableActions}
           />
         </TabsContent>
 
@@ -188,6 +228,7 @@ export default function CreateExamPage() {
             onBack={handleBackToCustomize}
             onExamGenerated={handleExamGenerated}
             onSetStopLoadingCallback={setStopLoadingCallback}
+            shouldDisableActions={shouldDisableActions}
           />
         </TabsContent>
       </Tabs>

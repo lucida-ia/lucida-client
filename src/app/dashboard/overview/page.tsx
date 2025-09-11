@@ -48,6 +48,9 @@ import { exportResultsToCSV } from "@/lib/csv-export";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { useSubscription } from "@/hooks/use-subscription";
+import { isTrialUserPastOneWeek } from "@/lib/utils";
+import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
 
 // Types
 interface Result {
@@ -111,7 +114,7 @@ function PageSkeleton() {
           </Card>
         ))}
       </div>
-      
+
       {/* Classes Skeleton */}
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
@@ -139,21 +142,30 @@ function PageSkeleton() {
 export default function UnifiedOverviewPage() {
   const router = useRouter();
   const { toast } = useToast();
-  
+
   // State
   const [data, setData] = React.useState<PageData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [expandedClasses, setExpandedClasses] = React.useState<Set<string>>(new Set());
+  const [userData, setUserData] = React.useState<any>(null);
+  const [expandedClasses, setExpandedClasses] = React.useState<Set<string>>(
+    new Set()
+  );
   const [activeExam, setActiveExam] = React.useState<string | null>(null);
-  const [showMoreResults, setShowMoreResults] = React.useState<Set<string>>(new Set());
-  const [exportingExamId, setExportingExamId] = React.useState<string | null>(null);
-  
+  const [showMoreResults, setShowMoreResults] = React.useState<Set<string>>(
+    new Set()
+  );
+  const [exportingExamId, setExportingExamId] = React.useState<string | null>(
+    null
+  );
+
   // Share modal state
   const [shareModalOpen, setShareModalOpen] = React.useState(false);
   const [examToShare, setExamToShare] = React.useState<ExamData | null>(null);
-  
+
   // Edit class state
-  const [editingClass, setEditingClass] = React.useState<ClassData | null>(null);
+  const [editingClass, setEditingClass] = React.useState<ClassData | null>(
+    null
+  );
   const [editFormData, setEditFormData] = React.useState({
     name: "",
     description: "",
@@ -162,42 +174,57 @@ export default function UnifiedOverviewPage() {
   const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Create class modal state
-  const [isCreateClassModalOpen, setIsCreateClassModalOpen] = React.useState(false);
+  const [isCreateClassModalOpen, setIsCreateClassModalOpen] =
+    React.useState(false);
   const [newClassName, setNewClassName] = React.useState("");
   const [isCreatingClass, setIsCreatingClass] = React.useState(false);
+
+  // Check if trial user is past one week and should have actions disabled
+  const shouldDisableActions = userData?.user
+    ? isTrialUserPastOneWeek(userData.user)
+    : false;
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
       const asUser = getImpersonateUserId();
       const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
-      const [examsResponse, resultsResponse] = await Promise.all([
+      const [examsResponse, resultsResponse, userResponse] = await Promise.all([
         axios.get("/api/exam/all" + qs),
-        axios.get("/api/class" + qs)
+        axios.get("/api/class" + qs),
+        axios.get("/api/user" + qs),
       ]);
-      
+
       const classesData = examsResponse.data.data;
       const classResults = resultsResponse.data.data;
-      
+
+      // Set user data
+      setUserData(userResponse.data.data);
+
       // Transform data to unified structure
       const classes: ClassData[] = [];
       let totalExams = 0;
       let totalResults = 0;
       let totalQuestions = 0;
-      
+
       classesData.forEach((classItem: any) => {
-        const classResultsData = classResults.find((cr: any) => cr.id === classItem.id);
-        
-        const examsWithResults: ExamData[] = classItem.exams.map((exam: any) => {
-          const examResults = classResultsData?.results?.filter((result: Result) => 
-            result.examId === exam._id
-          ) || [];
-          
-          return {
-            ...exam,
-            results: examResults,
-          };
-        });
+        const classResultsData = classResults.find(
+          (cr: any) => cr.id === classItem.id
+        );
+
+        const examsWithResults: ExamData[] = classItem.exams.map(
+          (exam: any) => {
+            const examResults =
+              classResultsData?.results?.filter(
+                (result: Result) => result.examId === exam._id
+              ) || [];
+
+            return {
+              ...exam,
+              results: examResults,
+            };
+          }
+        );
 
         const classData: ClassData = {
           id: classItem.id,
@@ -206,16 +233,22 @@ export default function UnifiedOverviewPage() {
           createdAt: classResultsData?.createdAt || new Date(),
           updatedAt: classResultsData?.updatedAt || new Date(),
           exams: examsWithResults,
-          totalResults: examsWithResults.reduce((acc, exam) => acc + exam.results.length, 0),
-          totalQuestions: examsWithResults.reduce((acc, exam) => acc + exam.questions.length, 0),
+          totalResults: examsWithResults.reduce(
+            (acc, exam) => acc + exam.results.length,
+            0
+          ),
+          totalQuestions: examsWithResults.reduce(
+            (acc, exam) => acc + exam.questions.length,
+            0
+          ),
         };
-        
+
         classes.push(classData);
         totalExams += examsWithResults.length;
         totalResults += classData.totalResults;
         totalQuestions += classData.totalQuestions;
       });
-      
+
       setData({
         classes,
         summary: {
@@ -228,7 +261,8 @@ export default function UnifiedOverviewPage() {
     } catch (error) {
       toast({
         title: "Erro ao carregar dados",
-        description: "Não foi possível carregar turmas e provas. Tente novamente.",
+        description:
+          "Não foi possível carregar turmas e provas. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -281,7 +315,7 @@ export default function UnifiedOverviewPage() {
   const collapseAll = () => {
     setExpandedClasses(new Set());
     setActiveExam(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleEditClass = (classItem: ClassData) => {
@@ -420,7 +454,10 @@ export default function UnifiedOverviewPage() {
   const handleExportWord = async (exam: ExamData) => {
     try {
       setExportingExamId(exam._id);
-      await exportExamToWord({ ...exam, description: exam.description || "" }, false);
+      await exportExamToWord(
+        { ...exam, description: exam.description || "" },
+        false
+      );
       toast({
         title: "Documento Word exportado com sucesso!",
         description: "A prova foi salva no seu dispositivo.",
@@ -428,7 +465,8 @@ export default function UnifiedOverviewPage() {
     } catch (error) {
       toast({
         title: "Erro ao exportar documento",
-        description: "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
+        description:
+          "Ocorreu um erro ao gerar o documento Word. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -438,12 +476,13 @@ export default function UnifiedOverviewPage() {
 
   const handleExportClassResults = (classItem: ClassData) => {
     try {
-      const allResults = classItem.exams.flatMap(exam => exam.results);
-      
+      const allResults = classItem.exams.flatMap((exam) => exam.results);
+
       if (allResults.length === 0) {
         toast({
           title: "Nenhum resultado para exportar",
-          description: "Esta turma não possui resultados de provas para exportar.",
+          description:
+            "Esta turma não possui resultados de provas para exportar.",
           variant: "destructive",
         });
         return;
@@ -523,24 +562,33 @@ export default function UnifiedOverviewPage() {
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button>
+            <Button disabled={shouldDisableActions}>
               <Plus className="h-4 w-4 mr-2" />
               Criar
               <ChevronDown className="h-4 w-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={openCreateClassModal}>
+            <DropdownMenuItem
+              onClick={openCreateClassModal}
+              disabled={shouldDisableActions}
+            >
               <GraduationCap className="h-4 w-4 mr-2" />
               Nova Turma
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/dashboard/exams/create")}>
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/exams/create")}
+              disabled={shouldDisableActions}
+            >
               <FileText className="h-4 w-4 mr-2" />
               Nova Avaliação
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Warning banner for trial users past one week */}
+      {shouldDisableActions && <ExpiredTrialAlert />}
 
       <div className="space-y-6 mt-4">
         {data && data.classes.length > 0 ? (
@@ -627,7 +675,10 @@ export default function UnifiedOverviewPage() {
             {/* Classes List */}
             <div className="space-y-4">
               {data.classes.map((classItem) => (
-                <Card key={classItem.id} className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+                <Card
+                  key={classItem.id}
+                  className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90"
+                >
                   <CardHeader>
                     {/* Mobile Layout */}
                     <div className="block md:hidden">
@@ -640,7 +691,9 @@ export default function UnifiedOverviewPage() {
                         >
                           <div
                             className={`transform transition-transform duration-200 ${
-                              expandedClasses.has(classItem.id) ? "rotate-90" : "rotate-0"
+                              expandedClasses.has(classItem.id)
+                                ? "rotate-90"
+                                : "rotate-0"
                             }`}
                           >
                             <ChevronRight className="h-4 w-4" />
@@ -652,13 +705,18 @@ export default function UnifiedOverviewPage() {
                               <BookOpen className="h-5 w-5" />
                               {classItem.name}
                             </h3>
-
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs">
+                            <Badge
+                              variant="secondary"
+                              className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs"
+                            >
                               {classItem.exams.length} provas
                             </Badge>
-                            <Badge variant="secondary" className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs">
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs"
+                            >
                               {classItem.totalResults} resultados
                             </Badge>
                           </div>
@@ -677,7 +735,9 @@ export default function UnifiedOverviewPage() {
                         >
                           <div
                             className={`transform transition-transform duration-200 ${
-                              expandedClasses.has(classItem.id) ? "rotate-90" : "rotate-0"
+                              expandedClasses.has(classItem.id)
+                                ? "rotate-90"
+                                : "rotate-0"
                             }`}
                           >
                             <ChevronRight className="h-4 w-4" />
@@ -688,20 +748,25 @@ export default function UnifiedOverviewPage() {
                             <BookOpen className="h-5 w-5" />
                             {classItem.name}
                           </CardTitle>
-
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                        >
                           {classItem.exams.length} provas
                         </Badge>
-                        <Badge variant="secondary" className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+                        >
                           {classItem.totalResults} resultados
                         </Badge>
                       </div>
                     </div>
                   </CardHeader>
-                  
+
                   {expandedClasses.has(classItem.id) && (
                     <CardContent>
                       {/* Class Actions */}
@@ -712,14 +777,17 @@ export default function UnifiedOverviewPage() {
                             Ações da Turma
                           </h4>
                         </div>
-                        
+
                         {/* Mobile Actions */}
                         <div className="block md:hidden space-y-2">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleExportClassResults(classItem)}
-                            disabled={classItem.totalResults === 0}
+                            disabled={
+                              classItem.totalResults === 0 ||
+                              shouldDisableActions
+                            }
                             className="w-full flex items-center justify-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
                           >
                             <Download className="h-3 w-3" />
@@ -730,6 +798,7 @@ export default function UnifiedOverviewPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditClass(classItem)}
+                              disabled={shouldDisableActions}
                               className="flex items-center justify-center gap-2"
                             >
                               <Pencil className="h-3 w-3" />
@@ -740,6 +809,7 @@ export default function UnifiedOverviewPage() {
                               size="sm"
                               className="flex items-center justify-center gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
                               onClick={() => handleDeleteClass(classItem.id)}
+                              disabled={shouldDisableActions}
                             >
                               <Trash className="h-3 w-3" />
                               Deletar
@@ -753,7 +823,10 @@ export default function UnifiedOverviewPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleExportClassResults(classItem)}
-                            disabled={classItem.totalResults === 0}
+                            disabled={
+                              classItem.totalResults === 0 ||
+                              shouldDisableActions
+                            }
                             className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
                           >
                             <Download className="h-3 w-3" />
@@ -763,6 +836,7 @@ export default function UnifiedOverviewPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditClass(classItem)}
+                            disabled={shouldDisableActions}
                             className="gap-2"
                           >
                             <Pencil className="h-3 w-3" />
@@ -773,6 +847,7 @@ export default function UnifiedOverviewPage() {
                             size="sm"
                             className="gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
                             onClick={() => handleDeleteClass(classItem.id)}
+                            disabled={shouldDisableActions}
                           >
                             <Trash className="h-3 w-3" />
                             Deletar
@@ -789,7 +864,7 @@ export default function UnifiedOverviewPage() {
                               Provas da Turma ({classItem.exams.length})
                             </h4>
                           </div>
-                          
+
                           <div className="space-y-4">
                             {classItem.exams.map((exam, index) => (
                               <div key={exam._id}>
@@ -811,7 +886,9 @@ export default function UnifiedOverviewPage() {
                                           </h5>
                                           <div
                                             className={`transform transition-transform duration-200 ${
-                                              activeExam === exam._id ? "rotate-90" : "rotate-0"
+                                              activeExam === exam._id
+                                                ? "rotate-90"
+                                                : "rotate-0"
                                             }`}
                                           >
                                             <ChevronRight className="h-3 w-3 text-gray-500" />
@@ -823,17 +900,25 @@ export default function UnifiedOverviewPage() {
                                           </p>
                                         )}
                                         <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-zinc-400">
-                                          <span>{exam.questions.length} questões</span>
+                                          <span>
+                                            {exam.questions.length} questões
+                                          </span>
                                           <span>•</span>
                                           <span>
-                                            {formatDistanceToNow(exam.createdAt, {
-                                              addSuffix: true,
-                                              locale: ptBR,
-                                            })}
+                                            {formatDistanceToNow(
+                                              exam.createdAt,
+                                              {
+                                                addSuffix: true,
+                                                locale: ptBR,
+                                              }
+                                            )}
                                           </span>
                                         </div>
                                       </div>
-                                      <Badge variant="secondary" className="ml-2 text-xs">
+                                      <Badge
+                                        variant="secondary"
+                                        className="ml-2 text-xs"
+                                      >
                                         {exam.results.length}
                                       </Badge>
                                     </div>
@@ -856,11 +941,24 @@ export default function UnifiedOverviewPage() {
                                             </p>
                                           )}
                                           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-zinc-400">
-                                            <span>{exam.questions.length} questões</span>
+                                            <span>
+                                              {exam.questions.length} questões
+                                            </span>
                                             <span>•</span>
-                                            <span>{exam.results.length} resultado(s)</span>
+                                            <span>
+                                              {exam.results.length} resultado(s)
+                                            </span>
                                             <span>•</span>
-                                            <span>Criada {formatDistanceToNow(exam.createdAt, { addSuffix: true, locale: ptBR })}</span>
+                                            <span>
+                                              Criada{" "}
+                                              {formatDistanceToNow(
+                                                exam.createdAt,
+                                                {
+                                                  addSuffix: true,
+                                                  locale: ptBR,
+                                                }
+                                              )}
+                                            </span>
                                           </div>
                                         </div>
                                         <Button
@@ -881,18 +979,37 @@ export default function UnifiedOverviewPage() {
                                         {/* Mobile Actions */}
                                         <div className="block md:hidden space-y-2">
                                           <div className="grid grid-cols-2 gap-2">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              asChild
-                                              className="flex items-center justify-center gap-2"
-                                              onClick={(e) => e.stopPropagation()}
-                                            >
-                                              <Link href={`/dashboard/exams/${exam._id}`}>
+                                            {shouldDisableActions ? (
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="flex items-center justify-center gap-2"
+                                                disabled={true}
+                                                onClick={(e) =>
+                                                  e.stopPropagation()
+                                                }
+                                              >
                                                 <Eye className="h-3 w-3" />
                                                 Ver
-                                              </Link>
-                                            </Button>
+                                              </Button>
+                                            ) : (
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                                className="flex items-center justify-center gap-2"
+                                                onClick={(e) =>
+                                                  e.stopPropagation()
+                                                }
+                                              >
+                                                <Link
+                                                  href={`/dashboard/exams/${exam._id}`}
+                                                >
+                                                  <Eye className="h-3 w-3" />
+                                                  Ver
+                                                </Link>
+                                              </Button>
+                                            )}
                                             <Button
                                               variant="outline"
                                               size="sm"
@@ -900,11 +1017,16 @@ export default function UnifiedOverviewPage() {
                                                 e.stopPropagation();
                                                 handleExportWord(exam);
                                               }}
-                                              disabled={exportingExamId === exam._id}
+                                              disabled={
+                                                exportingExamId === exam._id ||
+                                                shouldDisableActions
+                                              }
                                               className="flex items-center justify-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
                                             >
                                               <Download className="h-3 w-3" />
-                                              {exportingExamId === exam._id ? "..." : "Word"}
+                                              {exportingExamId === exam._id
+                                                ? "..."
+                                                : "Word"}
                                             </Button>
                                           </div>
                                           <div className="grid grid-cols-2 gap-2">
@@ -916,6 +1038,7 @@ export default function UnifiedOverviewPage() {
                                                 e.stopPropagation();
                                                 handleShareExam(exam);
                                               }}
+                                              disabled={shouldDisableActions}
                                             >
                                               <Share2 className="h-3 w-3" />
                                               Compartilhar
@@ -928,6 +1051,7 @@ export default function UnifiedOverviewPage() {
                                                 e.stopPropagation();
                                                 handleDeleteExam(exam._id);
                                               }}
+                                              disabled={shouldDisableActions}
                                             >
                                               <Trash className="h-3 w-3" />
                                               Deletar
@@ -937,18 +1061,37 @@ export default function UnifiedOverviewPage() {
 
                                         {/* Desktop Actions */}
                                         <div className="hidden md:flex items-center gap-2">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            asChild
-                                            className="flex items-center gap-2"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            <Link href={`/dashboard/exams/${exam._id}`}>
+                                          {shouldDisableActions ? (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="flex items-center gap-2"
+                                              disabled={true}
+                                              onClick={(e) =>
+                                                e.stopPropagation()
+                                              }
+                                            >
                                               <Eye className="h-3 w-3" />
                                               Ver Prova
-                                            </Link>
-                                          </Button>
+                                            </Button>
+                                          ) : (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              asChild
+                                              className="flex items-center gap-2"
+                                              onClick={(e) =>
+                                                e.stopPropagation()
+                                              }
+                                            >
+                                              <Link
+                                                href={`/dashboard/exams/${exam._id}`}
+                                              >
+                                                <Eye className="h-3 w-3" />
+                                                Ver Prova
+                                              </Link>
+                                            </Button>
+                                          )}
                                           <Button
                                             variant="outline"
                                             size="sm"
@@ -956,11 +1099,16 @@ export default function UnifiedOverviewPage() {
                                               e.stopPropagation();
                                               handleExportWord(exam);
                                             }}
-                                            disabled={exportingExamId === exam._id}
+                                            disabled={
+                                              exportingExamId === exam._id ||
+                                              shouldDisableActions
+                                            }
                                             className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
                                           >
                                             <Download className="h-3 w-3" />
-                                            {exportingExamId === exam._id ? "Gerando..." : "Word"}
+                                            {exportingExamId === exam._id
+                                              ? "Gerando..."
+                                              : "Word"}
                                           </Button>
                                           <Button
                                             variant="outline"
@@ -970,6 +1118,7 @@ export default function UnifiedOverviewPage() {
                                               e.stopPropagation();
                                               handleShareExam(exam);
                                             }}
+                                            disabled={shouldDisableActions}
                                           >
                                             <Share2 className="h-3 w-3" />
                                             Compartilhar
@@ -982,6 +1131,7 @@ export default function UnifiedOverviewPage() {
                                               e.stopPropagation();
                                               handleDeleteExam(exam._id);
                                             }}
+                                            disabled={shouldDisableActions}
                                           >
                                             <Trash className="h-3 w-3" />
                                             Deletar
@@ -991,16 +1141,22 @@ export default function UnifiedOverviewPage() {
 
                                       {/* Results */}
                                       {(() => {
-                                        const showMore = showMoreResults.has(exam._id);
+                                        const showMore = showMoreResults.has(
+                                          exam._id
+                                        );
                                         const maxResults = 5;
-                                        const displayedResults = showMore ? exam.results : exam.results.slice(0, maxResults);
-                                        const hasMoreResults = exam.results.length > maxResults;
+                                        const displayedResults = showMore
+                                          ? exam.results
+                                          : exam.results.slice(0, maxResults);
+                                        const hasMoreResults =
+                                          exam.results.length > maxResults;
 
                                         return exam.results.length > 0 ? (
                                           <div>
                                             <div className="flex items-center justify-between mb-3">
                                               <h6 className="font-medium text-sm text-gray-800 dark:text-zinc-200">
-                                                Resultados ({exam.results.length})
+                                                Resultados (
+                                                {exam.results.length})
                                               </h6>
                                               <Button
                                                 variant="outline"
@@ -1009,39 +1165,59 @@ export default function UnifiedOverviewPage() {
                                                   e.stopPropagation();
                                                   handleExportExamResults(exam);
                                                 }}
+                                                disabled={shouldDisableActions}
                                                 className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
                                               >
                                                 <Download className="h-3 w-3" />
-                                                <span className="hidden sm:inline">Exportar CSV</span>
-                                                <span className="sm:hidden">CSV</span>
+                                                <span className="hidden sm:inline">
+                                                  Exportar CSV
+                                                </span>
+                                                <span className="sm:hidden">
+                                                  CSV
+                                                </span>
                                               </Button>
                                             </div>
                                             <div className="space-y-2">
-                                              {displayedResults.map((result) => (
-                                                <div
-                                                  key={result._id}
-                                                  className="flex items-center justify-between p-3 bg-white dark:bg-zinc-800/50 rounded-lg border border-blue-200 dark:border-blue-700"
-                                                >
-                                                  <div className="flex-1 min-w-0">
-                                                    <p className="font-mono text-sm text-gray-900 dark:text-zinc-100 truncate">
-                                                      {result.email}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 dark:text-zinc-400">
-                                                      {formatDate(result.createdAt)}
-                                                    </p>
+                                              {displayedResults.map(
+                                                (result) => (
+                                                  <div
+                                                    key={result._id}
+                                                    className="flex items-center justify-between p-3 bg-white dark:bg-zinc-800/50 rounded-lg border border-blue-200 dark:border-blue-700"
+                                                  >
+                                                    <div className="flex-1 min-w-0">
+                                                      <p className="font-mono text-sm text-gray-900 dark:text-zinc-100 truncate">
+                                                        {result.email}
+                                                      </p>
+                                                      <p className="text-xs text-gray-500 dark:text-zinc-400">
+                                                        {formatDate(
+                                                          result.createdAt
+                                                        )}
+                                                      </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                      <span className="text-sm font-medium">
+                                                        {result.score}/
+                                                        {
+                                                          result.examQuestionCount
+                                                        }
+                                                      </span>
+                                                      <span
+                                                        className={`text-sm font-bold ${getPercentageColor(
+                                                          result.percentage
+                                                        )}`}
+                                                      >
+                                                        {(
+                                                          result.percentage *
+                                                          100
+                                                        ).toFixed(1)}
+                                                        %
+                                                      </span>
+                                                    </div>
                                                   </div>
-                                                  <div className="flex items-center gap-4">
-                                                    <span className="text-sm font-medium">
-                                                      {result.score}/{result.examQuestionCount}
-                                                    </span>
-                                                    <span className={`text-sm font-bold ${getPercentageColor(result.percentage)}`}>
-                                                      {(result.percentage * 100).toFixed(1)}%
-                                                    </span>
-                                                  </div>
-                                                </div>
-                                              ))}
+                                                )
+                                              )}
                                             </div>
-                                            
+
                                             {hasMoreResults && (
                                               <div className="mt-3 text-center">
                                                 <Button
@@ -1049,14 +1225,26 @@ export default function UnifiedOverviewPage() {
                                                   size="sm"
                                                   onClick={(e) => {
                                                     e.stopPropagation();
-                                                    toggleShowMoreResults(exam._id);
+                                                    toggleShowMoreResults(
+                                                      exam._id
+                                                    );
                                                   }}
                                                   className="text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/50"
                                                 >
                                                   {showMore ? (
-                                                    <>Mostrar menos ({exam.results.length - maxResults} ocultos)</>
+                                                    <>
+                                                      Mostrar menos (
+                                                      {exam.results.length -
+                                                        maxResults}{" "}
+                                                      ocultos)
+                                                    </>
                                                   ) : (
-                                                    <>Mostrar mais {exam.results.length - maxResults} resultado(s)</>
+                                                    <>
+                                                      Mostrar mais{" "}
+                                                      {exam.results.length -
+                                                        maxResults}{" "}
+                                                      resultado(s)
+                                                    </>
                                                   )}
                                                 </Button>
                                               </div>
@@ -1064,7 +1252,8 @@ export default function UnifiedOverviewPage() {
                                           </div>
                                         ) : (
                                           <p className="text-sm text-gray-500 dark:text-zinc-400 text-center py-4 bg-white dark:bg-zinc-800/30 rounded-lg border border-blue-200 dark:border-blue-700">
-                                            Ainda não há resultados para esta prova
+                                            Ainda não há resultados para esta
+                                            prova
                                           </p>
                                         );
                                       })()}
@@ -1100,9 +1289,13 @@ export default function UnifiedOverviewPage() {
                     Nenhuma turma encontrada
                   </h3>
                   <p className="text-gray-500 dark:text-zinc-400 mb-4">
-                    Comece criando sua primeira turma para organizar suas provas.
+                    Comece criando sua primeira turma para organizar suas
+                    provas.
                   </p>
-                  <Button onClick={openCreateClassModal}>
+                  <Button
+                    onClick={openCreateClassModal}
+                    disabled={shouldDisableActions}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Criar Primeira Turma
                   </Button>
@@ -1125,7 +1318,10 @@ export default function UnifiedOverviewPage() {
       )}
 
       {/* Create Class Modal */}
-      <Dialog open={isCreateClassModalOpen} onOpenChange={setIsCreateClassModalOpen}>
+      <Dialog
+        open={isCreateClassModalOpen}
+        onOpenChange={setIsCreateClassModalOpen}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1143,7 +1339,11 @@ export default function UnifiedOverviewPage() {
                 onChange={(e) => setNewClassName(e.target.value)}
                 disabled={isCreatingClass}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !isCreatingClass && newClassName.trim()) {
+                  if (
+                    e.key === "Enter" &&
+                    !isCreatingClass &&
+                    newClassName.trim()
+                  ) {
                     handleCreateClass();
                   }
                 }}
@@ -1209,7 +1409,10 @@ export default function UnifiedOverviewPage() {
                 placeholder="Digite uma descrição para a turma"
                 value={editFormData.description}
                 onChange={(e) =>
-                  setEditFormData({ ...editFormData, description: e.target.value })
+                  setEditFormData({
+                    ...editFormData,
+                    description: e.target.value,
+                  })
                 }
                 disabled={isUpdating}
               />
@@ -1255,8 +1458,8 @@ export default function UnifiedOverviewPage() {
             </DialogTitle>
           </DialogHeader>
           {examToShare && (
-            <ShareExamContent 
-              exam={examToShare} 
+            <ShareExamContent
+              exam={examToShare}
               onClose={() => setShareModalOpen(false)}
               toast={toast}
             />
@@ -1283,7 +1486,7 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
   const [isGenerating, setIsGenerating] = React.useState(false);
 
   const handleConfigChange = (key: string, value: boolean) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
+    setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
   const encodeConfig = (config: any): string => {
@@ -1291,19 +1494,24 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
     return btoa(configString);
   };
 
-  const shareOrCopyLink = async (shareUrl: string): Promise<{ success: boolean; method: string }> => {
+  const shareOrCopyLink = async (
+    shareUrl: string
+  ): Promise<{ success: boolean; method: string }> => {
     // Try Web Share API first (works great on Safari mobile)
-    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    if (
+      navigator.share &&
+      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    ) {
       try {
         await navigator.share({
           title: exam.title,
-          text: 'Acesse esta prova:',
+          text: "Acesse esta prova:",
           url: shareUrl,
         });
-        return { success: true, method: 'share' };
+        return { success: true, method: "share" };
       } catch (err) {
         // User cancelled share or API failed
-        console.warn('Web Share API failed:', err);
+        console.warn("Web Share API failed:", err);
       }
     }
 
@@ -1311,42 +1519,44 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        return { success: true, method: 'clipboard' };
+        return { success: true, method: "clipboard" };
       } catch (err) {
-        console.warn('Modern clipboard API failed:', err);
+        console.warn("Modern clipboard API failed:", err);
       }
     }
 
     // Fallback for older browsers
     try {
-      const textArea = document.createElement('textarea');
+      const textArea = document.createElement("textarea");
       textArea.value = shareUrl;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
-      const successful = document.execCommand('copy');
+
+      const successful = document.execCommand("copy");
       document.body.removeChild(textArea);
-      
+
       if (successful) {
-        return { success: true, method: 'execCommand' };
+        return { success: true, method: "execCommand" };
       }
     } catch (err) {
-      console.error('Fallback clipboard failed:', err);
+      console.error("Fallback clipboard failed:", err);
     }
 
-    return { success: false, method: 'none' };
+    return { success: false, method: "none" };
   };
 
   const handleGenerateLink = async () => {
     try {
       setIsGenerating(true);
-      
+
       // Generate the share URL first
-      const response = await axios.post("/api/exam/share", { examId: exam._id });
+      const response = await axios.post("/api/exam/share", {
+        examId: exam._id,
+      });
       const encodedConfig = encodeConfig(config);
       const shareUrl = `${window.location.origin}/exam/${response.data.id}?c=${encodedConfig}`;
 
@@ -1354,7 +1564,7 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
       const result = await shareOrCopyLink(shareUrl);
 
       if (result.success) {
-        if (result.method === 'share') {
+        if (result.method === "share") {
           toast({
             title: "Prova Compartilhada!",
             description: "O link da prova foi compartilhado com sucesso.",
@@ -1362,7 +1572,8 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
         } else {
           toast({
             title: "Link da Prova Copiado!",
-            description: "O link da prova foi copiado com as configurações de segurança aplicadas.",
+            description:
+              "O link da prova foi copiado com as configurações de segurança aplicadas.",
           });
         }
         onClose();
@@ -1400,7 +1611,9 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
       <div className="space-y-4">
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="space-y-1">
-            <p className="text-sm font-medium">Permitir consulta durante a prova</p>
+            <p className="text-sm font-medium">
+              Permitir consulta durante a prova
+            </p>
             <p className="text-xs text-gray-500 dark:text-zinc-400">
               Alunos podem acessar materiais de apoio durante a realização
             </p>
@@ -1409,7 +1622,9 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
             <input
               type="checkbox"
               checked={config.allowConsultation}
-              onChange={(e) => handleConfigChange('allowConsultation', e.target.checked)}
+              onChange={(e) =>
+                handleConfigChange("allowConsultation", e.target.checked)
+              }
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -1427,7 +1642,9 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
             <input
               type="checkbox"
               checked={config.showScoreAtEnd}
-              onChange={(e) => handleConfigChange('showScoreAtEnd', e.target.checked)}
+              onChange={(e) =>
+                handleConfigChange("showScoreAtEnd", e.target.checked)
+              }
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -1436,7 +1653,9 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
 
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="space-y-1">
-            <p className="text-sm font-medium">Mostrar respostas corretas ao final</p>
+            <p className="text-sm font-medium">
+              Mostrar respostas corretas ao final
+            </p>
             <p className="text-xs text-gray-500 dark:text-zinc-400">
               Revelar as respostas corretas após a conclusão da prova
             </p>
@@ -1445,7 +1664,9 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
             <input
               type="checkbox"
               checked={config.showCorrectAnswersAtEnd}
-              onChange={(e) => handleConfigChange('showCorrectAnswersAtEnd', e.target.checked)}
+              onChange={(e) =>
+                handleConfigChange("showCorrectAnswersAtEnd", e.target.checked)
+              }
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -1454,11 +1675,7 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
       </div>
 
       <div className="flex items-center gap-2 justify-end pt-4 border-t">
-        <Button
-          variant="outline"
-          onClick={onClose}
-          disabled={isGenerating}
-        >
+        <Button variant="outline" onClick={onClose} disabled={isGenerating}>
           Cancelar
         </Button>
         <Button

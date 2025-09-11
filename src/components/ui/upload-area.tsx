@@ -8,6 +8,7 @@ interface UploadAreaProps {
   handleDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
   handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   handleFileInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
 const UploadArea = ({
@@ -16,29 +17,49 @@ const UploadArea = ({
   handleDragLeave,
   handleDrop,
   handleFileInput,
+  disabled = false,
 }: UploadAreaProps) => {
   return (
     <Card>
       <CardContent className="pt-4 md:pt-6">
-        <label htmlFor="file-upload" className="block w-full cursor-pointer">
+        <label
+          htmlFor="file-upload"
+          className={`block w-full ${
+            disabled ? "cursor-not-allowed" : "cursor-pointer"
+          }`}
+        >
           <div
             role="button"
-            tabIndex={0}
-            aria-label="Drop files here or click to select files"
+            tabIndex={disabled ? -1 : 0}
+            aria-label={
+              disabled
+                ? "Upload disabled"
+                : "Drop files here or click to select files"
+            }
             className={`rounded-lg border-2 border-dashed p-6 md:p-10 transition-all duration-200 ${
-              isDragging
+              disabled
+                ? "border-muted-foreground/10 bg-muted/20 opacity-60"
+                : isDragging
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/25"
             }`}
-            onClick={() => document.getElementById("file-upload")?.click()}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                document.getElementById("file-upload")?.click();
-              }
-            }}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
+            onClick={
+              disabled
+                ? undefined
+                : () => document.getElementById("file-upload")?.click()
+            }
+            onKeyDown={
+              disabled
+                ? undefined
+                : (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      document.getElementById("file-upload")?.click();
+                    }
+                  }
+            }
+            onDragOver={disabled ? undefined : handleDragOver}
+            onDragLeave={disabled ? undefined : handleDragLeave}
+            onDrop={disabled ? undefined : handleDrop}
           >
             <div className="flex flex-col items-center justify-center space-y-3 md:space-y-4 text-center">
               <Upload className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />
@@ -70,6 +91,7 @@ const UploadArea = ({
                     accept=".pdf,.doc,.docx,.txt"
                     onChange={handleFileInput}
                     multiple
+                    disabled={disabled}
                   />
                 </label>
               </div>
