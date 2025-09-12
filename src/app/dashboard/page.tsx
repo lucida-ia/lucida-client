@@ -145,7 +145,7 @@ export default function DashboardPage() {
 
       <PromoDialog isTrialUser={isTrialUser} isLoading={loading} />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <DashboardHeader
           heading="Dashboard"
           text="Bem-vindo de volta! Aqui está um resumo das suas provas."
@@ -153,10 +153,9 @@ export default function DashboardPage() {
         <CreateExamCTA userData={userData} />
       </div>
 
-      {/* Warning banner for trial users past one week */}
       {shouldShowExpiredBanner && <ExpiredTrialAlert />}
 
-      <div className="space-y-6 mt-4">
+      <div className="space-y-6 mt-4 ">
         <OverviewStats userData={userData} loading={loading} />
         <RecentExams onExamDeleted={fetchUserData} userData={userData} />
       </div>

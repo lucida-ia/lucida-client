@@ -180,7 +180,7 @@ export default function ExamPreviewPage() {
 
   const saveExamDetails = async () => {
     if (!exam) return;
-    
+
     setIsSavingExamDetails(true);
     try {
       const updatedExam = {
@@ -227,7 +227,9 @@ export default function ExamPreviewPage() {
             A prova que você está procurando não existe ou foi removida.
           </p>
           <Button asChild className="mt-4">
-            <Link href="/dashboard/overview">Voltar para Minhas Avaliações</Link>
+            <Link href="/dashboard/overview">
+              Voltar para Minhas Avaliações
+            </Link>
           </Button>
         </div>
       </div>
@@ -238,7 +240,11 @@ export default function ExamPreviewPage() {
     <>
       <DashboardHeader
         heading={editingExamDetails ? "Editando Prova" : exam.title}
-        text={editingExamDetails ? "Edite o título e descrição da sua prova" : (exam.description || "Visualize e edite os detalhes da sua prova.")}
+        text={
+          editingExamDetails
+            ? "Edite o título e descrição da sua prova"
+            : exam.description || "Visualize e edite os detalhes da sua prova."
+        }
       >
         <div className="flex gap-2">
           <Button variant="outline" asChild>
@@ -279,7 +285,9 @@ export default function ExamPreviewPage() {
                       </label>
                       <Textarea
                         value={editedExamDescription}
-                        onChange={(e) => setEditedExamDescription(e.target.value)}
+                        onChange={(e) =>
+                          setEditedExamDescription(e.target.value)
+                        }
                         placeholder="Digite a descrição da prova (opcional)"
                         className="min-h-[60px]"
                       />
@@ -355,7 +363,7 @@ export default function ExamPreviewPage() {
                     Criada em
                   </p>
                   <p className="text-lg font-semibold">
-                    {new Date(exam.createdAt).toLocaleDateString('pt-BR')}
+                    {new Date(exam.createdAt).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
               </div>
@@ -369,7 +377,7 @@ export default function ExamPreviewPage() {
                     Atualizada em
                   </p>
                   <p className="text-lg font-semibold">
-                    {new Date(exam.updatedAt).toLocaleDateString('pt-BR')}
+                    {new Date(exam.updatedAt).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
               </div>
@@ -407,6 +415,7 @@ export default function ExamPreviewPage() {
               </div>
             </div>
           </CardHeader>
+
           <CardContent>
             <div className="space-y-8">
               {exam.questions.map((question, index) => (

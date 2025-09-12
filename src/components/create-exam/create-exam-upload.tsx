@@ -18,7 +18,7 @@ import UploadArea from "../ui/upload-area";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useRouter } from "next/navigation";
 
-const TOTAL_TOKEN_LIMIT = 500000; // máximo total de tokens para todo o material
+const TOTAL_TOKEN_LIMIT = 500000;
 const API_URL = "https://lucida-api-production.up.railway.app";
 // "http://localhost:8080";
 
@@ -541,9 +541,7 @@ export function CreateExamUpload({
                     <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{file.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(1)} MB •{" "}
-                        {file.type.split("/")[1]?.toUpperCase() || "Arquivo"}
-                        {" • ≈"}
+                        {(file.size / 1024 / 1024).toFixed(1)} MB • {" • ≈"}
                         {Math.round(
                           (fileTokens[file.name] ?? Math.ceil(file.size / 4)) *
                             0.75

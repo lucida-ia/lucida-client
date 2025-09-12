@@ -120,7 +120,10 @@ function AnalyticsSkeleton() {
         <CardContent>
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between p-3 border rounded">
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 border rounded"
+              >
                 <div className="space-y-1">
                   <Skeleton className="h-4 w-48" />
                   <Skeleton className="h-3 w-32" />
@@ -155,7 +158,10 @@ export default function ExamAnalyticsPage() {
     try {
       setLoading(true);
       const asUser = getImpersonateUserId();
-      const response = await axios.get(`/api/analytics/exam/${examId}` + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""));
+      const response = await axios.get(
+        `/api/analytics/exam/${examId}` +
+          (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+      );
 
       if (response.data.status === "success") {
         setData(response.data.data);
@@ -163,7 +169,8 @@ export default function ExamAnalyticsPage() {
         toast({
           variant: "destructive",
           title: "Erro",
-          description: response.data.message || "Falha ao carregar dados de análise",
+          description:
+            response.data.message || "Falha ao carregar dados de análise",
         });
         router.push("/dashboard/analytics");
       }
@@ -250,7 +257,10 @@ export default function ExamAnalyticsPage() {
 
   return (
     <>
-      <PromoDialog isTrialUser={!!isTrialUser} isLoading={subscriptionLoading} />
+      <PromoDialog
+        isTrialUser={!!isTrialUser}
+        isLoading={subscriptionLoading}
+      />
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -270,7 +280,9 @@ export default function ExamAnalyticsPage() {
             <Card>
               <CardContent className="flex items-start justify-between p-6">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Média Geral</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Média Geral
+                  </p>
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                     {analytics.media}%
                   </div>
@@ -287,11 +299,15 @@ export default function ExamAnalyticsPage() {
             <Card>
               <CardContent className="flex items-start justify-between p-6">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Nota Máxima</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Nota Máxima
+                  </p>
                   <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {analytics.notaMaxima}%
                   </div>
-                  <p className="text-xs text-muted-foreground">Melhor resultado</p>
+                  <p className="text-xs text-muted-foreground">
+                    Melhor resultado
+                  </p>
                 </div>
                 <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -302,11 +318,15 @@ export default function ExamAnalyticsPage() {
             <Card>
               <CardContent className="flex items-start justify-between p-6">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Nota Mínima</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Nota Mínima
+                  </p>
                   <div className="text-3xl font-bold text-red-600 dark:text-red-400">
                     {analytics.notaMinima}%
                   </div>
-                  <p className="text-xs text-muted-foreground">Menor resultado</p>
+                  <p className="text-xs text-muted-foreground">
+                    Menor resultado
+                  </p>
                 </div>
                 <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                   <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -317,7 +337,9 @@ export default function ExamAnalyticsPage() {
             <Card>
               <CardContent className="flex items-start justify-between p-6">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Total de Submissões</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total de Submissões
+                  </p>
                   <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                     {analytics.totalSubmissions}
                   </div>
@@ -337,7 +359,10 @@ export default function ExamAnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
             <ScoreDistributionChart
-              buckets={analytics.scoreDistribution.map((b) => ({ range: b.range, count: b.count }))}
+              buckets={analytics.scoreDistribution.map((b) => ({
+                range: b.range,
+                count: b.count,
+              }))}
             />
           </UpgradeOverlay>
           <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
@@ -376,15 +401,7 @@ export default function ExamAnalyticsPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <Badge
-                          variant={
-                            submission.percentage >= 70
-                              ? "default"
-                              : submission.percentage >= 60
-                              ? "secondary"
-                              : "destructive"
-                          }
-                        >
+                        <Badge variant="default">
                           {submission.percentage}%
                         </Badge>
                         <p className="text-sm text-muted-foreground mt-1">
