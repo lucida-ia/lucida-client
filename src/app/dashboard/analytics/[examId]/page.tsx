@@ -402,7 +402,7 @@ export default function ExamAnalyticsPage() {
                       </div>
                       <div className="text-right">
                         <Badge variant="default">
-                          {submission.percentage}%
+                          {submission.percentage.toFixed(1)}%
                         </Badge>
                         <p className="text-sm text-muted-foreground mt-1">
                           {submission.score}/{exam.questionCount}
