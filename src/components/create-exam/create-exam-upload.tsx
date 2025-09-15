@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import {
   File,
   X,
@@ -11,6 +12,9 @@ import {
   ArrowRight,
   AlertTriangle,
   HardDrive,
+  Youtube,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,7 +24,13 @@ import { useRouter } from "next/navigation";
 
 const TOTAL_TOKEN_LIMIT = 500000;
 const API_URL = "https://lucida-api-production.up.railway.app";
-// "http://localhost:8080";
+// const API_URL = "http://localhost:8080";
+
+// YouTube URL validation function
+const isValidYouTubeUrl = (url: string): boolean => {
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[\w-]+(&[\w=]*)?$/;
+  return youtubeRegex.test(url);
+};
 
 // Plan limits - keep in sync with backend
 const PLAN_LIMITS = {
@@ -34,18 +44,37 @@ const PLAN_LIMITS = {
 
 interface CreateExamUploadProps {
   uploadedFiles: File[];
-  onFilesUploaded: (files: File[]) => void;
+  youtubeUrls?: string[];
+  youtubeVideoData?: Record<string, { title?: string; videoId?: string }>;
+  onFilesUploaded: (files: File[], youtubeUrls?: string[], youtubeVideoData?: Record<string, { title?: string; videoId?: string }>) => void;
   shouldDisableActions?: boolean;
 }
 
 export function CreateExamUpload({
   uploadedFiles,
+  youtubeUrls = [],
+  youtubeVideoData = {},
   onFilesUploaded,
   shouldDisableActions = false,
 }: Readonly<CreateExamUploadProps>) {
   const [files, setFiles] = useState<File[]>([]);
   const [fileTokens, setFileTokens] = useState<Record<string, number>>({});
   const [isDragging, setIsDragging] = useState(false);
+  const [youtubeUrlList, setYoutubeUrlList] = useState<string[]>(youtubeUrls);
+  const [newYoutubeUrl, setNewYoutubeUrl] = useState("");
+  const [youtubeTokens, setYoutubeTokens] = useState<Record<string, { tokens: number; loading: boolean; error?: string; title?: string; videoId?: string }>>(() => {
+    const initialData: Record<string, { tokens: number; loading: boolean; error?: string; title?: string; videoId?: string }> = {};
+    Object.keys(youtubeVideoData).forEach(url => {
+      initialData[url] = {
+        tokens: 0,
+        loading: false,
+        title: youtubeVideoData[url]?.title,
+        videoId: youtubeVideoData[url]?.videoId
+      };
+    });
+    return initialData;
+  });
+  const [isLoadingYoutube, setIsLoadingYoutube] = useState(false);
   const { toast } = useToast();
   const { subscription, loading: subscriptionLoading } = useSubscription();
   const router = useRouter();
@@ -53,6 +82,15 @@ export function CreateExamUpload({
   React.useEffect(() => {
     setFiles(uploadedFiles);
   }, [uploadedFiles]);
+
+  // Fetch transcripts for existing YouTube URLs
+  React.useEffect(() => {
+    youtubeUrls.forEach(url => {
+      if (!youtubeTokens[url]) {
+        fetchYoutubeTranscript(url);
+      }
+    });
+  }, [youtubeUrls]);
 
   // Always fetch token counts for files that don't have them yet
   React.useEffect(() => {
@@ -155,10 +193,18 @@ export function CreateExamUpload({
     const estimateTokens = (file: File) => Math.ceil(file.size / 4);
     const tokenFor = (file: File) =>
       fileTokens[file.name] ?? estimateTokens(file);
-    const totalTokensUsed = files.reduce(
+    
+    const fileTokensUsed = files.reduce(
       (sum, file) => sum + tokenFor(file),
       0
     );
+    
+    const youtubeTokensUsed = youtubeUrlList.reduce(
+      (sum, url) => sum + (youtubeTokens[url]?.tokens || 0),
+      0
+    );
+    
+    const totalTokensUsed = fileTokensUsed + youtubeTokensUsed;
     const usagePercentage = Math.round(
       (totalTokensUsed / TOTAL_TOKEN_LIMIT) * 100
     );
@@ -167,11 +213,13 @@ export function CreateExamUpload({
 
     return {
       totalTokensUsed,
+      fileTokensUsed,
+      youtubeTokensUsed,
       usagePercentage: Math.min(usagePercentage, 100),
       totalSizeMB,
       remainingTokens: Math.max(0, TOTAL_TOKEN_LIMIT - totalTokensUsed),
     };
-  }, [files, fileTokens]);
+  }, [files, fileTokens, youtubeUrlList, youtubeTokens]);
 
   // Get progress bar color based on usage
   const getProgressColor = (percentage: number) => {
@@ -383,13 +431,120 @@ export function CreateExamUpload({
     setFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
+  const fetchYoutubeTranscript = async (url: string) => {
+    try {
+      setYoutubeTokens((prev) => ({
+        ...prev,
+        [url]: { tokens: 0, loading: true }
+      }));
+
+      const response = await fetch(`${API_URL}/ai-ops/fetch-youtube-transcript`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setYoutubeTokens((prev) => ({
+          ...prev,
+          [url]: { 
+            tokens: data.tokens, 
+            loading: false, 
+            title: data.title,
+            videoId: data.videoId 
+          }
+        }));
+      } else {
+        setYoutubeTokens((prev) => ({
+          ...prev,
+          [url]: { 
+            tokens: 0, 
+            loading: false, 
+            error: data.error,
+            title: data.title,
+            videoId: data.videoId
+          }
+        }));
+        toast({
+          variant: "destructive",
+          title: "Erro ao obter transcrição",
+          description: data.error || "Não foi possível obter a transcrição do vídeo.",
+        });
+      }
+    } catch (error) {
+      setYoutubeTokens((prev) => ({
+        ...prev,
+        [url]: { tokens: 0, loading: false, error: "Erro de rede" }
+      }));
+      toast({
+        variant: "destructive",
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor para obter a transcrição.",
+      });
+    }
+  };
+
+  const addYoutubeUrl = async () => {
+    if (!newYoutubeUrl.trim()) {
+      toast({
+        variant: "destructive",
+        title: "URL inválida",
+        description: "Por favor, insira uma URL do YouTube.",
+      });
+      return;
+    }
+
+    if (!isValidYouTubeUrl(newYoutubeUrl)) {
+      toast({
+        variant: "destructive",
+        title: "URL inválida",
+        description: "Por favor, insira uma URL válida do YouTube.",
+      });
+      return;
+    }
+
+    if (youtubeUrlList.includes(newYoutubeUrl)) {
+      toast({
+        variant: "destructive",
+        title: "URL duplicada",
+        description: "Esta URL do YouTube já foi adicionada.",
+      });
+      return;
+    }
+
+    const urlToAdd = newYoutubeUrl;
+    setYoutubeUrlList((prev) => [...prev, urlToAdd]);
+    setNewYoutubeUrl("");
+    
+    // Fetch transcript immediately after adding
+    await fetchYoutubeTranscript(urlToAdd);
+  };
+
+  const removeYoutubeUrl = (indexToRemove: number) => {
+    const urlToRemove = youtubeUrlList[indexToRemove];
+    setYoutubeUrlList((prev) => prev.filter((_, index) => index !== indexToRemove));
+    
+    // Clean up token data for removed URL
+    if (urlToRemove) {
+      setYoutubeTokens((prev) => {
+        const newTokens = { ...prev };
+        delete newTokens[urlToRemove];
+        return newTokens;
+      });
+    }
+  };
+
   const handleContinue = () => {
-    if (files.length === 0) {
+    if (files.length === 0 && youtubeUrlList.length === 0) {
       toast({
         variant: "destructive",
         title: "Nenhum material adicionado",
         description:
-          "Por favor, envie pelo menos um material de estudo para continuar.",
+          "Por favor, envie pelo menos um arquivo ou URL do YouTube para continuar.",
       });
       return;
     }
@@ -405,7 +560,18 @@ export function CreateExamUpload({
       return;
     }
 
-    onFilesUploaded(files);
+    // Extract video data for passing to parent
+    const videoData: Record<string, { title?: string; videoId?: string }> = {};
+    youtubeUrlList.forEach(url => {
+      if (youtubeTokens[url]?.title || youtubeTokens[url]?.videoId) {
+        videoData[url] = {
+          title: youtubeTokens[url].title,
+          videoId: youtubeTokens[url].videoId
+        };
+      }
+    });
+
+    onFilesUploaded(files, youtubeUrlList, videoData);
   };
 
   // Show loading state while subscription is loading
@@ -480,7 +646,7 @@ export function CreateExamUpload({
         disabled={shouldDisableActions}
       />
 
-      {files.length > 0 && (
+      {(files.length > 0 || youtubeUrlList.length > 0) && (
         <Card>
           <CardContent className="pt-4 md:pt-6">
             <div className="flex items-center gap-3 mb-4">
@@ -489,11 +655,13 @@ export function CreateExamUpload({
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-medium">
-                  Material Enviado ({files.length})
+                  Material Carregado ({files.length} arquivo{files.length !== 1 ? 's' : ''}{youtubeUrlList.length > 0 ? `, ${youtubeUrlList.length} vídeo${youtubeUrlList.length !== 1 ? 's' : ''}` : ''})
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {uploadMetrics.totalSizeMB.toFixed(1)} MB •{" "}
+                  {files.length > 0 && `${uploadMetrics.totalSizeMB.toFixed(1)} MB`}
+                  {files.length > 0 && youtubeUrlList.length > 0 && ' • '}
                   {uploadMetrics.usagePercentage}% do limite usado
+                  {uploadMetrics.youtubeTokensUsed > 0 && ` (${uploadMetrics.fileTokensUsed.toLocaleString()} tokens de arquivos + ${uploadMetrics.youtubeTokensUsed.toLocaleString()} tokens do YouTube)`}
                 </p>
               </div>
             </div>
@@ -565,6 +733,104 @@ export function CreateExamUpload({
           </CardContent>
         </Card>
       )}
+
+      {/* YouTube URL Section */}
+      <Card>
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
+              <Youtube className="h-5 w-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-medium">
+                Vídeos do YouTube
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Adicione URLs de vídeos do YouTube para extrair transcrições
+              </p>
+            </div>
+          </div>
+
+          {/* Add YouTube URL Input */}
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Cole a URL do vídeo do YouTube aqui..."
+              value={newYoutubeUrl}
+              onChange={(e) => setNewYoutubeUrl(e.target.value)}
+              disabled={shouldDisableActions}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  addYoutubeUrl();
+                }
+              }}
+            />
+            <Button
+              onClick={addYoutubeUrl}
+              disabled={shouldDisableActions}
+              size="icon"
+              variant="outline"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* YouTube URLs List */}
+          {youtubeUrlList.length > 0 && (
+            <ul className="space-y-2 md:space-y-3">
+              {youtubeUrlList.map((url, index) => (
+                <li
+                  key={index}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-md border p-3 gap-3 sm:gap-0 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    {youtubeTokens[url]?.loading ? (
+                      <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 animate-spin" />
+                    ) : youtubeTokens[url]?.error ? (
+                      <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                    ) : (
+                      <Youtube className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">
+                        {youtubeTokens[url]?.loading ? (
+                          "Carregando..."
+                        ) : youtubeTokens[url]?.title ? (
+                          youtubeTokens[url].title
+                        ) : (
+                          url
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {youtubeTokens[url]?.loading ? (
+                          "Obtendo informações do vídeo..."
+                        ) : youtubeTokens[url]?.error ? (
+                          <span className="text-red-600 dark:text-red-400">
+                            {youtubeTokens[url].error}
+                          </span>
+                        ) : youtubeTokens[url]?.tokens ? (
+                          `≈${Math.round(youtubeTokens[url].tokens * 0.75).toLocaleString()} palavras • ${youtubeTokens[url].tokens.toLocaleString()} tokens`
+                        ) : (
+                          "Vídeo do YouTube"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeYoutubeUrl(index)}
+                    disabled={shouldDisableActions}
+                    className="self-end sm:self-center flex-shrink-0 touch-manipulation hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Remover URL</span>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       {!shouldDisableActions && subscription?.plan === "trial" && (
         <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">

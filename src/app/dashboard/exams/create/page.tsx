@@ -16,6 +16,8 @@ import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
 export default function CreateExamPage() {
   const [activeTab, setActiveTab] = useState("upload");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>([]);
+  const [youtubeVideoData, setYoutubeVideoData] = useState<Record<string, { title?: string; videoId?: string }>>({});
   const [examConfig, setExamConfig] = useState({
     title: "",
     description: "",
@@ -67,8 +69,10 @@ export default function CreateExamPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeTab]);
 
-  const handleFilesUploaded = (files: File[]) => {
+  const handleFilesUploaded = (files: File[], youtubeUrls?: string[], youtubeVideoData?: Record<string, { title?: string; videoId?: string }>) => {
     setUploadedFiles(files);
+    setYoutubeUrls(youtubeUrls || []);
+    setYoutubeVideoData(youtubeVideoData || {});
     setActiveTab("customize");
   };
 
@@ -189,7 +193,7 @@ export default function CreateExamPage() {
           </TabsTrigger>
           <TabsTrigger
             value="customize"
-            disabled={uploadedFiles.length === 0 || shouldDisableActions}
+            disabled={(uploadedFiles.length === 0 && youtubeUrls.length === 0) || shouldDisableActions}
             className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
           >
             <span className="hidden sm:inline">2. </span>Personalizar
@@ -206,6 +210,8 @@ export default function CreateExamPage() {
         <TabsContent value="upload">
           <CreateExamUpload
             uploadedFiles={uploadedFiles}
+            youtubeUrls={youtubeUrls}
+            youtubeVideoData={youtubeVideoData}
             onFilesUploaded={handleFilesUploaded}
             shouldDisableActions={shouldDisableActions}
           />
@@ -224,6 +230,8 @@ export default function CreateExamPage() {
         <TabsContent value="preview">
           <CreateExamPreview
             files={uploadedFiles}
+            youtubeUrls={youtubeUrls}
+            youtubeVideoData={youtubeVideoData}
             config={examConfig}
             onBack={handleBackToCustomize}
             onExamGenerated={handleExamGenerated}
