@@ -1,6 +1,91 @@
 import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle } from "docx";
 import { DBExam } from "@/types/exam";
 
+export const exportSimplifiedGabarito = async (exam: DBExam) => {
+  try {
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            // Title
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `GABARITO - ${exam.title}`,
+                  bold: true,
+                  size: 24,
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
+            }),
+
+            // Horizontal line
+            new Paragraph({
+              children: [new TextRun("")],
+              border: {
+                bottom: {
+                  color: "auto",
+                  space: 1,
+                  style: BorderStyle.SINGLE,
+                  size: 6,
+                },
+              },
+              spacing: { after: 300 },
+            }),
+
+            // Answer key
+            ...exam.questions.map((question, index) => {
+              let correctAnswerLetter: string;
+              
+              if (question.options && question.options.length > 0) {
+                // Multiple choice question
+                correctAnswerLetter = String.fromCharCode(65 + question.correctAnswer);
+              } else {
+                // True/False question
+                correctAnswerLetter = question.correctAnswer ? "V" : "F";
+              }
+
+              return new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `${index + 1}) ${correctAnswerLetter}`,
+                    size: 20,
+                  }),
+                ],
+                spacing: { after: 150 },
+              });
+            }),
+          ],
+        },
+      ],
+    });
+
+    // Generate and download the document
+    const buffer = await Packer.toBuffer(doc);
+    
+    // Create blob and download
+    const blob = new Blob([buffer], { 
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+    });
+    
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${exam.title}_gabarito_simples.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    return true;
+  } catch (error) {
+    console.error("Error exporting simplified gabarito:", error);
+    throw error;
+  }
+};
+
 export const exportExamToWord = async (
   exam: DBExam,
   includeAnswers: boolean = false

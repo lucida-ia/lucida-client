@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, FileText, CheckCircle, Share2 } from "lucide-react";
 import { DBExam } from "@/types/exam";
-import { exportExamToWord } from "@/lib/word-export";
+import { exportExamToWord, exportSimplifiedGabarito } from "@/lib/word-export";
 import { useToast } from "@/hooks/use-toast";
 import { ExamSecurityConfigModal } from "./exam-security-config-modal";
 
@@ -24,16 +24,26 @@ export function ExamExportButton({ exam }: ExamExportButtonProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleExport = async (includeAnswers: boolean) => {
+  const handleExport = async (exportType: 'exam' | 'gabarito') => {
     try {
       setIsExporting(true);
-      await exportExamToWord(exam, includeAnswers);
-      toast({
-        title: "Documento Word exportado com sucesso!",
-        description: includeAnswers
-          ? "O gabarito foi salvo no seu dispositivo."
-          : "A prova foi salva no seu dispositivo.",
-      });
+      
+      // Close dropdown and yield frame to prevent UI from feeling frozen [[memory:7221770]]
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      if (exportType === 'gabarito') {
+        await exportSimplifiedGabarito(exam);
+        toast({
+          title: "Gabarito exportado com sucesso!",
+          description: "O gabarito foi salvo no seu dispositivo.",
+        });
+      } else {
+        await exportExamToWord(exam, false);
+        toast({
+          title: "Prova exportada com sucesso!",
+          description: "A prova foi salva no seu dispositivo.",
+        });
+      }
     } catch (error) {
       console.error("Error exporting Word document:", error);
       toast({
@@ -60,11 +70,11 @@ export function ExamExportButton({ exam }: ExamExportButtonProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleExport(false)}>
+          <DropdownMenuItem onClick={() => handleExport('exam')}>
             <FileText className="mr-2 h-4 w-4" />
             Exportar Prova
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport(true)}>
+          <DropdownMenuItem onClick={() => handleExport('gabarito')}>
             <CheckCircle className="mr-2 h-4 w-4" />
             Exportar Gabarito
           </DropdownMenuItem>
