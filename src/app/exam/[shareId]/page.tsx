@@ -715,9 +715,9 @@ export default function PublicExamPage() {
 
   if (isSubmitted && result) {
     return (
-      <div className="container mx-auto py-8 max-w-4xl">
+      <div className="container mx-auto py-8 px-4 max-w-4xl">
         <Card>
-          <CardHeader>
+          <CardHeader className="px-4 sm:px-6">
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
@@ -731,7 +731,7 @@ export default function PublicExamPage() {
               <ThemeToggle />
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 px-4 sm:px-6">
             {/* Exam completion message */}
             {examEndReason && (
               <div
@@ -815,13 +815,13 @@ export default function PublicExamPage() {
                 <h3 className="text-lg font-semibold">Revisão das Respostas</h3>
                 {exam.questions.map((question, index) => (
                   <Card key={index} className="">
-                    <CardContent className="pt-4">
+                    <CardContent className="pt-4 px-4 sm:px-6">
                       <div className="flex items-start gap-3">
                         <Badge variant="outline" className="text-sm">
                           {index + 1}
                         </Badge>
                         <div className="flex-1 space-y-3">
-                          <h4 className="font-medium whitespace-pre-wrap">
+                          <h4 className="font-medium whitespace-pre-wrap leading-relaxed">
                             {question.context || question.question}
                             {question.context && `\n${question.question}`}
                           </h4>
@@ -829,7 +829,7 @@ export default function PublicExamPage() {
                             {question.type === "trueFalse" ? (
                               <>
                                 <div
-                                  className={`p-2 rounded ${
+                                  className={`p-3 sm:p-2 rounded ${
                                     1 === question.correctAnswer
                                       ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                       : answers[index] === 1
@@ -844,14 +844,14 @@ export default function PublicExamPage() {
                                       disabled
                                       className="h-4 w-4"
                                     />
-                                    <span>Verdadeiro</span>
+                                    <span className="text-sm sm:text-base">Verdadeiro</span>
                                     {1 === question.correctAnswer && (
                                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                     )}
                                   </div>
                                 </div>
                                 <div
-                                  className={`p-2 rounded ${
+                                  className={`p-3 sm:p-2 rounded ${
                                     0 === question.correctAnswer
                                       ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                       : answers[index] === 0
@@ -866,7 +866,7 @@ export default function PublicExamPage() {
                                       disabled
                                       className="h-4 w-4"
                                     />
-                                    <span>Falso</span>
+                                    <span className="text-sm sm:text-base">Falso</span>
                                     {0 === question.correctAnswer && (
                                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                     )}
@@ -877,7 +877,7 @@ export default function PublicExamPage() {
                               question.options?.map((option, optionIndex) => (
                                 <div
                                   key={optionIndex}
-                                  className={`p-2 rounded ${
+                                  className={`p-3 sm:p-2 rounded ${
                                     optionIndex === question.correctAnswer
                                       ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                       : answers[index] === optionIndex
@@ -892,7 +892,7 @@ export default function PublicExamPage() {
                                       disabled
                                       className="h-4 w-4"
                                     />
-                                    <span>{option}</span>
+                                    <span className="text-sm sm:text-base break-words">{option}</span>
                                     {optionIndex === question.correctAnswer && (
                                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                     )}
@@ -1017,11 +1017,11 @@ export default function PublicExamPage() {
         </div>
       </div>
 
-      <div className="container mx-auto py-6 px-4 max-w-5xl">
-        <div className="grid lg:grid-cols-4 gap-6">
+      <div className="px-4 py-6 lg:container lg:mx-auto lg:max-w-5xl">
+        <div className="lg:grid lg:grid-cols-4 lg:gap-6 space-y-6 lg:space-y-0">
           {/* Question Navigation */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-28">
+            <Card className="lg:sticky lg:top-28">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Navegação</CardTitle>
               </CardHeader>
@@ -1050,12 +1050,24 @@ export default function PublicExamPage() {
           {/* Main Question Area */}
           <div className="lg:col-span-3">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    Questão {currentQuestion + 1}
-                  </CardTitle>
-                  <Badge variant="outline">
+              <CardHeader className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">
+                      Questão {currentQuestion + 1}
+                    </CardTitle>
+                    {(exam.questions[currentQuestion].difficulty || exam.questions[currentQuestion].subject) && (
+                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                        {exam.questions[currentQuestion].difficulty && (
+                          <span>Dificuldade: {exam.questions[currentQuestion].difficulty}</span>
+                        )}
+                        {exam.questions[currentQuestion].subject && (
+                          <span>• {exam.questions[currentQuestion].subject}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Badge variant="outline" className="self-start sm:self-center">
                     {exam.questions[currentQuestion].type === "trueFalse"
                       ? "Verdadeiro/Falso"
                       : "Múltipla Escolha"}
@@ -1064,7 +1076,7 @@ export default function PublicExamPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-[12-pt] whitespace-pre-wrap">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {exam.questions[currentQuestion].context ||
                       exam.questions[currentQuestion].question}
                     {exam.questions[currentQuestion].context &&
@@ -1077,7 +1089,7 @@ export default function PublicExamPage() {
                     <>
                       <button
                         onClick={() => handleAnswerSelect(currentQuestion, 1)}
-                        className={`w-full p-3 text-left rounded-lg border transition-colors ${
+                        className={`w-full p-4 text-left rounded-lg border transition-colors ${
                           answers[currentQuestion] === 1
                             ? "bg-primary text-primary-foreground border-primary"
                             : "bg-card border-border hover:bg-muted/50"
@@ -1092,12 +1104,12 @@ export default function PublicExamPage() {
                             }
                             className="h-4 w-4"
                           />
-                          <span>Verdadeiro</span>
+                          <span className="text-sm">Verdadeiro</span>
                         </div>
                       </button>
                       <button
                         onClick={() => handleAnswerSelect(currentQuestion, 0)}
-                        className={`w-full p-3 text-left rounded-lg border transition-colors ${
+                        className={`w-full p-4 text-left rounded-lg border transition-colors ${
                           answers[currentQuestion] === 0
                             ? "bg-primary text-primary-foreground border-primary"
                             : "bg-card border-border hover:bg-muted/50"
@@ -1112,7 +1124,7 @@ export default function PublicExamPage() {
                             }
                             className="h-4 w-4"
                           />
-                          <span>Falso</span>
+                          <span className="text-sm">Falso</span>
                         </div>
                       </button>
                     </>
@@ -1124,7 +1136,7 @@ export default function PublicExamPage() {
                           onClick={() =>
                             handleAnswerSelect(currentQuestion, optionIndex)
                           }
-                          className={`w-full p-3 text-left rounded-lg border transition-colors ${
+                          className={`w-full p-4 text-left rounded-lg border transition-colors ${
                             answers[currentQuestion] === optionIndex
                               ? "bg-primary text-primary-foreground border-primary"
                               : "bg-card border-border hover:bg-muted/50"
@@ -1139,7 +1151,7 @@ export default function PublicExamPage() {
                               }
                               className="h-4 w-4"
                             />
-                            <span>{option}</span>
+                            <span className="text-sm break-words">{option}</span>
                           </div>
                         </button>
                       )

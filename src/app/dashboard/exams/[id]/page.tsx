@@ -421,14 +421,14 @@ export default function ExamPreviewPage() {
               {exam.questions.map((question, index) => (
                 <div
                   key={index}
-                  className={`p-4 border rounded-lg transition-colors ${
+                  className={`p-4 sm:p-6 border rounded-lg transition-colors ${
                     editingQuestion === index
                       ? "border-primary bg-primary/5"
                       : "hover:bg-muted/50"
                   }`}
                 >
                   <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1">
                         <Badge
                           variant="outline"
@@ -439,26 +439,59 @@ export default function ExamPreviewPage() {
                         <div className="flex-1 space-y-2">
                           {/* Question metadata */}
                           {editingQuestion !== index && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {question.difficulty && (
-                                <Badge
-                                  variant="secondary"
-                                  className={`text-xs ${
-                                    question.difficulty === "fácil"
-                                      ? "bg-green-100 text-green-800"
-                                      : question.difficulty === "médio"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                                  }`}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {question.difficulty && (
+                                  <Badge
+                                    variant="secondary"
+                                    className={`text-xs ${
+                                      question.difficulty === "fácil"
+                                        ? "bg-green-100 text-green-800"
+                                        : question.difficulty === "médio"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
+                                    }`}
+                                  >
+                                    {question.difficulty}
+                                  </Badge>
+                                )}
+                                {question.subject && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {question.subject}
+                                  </Badge>
+                                )}
+                              </div>
+                              {/* Mobile Edit Button */}
+                              <div className="sm:hidden">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditingQuestion(index)}
+                                  className="p-1.5"
                                 >
-                                  {question.difficulty}
-                                </Badge>
-                              )}
-                              {question.subject && (
-                                <Badge variant="outline" className="text-xs">
-                                  {question.subject}
-                                </Badge>
-                              )}
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          {editingQuestion === index && (
+                            <div className="sm:hidden flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                onClick={saveEditedQuestion}
+                                disabled={isSaving}
+                                className="p-1.5"
+                              >
+                                <Save className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={cancelEditingQuestion}
+                                className="p-1.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
                             </div>
                           )}
                           {editingQuestion === index ? (
@@ -545,41 +578,44 @@ export default function ExamPreviewPage() {
                         </div>
                       </div>
 
-                      {editingQuestion === index ? (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={saveEditedQuestion}
-                            disabled={isSaving}
-                            className="gap-1"
-                          >
-                            <Save className="h-3 w-3" />
-                            {isSaving ? "Salvando..." : "Salvar"}
-                          </Button>
+                      <div className="sm:block hidden">
+                        {editingQuestion === index ? (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={saveEditedQuestion}
+                              disabled={isSaving}
+                              className="gap-1"
+                            >
+                              <Save className="h-3 w-3" />
+                              {isSaving ? "Salvando..." : "Salvar"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEditingQuestion}
+                              className="gap-1"
+                            >
+                              <X className="h-3 w-3" />
+                              Cancelar
+                            </Button>
+                          </div>
+                        ) : (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={cancelEditingQuestion}
+                            onClick={() => startEditingQuestion(index)}
                             className="gap-1"
                           >
-                            <X className="h-3 w-3" />
-                            Cancelar
+                            <Edit className="h-3 w-3" />
+                            Editar
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => startEditingQuestion(index)}
-                          className="gap-1"
-                        >
-                          <Edit className="h-3 w-3" />
-                          Editar
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
 
-                    <div className="ml-8 space-y-2">
+
+                    <div className="ml-0 sm:ml-8 space-y-2">
                       {editingQuestion === index ? (
                         <div className="space-y-4">
                           {editedQuestion.options ? (
