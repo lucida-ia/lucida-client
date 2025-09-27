@@ -19,6 +19,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -38,6 +45,7 @@ import {
   ArrowUp,
   BookOpen,
   GraduationCap,
+  Copy,
 } from "lucide-react";
 import React from "react";
 import axios from "axios";
@@ -178,6 +186,14 @@ export default function UnifiedOverviewPage() {
     React.useState(false);
   const [newClassName, setNewClassName] = React.useState("");
   const [isCreatingClass, setIsCreatingClass] = React.useState(false);
+
+  // Copy exam modal state
+  const [isCopyDialogOpen, setIsCopyDialogOpen] = React.useState(false);
+  const [examToCopy, setExamToCopy] = React.useState<ExamData | null>(null);
+  const [selectedTargetClassId, setSelectedTargetClassId] = React.useState("");
+  const [isCopyingExam, setIsCopyingExam] = React.useState(false);
+  const [isCreatingNewClass, setIsCreatingNewClass] = React.useState(false);
+  const [newClassNameForCopy, setNewClassNameForCopy] = React.useState("");
 
   // Check if trial user is past one week and should have actions disabled
   const shouldDisableActions = userData?.user
@@ -531,6 +547,179 @@ export default function UnifiedOverviewPage() {
   const handleShareExam = (exam: ExamData) => {
     setExamToShare(exam);
     setShareModalOpen(true);
+  };
+
+  const handleCopyExam = (exam: ExamData) => {
+    setExamToCopy(exam);
+    setSelectedTargetClassId("");
+    setIsCreatingNewClass(false);
+    setNewClassNameForCopy("");
+    setIsCopyDialogOpen(true);
+  };
+
+  const handleCopyExamToClass = async () => {
+    if (!examToCopy) return;
+
+    // If creating a new class, handle that first
+    if (isCreatingNewClass) {
+      if (!newClassNameForCopy.trim()) {
+        toast({
+          title: "Nome da turma obrigatório",
+          description: "Por favor, digite um nome para a nova turma.",
+          variant: "destructive",
+        });
+        return;
+      }
+      await handleCreateClassAndCopy();
+      return;
+    }
+
+    // Otherwise, proceed with existing class
+    if (!selectedTargetClassId) return;
+
+    try {
+      setIsCopyingExam(true);
+
+      const asUser = getImpersonateUserId();
+      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
+
+      // Find the target class name
+      const targetClass = data?.classes.find(
+        (c) => c.id === selectedTargetClassId
+      );
+      if (!targetClass) {
+        throw new Error("Turma de destino não encontrada");
+      }
+
+      // Create payload in the expected format
+      const payload = {
+        config: {
+          title: `${examToCopy.title}`,
+          description: examToCopy.description || "",
+          questionStyle: "simple" as const,
+          questionCount: examToCopy.questions.length,
+          class: {
+            _id: selectedTargetClassId,
+            name: targetClass.name,
+          },
+          questionTypes: {
+            multipleChoice: true,
+            trueFalse: true,
+            shortAnswer: false,
+            essay: false,
+          },
+          difficulty: "médio",
+          timeLimit: 60,
+        },
+        questions: examToCopy.questions,
+      };
+
+      const response = await axios.post("/api/exam/copy" + qs, payload);
+
+      if (response.data.status === "success") {
+        toast({
+          title: "Prova copiada com sucesso!",
+          description: `A prova "${examToCopy.title}" foi copiada para a turma "${targetClass.name}". Esta ação não afeta seus limites de uso.`,
+        });
+
+        // Close dialog and refresh data
+        setIsCopyDialogOpen(false);
+        setExamToCopy(null);
+        setSelectedTargetClassId("");
+        fetchData();
+      } else {
+        throw new Error(response.data.message || "Erro ao copiar prova");
+      }
+    } catch (error: any) {
+      console.error("Error copying exam:", error);
+      toast({
+        title: "Erro ao copiar prova",
+        description:
+          error.response?.data?.message ||
+          "Não foi possível copiar a prova. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCopyingExam(false);
+    }
+  };
+
+  const handleCreateClassAndCopy = async () => {
+    if (!examToCopy || !newClassNameForCopy.trim()) return;
+
+    try {
+      setIsCopyingExam(true);
+
+      const asUser = getImpersonateUserId();
+      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
+
+      // First, create the new class
+      const classResponse = await axios.post("/api/class" + qs, {
+        name: newClassNameForCopy.trim(),
+        description: "",
+      });
+
+      if (classResponse.data.status !== "success") {
+        throw new Error(classResponse.data.message || "Erro ao criar turma");
+      }
+
+      const newClassId = classResponse.data.data._id;
+
+      // Then copy the exam to the new class
+      const payload = {
+        config: {
+          title: `${examToCopy.title}`,
+          description: examToCopy.description || "",
+          questionStyle: "simple" as const,
+          questionCount: examToCopy.questions.length,
+          class: {
+            _id: newClassId,
+            name: newClassNameForCopy.trim(),
+          },
+          questionTypes: {
+            multipleChoice: true,
+            trueFalse: true,
+            shortAnswer: false,
+            essay: false,
+          },
+          difficulty: "médio",
+          timeLimit: 60,
+        },
+        questions: examToCopy.questions,
+      };
+
+      const examResponse = await axios.post("/api/exam/copy" + qs, payload);
+
+      if (examResponse.data.status === "success") {
+        toast({
+          title: "Turma criada e prova copiada!",
+          description: `A turma "${newClassNameForCopy.trim()}" foi criada e a prova "${
+            examToCopy.title
+          }" foi copiada para ela. Esta ação não afeta seus limites de uso.`,
+        });
+
+        // Close dialog and refresh data
+        setIsCopyDialogOpen(false);
+        setExamToCopy(null);
+        setSelectedTargetClassId("");
+        setIsCreatingNewClass(false);
+        setNewClassNameForCopy("");
+        fetchData();
+      } else {
+        throw new Error(examResponse.data.message || "Erro ao copiar prova");
+      }
+    } catch (error: any) {
+      console.error("Error creating class and copying exam:", error);
+      toast({
+        title: "Erro ao criar turma e copiar prova",
+        description:
+          error.response?.data?.message ||
+          "Não foi possível criar a turma e copiar a prova. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCopyingExam(false);
+    }
   };
 
   React.useEffect(() => {
@@ -1046,6 +1235,21 @@ export default function UnifiedOverviewPage() {
                                             <Button
                                               variant="outline"
                                               size="sm"
+                                              className="flex items-center justify-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCopyExam(exam);
+                                              }}
+                                              disabled={shouldDisableActions}
+                                            >
+                                              <Copy className="h-3 w-3" />
+                                              Copiar
+                                            </Button>
+                                          </div>
+                                          <div className="grid grid-cols-1 gap-2">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
                                               className="flex items-center justify-center gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
                                               onClick={(e) => {
                                                 e.stopPropagation();
@@ -1122,6 +1326,19 @@ export default function UnifiedOverviewPage() {
                                           >
                                             <Share2 className="h-3 w-3" />
                                             Compartilhar
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-blue-600 border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCopyExam(exam);
+                                            }}
+                                            disabled={shouldDisableActions}
+                                          >
+                                            <Copy className="h-3 w-3" />
+                                            Copiar Prova
                                           </Button>
                                           <Button
                                             variant="outline"
@@ -1463,6 +1680,122 @@ export default function UnifiedOverviewPage() {
               onClose={() => setShareModalOpen(false)}
               toast={toast}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy Exam Modal */}
+      <Dialog open={isCopyDialogOpen} onOpenChange={setIsCopyDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Copy className="h-5 w-5" />
+              Copiar Prova
+            </DialogTitle>
+          </DialogHeader>
+          {examToCopy && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">
+                  Prova selecionada:
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {examToCopy.title}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="target-class">Turma de destino:</Label>
+                <Select
+                  value={
+                    isCreatingNewClass ? "create-new" : selectedTargetClassId
+                  }
+                  onValueChange={(value) => {
+                    if (value === "create-new") {
+                      setIsCreatingNewClass(true);
+                      setSelectedTargetClassId("");
+                    } else {
+                      setIsCreatingNewClass(false);
+                      setSelectedTargetClassId(value);
+                      setNewClassNameForCopy("");
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma turma ou crie uma nova" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="create-new">
+                      <div className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Criar nova turma
+                      </div>
+                    </SelectItem>
+                    {data?.classes
+                      .filter(
+                        (classItem) =>
+                          // Filter out the current class of the exam
+                          !classItem.exams.some((e) => e._id === examToCopy._id)
+                      )
+                      .map((classItem) => (
+                        <SelectItem key={classItem.id} value={classItem.id}>
+                          {classItem.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {isCreatingNewClass && (
+                <div className="space-y-2">
+                  <Label htmlFor="new-class-name">Nome da nova turma:</Label>
+                  <Input
+                    id="new-class-name"
+                    value={newClassNameForCopy}
+                    onChange={(e) => setNewClassNameForCopy(e.target.value)}
+                    placeholder="Digite o nome da nova turma"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !isCopyingExam) {
+                        handleCopyExamToClass();
+                      }
+                    }}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCopyDialogOpen(false);
+                    setExamToCopy(null);
+                    setSelectedTargetClassId("");
+                    setIsCreatingNewClass(false);
+                    setNewClassNameForCopy("");
+                  }}
+                  disabled={isCopyingExam}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCopyExamToClass}
+                  disabled={
+                    isCopyingExam ||
+                    (!isCreatingNewClass && !selectedTargetClassId) ||
+                    (isCreatingNewClass && !newClassNameForCopy.trim())
+                  }
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isCopyingExam
+                    ? isCreatingNewClass
+                      ? "Criando turma e copiando..."
+                      : "Copiando..."
+                    : isCreatingNewClass
+                    ? "Criar turma e copiar"
+                    : "Copiar Prova"}
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
