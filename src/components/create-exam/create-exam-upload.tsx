@@ -15,12 +15,24 @@ import {
   Youtube,
   Plus,
   Loader2,
+  Crown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UploadArea from "../ui/upload-area";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const TOTAL_TOKEN_LIMIT = 500000;
 const API_URL = "https://lucida-api-production.up.railway.app";
@@ -75,6 +87,8 @@ export function CreateExamUpload({
     return initialData;
   });
   const [isLoadingYoutube, setIsLoadingYoutube] = useState(false);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+  const [processingMessage, setProcessingMessage] = useState("Processando arquivos...");
   const { toast } = useToast();
   const { subscription, loading: subscriptionLoading } = useSubscription();
   const router = useRouter();
@@ -241,6 +255,10 @@ export function CreateExamUpload({
         return;
       }
 
+      // Show loading state for file processing
+      setIsProcessingFiles(true);
+      setProcessingMessage("Validando arquivos...");
+
       const validFileTypes = [
         "application/pdf",
         "application/msword",
@@ -265,6 +283,7 @@ export function CreateExamUpload({
       // Check trial user file limit FIRST
       const isTrialUser = subscription?.plan === "trial";
       if (isTrialUser && files.length >= 1) {
+        setIsProcessingFiles(false);
         toast({
           variant: "destructive",
           title: "Limite de material para usuários Grátis",
@@ -275,6 +294,7 @@ export function CreateExamUpload({
       }
 
       if (isTrialUser && files.length + newFiles.length > 1) {
+        setIsProcessingFiles(false);
         toast({
           variant: "destructive",
           title: "Limite de material para usuários Grátis",
@@ -301,6 +321,7 @@ export function CreateExamUpload({
       let newTokenMap: Record<string, number> = {};
       if (validFiles.length > 0) {
         try {
+          setProcessingMessage("Subindo arquivo...");
           const formData = new FormData();
           validFiles.forEach((f) => formData.append("files", f));
           const res = await fetch(`${API_URL}/ai-ops/count-tokens`, {
@@ -364,6 +385,7 @@ export function CreateExamUpload({
         const newPercentage = Math.round(
           ((currentTokens + newTokens) / TOTAL_TOKEN_LIMIT) * 100
         );
+        setIsProcessingFiles(false);
         toast({
           variant: "destructive",
           title: "Limite de conteúdo excedido",
@@ -373,6 +395,7 @@ export function CreateExamUpload({
       }
 
       if (invalidFiles.length > 0) {
+        setIsProcessingFiles(false);
         toast({
           variant: "destructive",
           title: "Material inválido",
@@ -381,14 +404,22 @@ export function CreateExamUpload({
       }
 
       if (validFiles.length > 0) {
+        setProcessingMessage("Finalizando...");
         setFiles((prev) => [...prev, ...validFiles]);
         if (Object.keys(newTokenMap).length > 0) {
           setFileTokens((prev) => ({ ...prev, ...newTokenMap }));
         }
+        
+        // Small delay to ensure state updates before hiding loading
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        setIsProcessingFiles(false);
         toast({
           title: "Material adicionado",
           description: `${validFiles.length} arquivo(s) de material adicionado(s) com sucesso`,
         });
+      } else {
+        setIsProcessingFiles(false);
       }
     },
     [subscription, files, fileTokens, toast, hasReachedExamLimit]
@@ -489,6 +520,16 @@ export function CreateExamUpload({
   };
 
   const addYoutubeUrl = async () => {
+    // Check if user is on trial plan
+    if (subscription?.plan === "trial") {
+      toast({
+        variant: "destructive",
+        title: "Recurso Pro",
+        description: "As transcrições do YouTube estão disponíveis apenas para usuários Pro. Faça upgrade para desbloquear.",
+      });
+      return;
+    }
+
     if (!newYoutubeUrl.trim()) {
       toast({
         variant: "destructive",
@@ -637,6 +678,40 @@ export function CreateExamUpload({
 
   return (
     <div className="space-y-6">
+      {/* Loading Modal for File Processing */}
+      <Dialog open={isProcessingFiles} onOpenChange={() => {}}>
+        <DialogContent
+          className="sm:max-w-md [&>button]:hidden"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogTitle className="sr-only">Processando Arquivos</DialogTitle>
+          <div className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="relative">
+              <div className="p-4 bg-primary/10 rounded-full mb-6">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              </div>
+              <div className="absolute -top-1 -right-1">
+                <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <div className="text-center space-y-3">
+              <h3 className="text-xl font-semibold">
+                Enviando Material
+              </h3>
+              <p className="text-muted-foreground text-sm max-w-sm">
+                {processingMessage}
+              </p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-2 w-2 bg-primary rounded-full animate-bounce"></div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <UploadArea
         isDragging={isDragging}
         handleDragOver={handleDragOver}
@@ -735,16 +810,34 @@ export function CreateExamUpload({
       )}
 
       {/* YouTube URL Section */}
-      <Card>
+      <Card className={subscription?.plan === "trial" ? "opacity-60" : ""}>
         <CardContent className="pt-4 md:pt-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
               <Youtube className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-medium">
-                Vídeos do YouTube
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-medium">
+                  Vídeos do YouTube
+                </h3>
+                {subscription?.plan === "trial" && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-semibold px-2 py-0.5 tracking-wide shadow-sm cursor-help">
+                          <Crown className="h-2.5 w-2.5" />
+                          Pro
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Disponível apenas para usuários Pro.</p>
+                        <p className="text-xs">Faça upgrade para desbloquear este recurso.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 Adicione URLs de vídeos do YouTube para extrair transcrições
               </p>
@@ -754,10 +847,13 @@ export function CreateExamUpload({
           {/* Add YouTube URL Input */}
           <div className="flex gap-2 mb-4">
             <Input
-              placeholder="Cole a URL do vídeo do YouTube aqui..."
+              placeholder={subscription?.plan === "trial" 
+                ? "Disponível apenas para planos Pro..." 
+                : "Cole a URL do vídeo do YouTube aqui..."
+              }
               value={newYoutubeUrl}
               onChange={(e) => setNewYoutubeUrl(e.target.value)}
-              disabled={shouldDisableActions}
+              disabled={shouldDisableActions || subscription?.plan === "trial"}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   addYoutubeUrl();
@@ -766,7 +862,7 @@ export function CreateExamUpload({
             />
             <Button
               onClick={addYoutubeUrl}
-              disabled={shouldDisableActions}
+              disabled={shouldDisableActions || subscription?.plan === "trial"}
               size="icon"
               variant="outline"
             >
@@ -774,61 +870,61 @@ export function CreateExamUpload({
             </Button>
           </div>
 
-          {/* YouTube URLs List */}
-          {youtubeUrlList.length > 0 && (
-            <ul className="space-y-2 md:space-y-3">
-              {youtubeUrlList.map((url, index) => (
-                <li
-                  key={index}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-md border p-3 gap-3 sm:gap-0 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    {youtubeTokens[url]?.loading ? (
-                      <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 animate-spin" />
-                    ) : youtubeTokens[url]?.error ? (
-                      <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                    ) : (
-                      <Youtube className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium truncate">
-                        {youtubeTokens[url]?.loading ? (
-                          "Carregando..."
-                        ) : youtubeTokens[url]?.title ? (
-                          youtubeTokens[url].title
-                        ) : (
-                          url
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {youtubeTokens[url]?.loading ? (
-                          "Obtendo informações do vídeo..."
-                        ) : youtubeTokens[url]?.error ? (
-                          <span className="text-red-600 dark:text-red-400">
-                            {youtubeTokens[url].error}
-                          </span>
-                        ) : youtubeTokens[url]?.tokens ? (
-                          `≈${Math.round(youtubeTokens[url].tokens * 0.75).toLocaleString()} palavras • ${youtubeTokens[url].tokens.toLocaleString()} tokens`
-                        ) : (
-                          "Vídeo do YouTube"
-                        )}
+            {/* YouTube URLs List */}
+            {youtubeUrlList.length > 0 && (
+              <ul className="space-y-2 md:space-y-3">
+                {youtubeUrlList.map((url, index) => (
+                  <li
+                    key={index}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-md border p-3 gap-3 sm:gap-0 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      {youtubeTokens[url]?.loading ? (
+                        <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 animate-spin" />
+                      ) : youtubeTokens[url]?.error ? (
+                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                      ) : (
+                        <Youtube className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">
+                          {youtubeTokens[url]?.loading ? (
+                            "Carregando..."
+                          ) : youtubeTokens[url]?.title ? (
+                            youtubeTokens[url].title
+                          ) : (
+                            url
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {youtubeTokens[url]?.loading ? (
+                            "Obtendo informações do vídeo..."
+                          ) : youtubeTokens[url]?.error ? (
+                            <span className="text-red-600 dark:text-red-400">
+                              {youtubeTokens[url].error}
+                            </span>
+                          ) : youtubeTokens[url]?.tokens ? (
+                            `≈${Math.round(youtubeTokens[url].tokens * 0.75).toLocaleString()} palavras • ${youtubeTokens[url].tokens.toLocaleString()} tokens`
+                          ) : (
+                            "Vídeo do YouTube"
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeYoutubeUrl(index)}
-                    disabled={shouldDisableActions}
-                    className="self-end sm:self-center flex-shrink-0 touch-manipulation hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Remover URL</span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeYoutubeUrl(index)}
+                      disabled={shouldDisableActions}
+                      className="self-end sm:self-center flex-shrink-0 touch-manipulation hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Remover URL</span>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
         </CardContent>
       </Card>
 
