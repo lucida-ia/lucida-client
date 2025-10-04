@@ -19,17 +19,16 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card
-            key={i}
-            className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90"
-          >
-            <CardContent className="flex items-start justify-between p-6">
-              <div className="space-y-1">
-                <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-                <div className="h-8 w-16 bg-muted rounded animate-pulse" />
-                <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+          <Card key={i} className="hover:apple-shadow apple-transition">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1 mr-4">
+                  <div className="h-10 w-20 bg-muted rounded animate-pulse mb-2" />
+                  <div className="h-5 w-32 bg-muted rounded animate-pulse mb-2" />
+                  <div className="h-4 w-28 bg-muted rounded animate-pulse" />
+                </div>
+                <div className="h-12 w-12 bg-muted rounded-apple animate-pulse flex-shrink-0" />
               </div>
-              <div className="h-12 w-12 bg-muted rounded-lg animate-pulse" />
             </CardContent>
           </Card>
         ))}
@@ -39,33 +38,36 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
 
   const stats = [
     {
-      title: "Total de Provas",
+      title: "Provas Criadas",
       value: userData.exams.length,
-      icon: <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+      icon: <FileText className="h-6 w-6 text-apple-blue" />,
       description: "Provas criadas",
-      color: "blue",
+      bgColor: "bg-apple-blue/10 dark:bg-apple-blue/20",
+      textColor: "text-apple-blue",
     },
     {
-      title: "Tempo Economizado",
+      title: "Horas Poupadas",
       value: `+${Math.floor(
         userData.exams.reduce(
           (acc, exam) => acc + exam.questions.length * 13.5,
           0
         ) / 60
       )}`,
-      icon: <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />,
-      description: "Horas poupadas",
-      color: "green",
+      icon: <Clock className="h-6 w-6 text-apple-blue" />,
+      description: "",
+      bgColor: "bg-apple-blue/10 dark:bg-apple-blue/20",
+      textColor: "text-apple-blue",
     },
     {
-      title: "Questões Geradas",
+      title: "Questões Criadas",
       value: userData.exams.reduce(
         (acc, exam) => acc + exam.questions.length,
         0
       ),
-      icon: <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />,
-      description: "Questões criadas",
-      color: "purple",
+      icon: <Zap className="h-6 w-6 text-apple-blue" />,
+      description: "Questões Criadas",
+      bgColor: "bg-apple-blue/10 dark:bg-apple-blue/20",
+      textColor: "text-apple-blue",
     },
     {
       title: "Provas Restantes",
@@ -91,7 +93,7 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
         const remaining = Math.max(0, limit - usage);
         return `${remaining}/${limit}`;
       })(),
-      icon: <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />,
+      icon: <Users className="h-6 w-6 text-apple-blue" />,
       description: (() => {
         const plan = userData.user?.subscription?.plan || "trial";
         const planNames = {
@@ -104,7 +106,8 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
         };
         return planNames[plan as keyof typeof planNames] || "Plano Grátis";
       })(),
-      color: "indigo",
+      bgColor: "bg-apple-blue/10 dark:bg-apple-blue/20",
+      textColor: "text-apple-blue",
     },
     // {
     //   title: "Status da Assinatura",
@@ -154,28 +157,25 @@ export function OverviewStats({ userData, loading }: OverviewStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {stats.map((stat, i) => (
-        <Card
-          key={i}
-          className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90"
-        >
-          <CardContent className="flex items-start justify-between p-6">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                {stat.title}
-              </p>
-              <div
-                className={`text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}
-              >
-                {stat.value}
+        <Card key={i} className="hover:apple-shadow apple-transition">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div className="flex-1 mr-4">
+                <div
+                  className={`text-large-title font-bold ${stat.textColor} leading-none mb-1`}
+                >
+                  {stat.value}
+                </div>
+
+                <h3 className="text-headline font-semibold text-foreground mt-3">
+                  {stat.title}
+                </h3>
               </div>
-              <p className="text-xs text-gray-500 dark:text-zinc-500">
-                {stat.description}
-              </p>
-            </div>
-            <div
-              className={`p-3 bg-${stat.color}-50 dark:bg-${stat.color}-900/20 rounded-lg`}
-            >
-              {stat.icon}
+              <div
+                className={`p-3 ${stat.bgColor} rounded-apple flex-shrink-0`}
+              >
+                {stat.icon}
+              </div>
             </div>
           </CardContent>
         </Card>

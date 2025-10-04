@@ -5,25 +5,46 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-apple text-callout font-medium apple-transition focus-visible:outline-none focus-visible:apple-focus disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // Apple Filled Button - Primary actions
+        default:
+          "bg-apple-blue text-white hover:bg-apple-blue/90 apple-shadow-sm hover:apple-shadow active:apple-shadow-sm",
+        // Apple Tinted Button - Secondary actions
+        tinted:
+          "bg-apple-blue/10 text-apple-blue hover:bg-apple-blue/20 dark:bg-apple-blue/20 dark:hover:bg-apple-blue/30",
+        // Apple Gray Button - Neutral actions
+        gray: "bg-apple-gray-5 text-apple-gray hover:bg-apple-gray-4 dark:bg-apple-gray-5 dark:text-apple-gray-2 dark:hover:bg-apple-gray-4",
+        // Apple Plain Button - Text-only
+        plain: "text-apple-blue hover:text-apple-blue/80 hover:bg-apple-blue/5",
+        // Destructive actions
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-apple-red text-white hover:bg-apple-red/90 apple-shadow-sm hover:apple-shadow active:apple-shadow-sm",
+        // Success actions
+        success:
+          "bg-apple-green text-white hover:bg-apple-green/90 apple-shadow-sm hover:apple-shadow active:apple-shadow-sm",
+        // Warning actions
+        warning:
+          "bg-apple-orange text-white hover:bg-apple-orange/90 apple-shadow-sm hover:apple-shadow active:apple-shadow-sm",
+        // Outline variant
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border border-apple-gray-4 bg-background hover:bg-apple-gray-6 text-foreground dark:border-apple-gray-4 dark:hover:bg-apple-gray-5",
+        // Ghost variant
+        ghost:
+          "hover:bg-apple-gray-6 text-foreground dark:hover:bg-apple-gray-5",
+        // Link variant
+        link: "text-apple-blue underline-offset-4 hover:underline hover:text-apple-blue/80",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        // Apple HIG minimum touch target: 44pt (32px for small, 44px for default, 50px for large)
+        sm: "h-8 px-3 text-footnote min-w-[32px]",
+        default: "h-11 px-4 py-2 min-w-[44px]",
+        lg: "h-12 px-6 py-3 text-headline min-w-[50px]",
+        icon: "h-11 w-11 min-w-[44px]",
+        "icon-sm": "h-8 w-8 min-w-[32px]",
+        "icon-lg": "h-12 w-12 min-w-[50px]",
       },
     },
     defaultVariants: {

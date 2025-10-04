@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -30,6 +31,7 @@ import { useRouter } from "next/navigation";
 import {
   Plus,
   FileText,
+  FileSpreadsheet,
   Award,
   Users,
   Target,
@@ -46,6 +48,7 @@ import {
   BookOpen,
   GraduationCap,
   Copy,
+  Search,
 } from "lucide-react";
 import React from "react";
 import axios from "axios";
@@ -107,20 +110,30 @@ interface PageData {
 function PageSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Summary Cards Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-              <Skeleton className="h-12 w-12 rounded-lg" />
+      {/* Search and Stats Skeleton */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        {/* Search Skeleton */}
+        <div className="relative flex-1 max-w-md">
+          <Skeleton className="h-11 w-full rounded-apple" />
+        </div>
+
+        {/* Stats Skeleton */}
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-apple" />
+            <div>
+              <Skeleton className="h-6 w-8 mb-1" />
+              <Skeleton className="h-3 w-12" />
             </div>
-          </Card>
-        ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-apple" />
+            <div>
+              <Skeleton className="h-6 w-8 mb-1" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Classes Skeleton */}
@@ -195,10 +208,46 @@ export default function UnifiedOverviewPage() {
   const [isCreatingNewClass, setIsCreatingNewClass] = React.useState(false);
   const [newClassNameForCopy, setNewClassNameForCopy] = React.useState("");
 
+  // Search state
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   // Check if trial user is past one week and should have actions disabled
   const shouldDisableActions = userData?.user
     ? isTrialUserPastOneWeek(userData.user)
     : false;
+
+  // Filter classes and exams based on search query
+  const filteredData = React.useMemo(() => {
+    if (!data || !searchQuery.trim()) return data;
+
+    const filtered = data.classes
+      .map((classItem) => {
+        // Check if class name matches
+        const classMatches = classItem.name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
+        // Filter exams within this class
+        const filteredExams = classItem.exams.filter((exam) =>
+          exam.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        // Include class if it matches or has matching exams
+        if (classMatches || filteredExams.length > 0) {
+          return {
+            ...classItem,
+            exams: classMatches ? classItem.exams : filteredExams,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as ClassData[];
+
+    return {
+      ...data,
+      classes: filtered,
+    };
+  }, [data, searchQuery]);
 
   const fetchData = async () => {
     try {
@@ -744,7 +793,7 @@ export default function UnifiedOverviewPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <DashboardHeader
           heading="Minhas Avaliações"
           text="Visão unificada de todas as suas turmas e provas"
@@ -752,7 +801,6 @@ export default function UnifiedOverviewPage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button disabled={shouldDisableActions}>
-              <Plus className="h-4 w-4 mr-2" />
               Criar
               <ChevronDown className="h-4 w-4 ml-2" />
             </Button>
@@ -782,318 +830,279 @@ export default function UnifiedOverviewPage() {
       <div className="space-y-6 mt-4">
         {data && data.classes.length > 0 ? (
           <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
-                <CardContent className="flex items-start justify-between p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Total de Turmas
-                    </p>
-                    <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
-                      {data.summary.classes}
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-zinc-500">
-                      Turmas criadas
-                    </p>
-                  </div>
-                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
-                <CardContent className="flex items-start justify-between p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Total de Provas
-                    </p>
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                      {data.summary.exams}
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-zinc-500">
-                      Provas criadas
-                    </p>
-                  </div>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
-                <CardContent className="flex items-start justify-between p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Total de Resultados
-                    </p>
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                      {data.summary.results}
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-zinc-500">
-                      Provas realizadas
-                    </p>
-                  </div>
-                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <Award className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
-                <CardContent className="flex items-start justify-between p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600 dark:text-zinc-400">
-                      Total de Questões
-                    </p>
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                      {data.summary.questions}
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-zinc-500">
-                      Questões criadas
-                    </p>
-                  </div>
-                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Search and Stats Section */}
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+              {/* Search Filter */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  type="search"
+                  placeholder="Buscar por turma ou prova..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 text-body placeholder:text-muted-foreground bg-apple-secondary-system-background border-apple-gray-4 hover:border-apple-gray-3 focus:border-apple-blue focus:apple-focus"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
             </div>
 
             {/* Classes List */}
             <div className="space-y-4">
-              {data.classes.map((classItem) => (
-                <Card
-                  key={classItem.id}
-                  className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90"
-                >
-                  <CardHeader>
-                    {/* Mobile Layout */}
-                    <div className="block md:hidden">
-                      <div className="flex items-start gap-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleClassExpansion(classItem.id)}
-                          className="p-1 h-auto hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors duration-200 mt-1"
-                        >
-                          <div
-                            className={`transform transition-transform duration-200 ${
-                              expandedClasses.has(classItem.id)
-                                ? "rotate-90"
-                                : "rotate-0"
-                            }`}
+              {filteredData && filteredData.classes.length > 0 ? (
+                filteredData.classes.map((classItem) => (
+                  <Card
+                    key={classItem.id}
+                    className="hover:apple-shadow apple-transition"
+                  >
+                    <CardHeader className="p-4">
+                      {/* Mobile Layout */}
+                      <div className="block md:hidden">
+                        <div className="flex items-start gap-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleClassExpansion(classItem.id)}
+                            className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition mt-1 rounded-apple"
                           >
-                            <ChevronRight className="h-4 w-4" />
+                            <div
+                              className={`transform transition-transform duration-200 ${
+                                expandedClasses.has(classItem.id)
+                                  ? "rotate-90"
+                                  : "rotate-0"
+                              }`}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </div>
+                          </Button>
+                          <div className="flex-1 space-y-1">
+                            <div>
+                              <h3 className="font-semibold text-headline text-foreground text-center">
+                                {classItem.name}
+                              </h3>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light text-footnote hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
+                                >
+                                  {classItem.exams.length} provas
+                                </Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light text-footnote hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
+                                >
+                                  {classItem.totalResults} resultados
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-4 w-px bg-border"></div>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="tinted"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleExportClassResults(classItem);
+                                    }}
+                                    disabled={
+                                      classItem.totalResults === 0 ||
+                                      shouldDisableActions
+                                    }
+                                    title="Exportar resultados"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="tinted"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditClass(classItem);
+                                    }}
+                                    disabled={shouldDisableActions}
+                                    title="Editar turma"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteClass(classItem.id);
+                                    }}
+                                    disabled={shouldDisableActions}
+                                    className="hover:bg-apple-red/90"
+                                    title="Deletar turma"
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </Button>
-                        <div className="flex-1 space-y-3">
+                        </div>
+                      </div>
+
+                      {/* Desktop Layout */}
+                      <div className="hidden md:flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleClassExpansion(classItem.id)}
+                            className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition rounded-apple"
+                          >
+                            <div
+                              className={`transform transition-transform duration-200 ${
+                                expandedClasses.has(classItem.id)
+                                  ? "rotate-90"
+                                  : "rotate-0"
+                              }`}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </div>
+                          </Button>
                           <div>
-                            <h3 className="flex items-center gap-2 font-medium text-base">
-                              <BookOpen className="h-5 w-5" />
+                            <CardTitle className="text-headline font-semibold text-foreground text-center">
                               {classItem.name}
-                            </h3>
+                            </CardTitle>
                           </div>
-                          <div className="flex items-center gap-2 flex-wrap">
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <Badge
                               variant="secondary"
-                              className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs"
+                              className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
                             >
                               {classItem.exams.length} provas
                             </Badge>
                             <Badge
                               variant="secondary"
-                              className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs"
+                              className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
                             >
                               {classItem.totalResults} resultados
                             </Badge>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Desktop Layout */}
-                    <div className="hidden md:flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleClassExpansion(classItem.id)}
-                          className="p-1 h-auto hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors duration-200"
-                        >
-                          <div
-                            className={`transform transition-transform duration-200 ${
-                              expandedClasses.has(classItem.id)
-                                ? "rotate-90"
-                                : "rotate-0"
-                            }`}
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </div>
-                        </Button>
-                        <div>
-                          <CardTitle className="flex items-center gap-2 dark:text-zinc-50">
-                            <BookOpen className="h-5 w-5" />
-                            {classItem.name}
-                          </CardTitle>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="secondary"
-                          className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                        >
-                          {classItem.exams.length} provas
-                        </Badge>
-                        <Badge
-                          variant="secondary"
-                          className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                        >
-                          {classItem.totalResults} resultados
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  {expandedClasses.has(classItem.id) && (
-                    <CardContent>
-                      {/* Class Actions */}
-                      <div className="mb-6 pb-4 border-b">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Target className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
-                          <h4 className="font-medium text-gray-700 dark:text-zinc-300">
-                            Ações da Turma
-                          </h4>
-                        </div>
-
-                        {/* Mobile Actions */}
-                        <div className="block md:hidden space-y-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleExportClassResults(classItem)}
-                            disabled={
-                              classItem.totalResults === 0 ||
-                              shouldDisableActions
-                            }
-                            className="w-full flex items-center justify-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
-                          >
-                            <Download className="h-3 w-3" />
-                            Exportar Todos
-                          </Button>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="h-4 w-px bg-border"></div>
+                          <div className="flex items-center gap-1">
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditClass(classItem)}
-                              disabled={shouldDisableActions}
-                              className="flex items-center justify-center gap-2"
+                              variant="tinted"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportClassResults(classItem);
+                              }}
+                              disabled={
+                                classItem.totalResults === 0 ||
+                                shouldDisableActions
+                              }
+                              title="Exportar resultados"
                             >
-                              <Pencil className="h-3 w-3" />
-                              Editar
+                              <Download className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center justify-center gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
-                              onClick={() => handleDeleteClass(classItem.id)}
+                              variant="tinted"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditClass(classItem);
+                              }}
                               disabled={shouldDisableActions}
+                              title="Editar turma"
                             >
-                              <Trash className="h-3 w-3" />
-                              Deletar
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClass(classItem.id);
+                              }}
+                              disabled={shouldDisableActions}
+                              className="hover:bg-apple-red/90"
+                              title="Deletar turma"
+                            >
+                              <Trash className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-
-                        {/* Desktop Actions */}
-                        <div className="hidden md:flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleExportClassResults(classItem)}
-                            disabled={
-                              classItem.totalResults === 0 ||
-                              shouldDisableActions
-                            }
-                            className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
-                          >
-                            <Download className="h-3 w-3" />
-                            Exportar Todos
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditClass(classItem)}
-                            disabled={shouldDisableActions}
-                            className="gap-2"
-                          >
-                            <Pencil className="h-3 w-3" />
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
-                            onClick={() => handleDeleteClass(classItem.id)}
-                            disabled={shouldDisableActions}
-                          >
-                            <Trash className="h-3 w-3" />
-                            Deletar
-                          </Button>
-                        </div>
                       </div>
+                    </CardHeader>
 
-                      {/* Exam Grid */}
-                      {classItem.exams.length > 0 ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 mb-4">
-                            <FileText className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
-                            <h4 className="font-medium text-gray-700 dark:text-zinc-300">
-                              Provas da Turma ({classItem.exams.length})
-                            </h4>
-                          </div>
-
+                    {expandedClasses.has(classItem.id) && (
+                      <CardContent className="p-6 pt-0">
+                        {/* Exam Grid */}
+                        {classItem.exams.length > 0 ? (
                           <div className="space-y-4">
-                            {classItem.exams.map((exam, index) => (
-                              <div key={exam._id}>
-                                {/* Exam Card */}
+                            <div className="flex items-center gap-2 mb-4">
+                              <FileText className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
+                              <h4 className="font-medium text-gray-700 dark:text-zinc-300">
+                                Provas da Turma ({classItem.exams.length})
+                              </h4>
+                            </div>
+
+                            <div className="space-y-4">
+                              {classItem.exams.map((exam, index) => (
                                 <Card
-                                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                    activeExam === exam._id
-                                      ? "ring-2 ring-blue-500 dark:ring-blue-400"
-                                      : "hover:border-gray-300 dark:hover:border-zinc-600"
-                                  }`}
-                                  onClick={() => toggleExamDetail(exam._id)}
+                                  key={exam._id}
+                                  className="hover:apple-shadow apple-transition"
                                 >
-                                  <CardContent className="p-4">
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                          <h5 className="font-medium text-sm text-gray-900 dark:text-zinc-100 truncate">
-                                            {exam.title}
-                                          </h5>
-                                          <div
-                                            className={`transform transition-transform duration-200 ${
-                                              activeExam === exam._id
-                                                ? "rotate-90"
-                                                : "rotate-0"
-                                            }`}
+                                  <CardContent className="p-3">
+                                    {/* Mobile Layout */}
+                                    <div className="block md:hidden">
+                                      <div
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                          toggleExamDetail(exam._id)
+                                        }
+                                      >
+                                        <div className="flex items-start gap-3 mb-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="h-6 w-6 p-0 hover:bg-apple-gray-5/50 rounded-apple mt-1 flex-shrink-0"
                                           >
-                                            <ChevronRight className="h-3 w-3 text-gray-500" />
+                                            <div
+                                              className={`transform apple-transition ${
+                                                activeExam === exam._id
+                                                  ? "rotate-90"
+                                                  : "rotate-0"
+                                              }`}
+                                            >
+                                              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                            </div>
+                                          </Button>
+                                          <div className="flex-1 min-w-0">
+                                            <h5 className="font-semibold text-body text-foreground mb-1">
+                                              {exam.title}
+                                            </h5>
+                                            {exam.description && (
+                                              <p className="text-subhead text-muted-foreground mb-2 line-clamp-2">
+                                                {exam.description}
+                                              </p>
+                                            )}
                                           </div>
                                         </div>
-                                        {exam.description && (
-                                          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                                            {exam.description}
-                                          </p>
-                                        )}
-                                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-zinc-400">
-                                          <span>
+
+                                        {/* Mobile Badges */}
+                                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                                          <Badge
+                                            variant="secondary"
+                                            className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                          >
                                             {exam.questions.length} questões
-                                          </span>
-                                          <span>•</span>
-                                          <span>
+                                          </Badge>
+                                          <Badge
+                                            variant="secondary"
+                                            className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                          >
+                                            {exam.results.length} resultados
+                                          </Badge>
+                                          <span className="text-footnote text-muted-foreground">
                                             {formatDistanceToNow(
                                               exam.createdAt,
                                               {
@@ -1104,104 +1113,38 @@ export default function UnifiedOverviewPage() {
                                           </span>
                                         </div>
                                       </div>
-                                      <Badge
-                                        variant="secondary"
-                                        className="ml-2 text-xs"
-                                      >
-                                        {exam.results.length}
-                                      </Badge>
-                                    </div>
-                                  </CardContent>
-                                </Card>
 
-                                {/* Inline Exam Detail Panel */}
-                                {activeExam === exam._id && (
-                                  <Card className="mt-2 border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
-                                    <CardContent className="p-4">
-                                      {/* Exam Header */}
-                                      <div className="flex items-start justify-between mb-4">
-                                        <div className="flex-1">
-                                          <h5 className="font-medium text-base text-gray-900 dark:text-zinc-100">
-                                            {exam.title}
-                                          </h5>
-                                          {exam.description && (
-                                            <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
-                                              {exam.description}
-                                            </p>
-                                          )}
-                                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-zinc-400">
-                                            <span>
-                                              {exam.questions.length} questões
-                                            </span>
-                                            <span>•</span>
-                                            <span>
-                                              {exam.results.length} resultado(s)
-                                            </span>
-                                            <span>•</span>
-                                            <span>
-                                              Criada{" "}
-                                              {formatDistanceToNow(
-                                                exam.createdAt,
-                                                {
-                                                  addSuffix: true,
-                                                  locale: ptBR,
-                                                }
-                                              )}
-                                            </span>
-                                          </div>
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setActiveExam(null);
-                                          }}
-                                          className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-800/50"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-
-                                      {/* Exam Actions */}
-                                      <div className="mb-4 pb-4 border-b border-blue-200 dark:border-blue-700">
-                                        {/* Mobile Actions */}
-                                        <div className="block md:hidden space-y-2">
-                                          <div className="grid grid-cols-2 gap-2">
+                                      {/* Mobile Actions */}
+                                      <div className="flex items-center justify-end pt-2 border-t border-apple-gray-4">
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button
+                                              variant="tinted"
+                                              size="sm"
+                                              className="text-footnote"
+                                              disabled={shouldDisableActions}
+                                            >
+                                              Ações
+                                              <ChevronDown className="h-3 w-3 ml-1" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
                                             {shouldDisableActions ? (
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="flex items-center justify-center gap-2"
-                                                disabled={true}
-                                                onClick={(e) =>
-                                                  e.stopPropagation()
-                                                }
-                                              >
-                                                <Eye className="h-3 w-3" />
-                                                Ver
-                                              </Button>
+                                              <DropdownMenuItem disabled>
+                                                <Eye className="h-4 w-4 mr-3" />
+                                                Ver Prova
+                                              </DropdownMenuItem>
                                             ) : (
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                asChild
-                                                className="flex items-center justify-center gap-2"
-                                                onClick={(e) =>
-                                                  e.stopPropagation()
-                                                }
-                                              >
+                                              <DropdownMenuItem asChild>
                                                 <Link
                                                   href={`/dashboard/exams/${exam._id}`}
                                                 >
-                                                  <Eye className="h-3 w-3" />
-                                                  Ver
+                                                  <Eye className="h-4 w-4 mr-3" />
+                                                  Ver Prova
                                                 </Link>
-                                              </Button>
+                                              </DropdownMenuItem>
                                             )}
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
+                                            <DropdownMenuItem
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleExportWord(exam);
@@ -1210,216 +1153,275 @@ export default function UnifiedOverviewPage() {
                                                 exportingExamId === exam._id ||
                                                 shouldDisableActions
                                               }
-                                              className="flex items-center justify-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
                                             >
-                                              <Download className="h-3 w-3" />
+                                              <Download className="h-4 w-4 mr-3" />
                                               {exportingExamId === exam._id
-                                                ? "..."
-                                                : "Word"}
-                                            </Button>
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-2">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="flex items-center justify-center gap-2"
+                                                ? "Gerando..."
+                                                : "Download Word"}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleShareExam(exam);
                                               }}
                                               disabled={shouldDisableActions}
                                             >
-                                              <Share2 className="h-3 w-3" />
-                                              Compartilhar
-                                            </Button>
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="flex items-center justify-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20"
+                                              <Share2 className="h-4 w-4 mr-3" />
+                                              Gerar Link
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleCopyExam(exam);
                                               }}
                                               disabled={shouldDisableActions}
                                             >
-                                              <Copy className="h-3 w-3" />
-                                              Copiar
-                                            </Button>
-                                          </div>
-                                          <div className="grid grid-cols-1 gap-2">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="flex items-center justify-center gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
+                                              <Copy className="h-4 w-4 mr-3" />
+                                              Duplicar Prova
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleExportExamResults(exam);
+                                              }}
+                                              disabled={
+                                                shouldDisableActions ||
+                                                exam.results.length === 0
+                                              }
+                                            >
+                                              <FileSpreadsheet className="h-4 w-4 mr-3" />
+                                              Exportar CSV
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDeleteExam(exam._id);
                                               }}
                                               disabled={shouldDisableActions}
+                                              className="text-apple-red hover:bg-apple-red/10 focus:bg-apple-red/10 focus:text-apple-red"
                                             >
-                                              <Trash className="h-3 w-3" />
+                                              <Trash className="h-4 w-4 mr-3" />
                                               Deletar
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
+                                    </div>
+
+                                    {/* Desktop Layout */}
+                                    <div className="hidden md:block">
+                                      <div
+                                        className="flex items-start justify-between cursor-pointer"
+                                        onClick={() =>
+                                          toggleExamDetail(exam._id)
+                                        }
+                                      >
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <h5 className="font-semibold text-body text-foreground truncate">
+                                              {exam.title}
+                                            </h5>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon-sm"
+                                              className="h-6 w-6 p-0 hover:bg-apple-gray-5/50 rounded-apple"
+                                            >
+                                              <div
+                                                className={`transform apple-transition ${
+                                                  activeExam === exam._id
+                                                    ? "rotate-90"
+                                                    : "rotate-0"
+                                                }`}
+                                              >
+                                                <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                              </div>
                                             </Button>
                                           </div>
-                                        </div>
 
-                                        {/* Desktop Actions */}
-                                        <div className="hidden md:flex items-center gap-2">
-                                          {shouldDisableActions ? (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="flex items-center gap-2"
-                                              disabled={true}
-                                              onClick={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                            >
-                                              <Eye className="h-3 w-3" />
-                                              Ver Prova
-                                            </Button>
-                                          ) : (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              asChild
-                                              className="flex items-center gap-2"
-                                              onClick={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                            >
-                                              <Link
-                                                href={`/dashboard/exams/${exam._id}`}
-                                              >
-                                                <Eye className="h-3 w-3" />
-                                                Ver Prova
-                                              </Link>
-                                            </Button>
+                                          {exam.description && (
+                                            <p className="text-subhead text-muted-foreground mb-2 line-clamp-2">
+                                              {exam.description}
+                                            </p>
                                           )}
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleExportWord(exam);
-                                            }}
-                                            disabled={
-                                              exportingExamId === exam._id ||
-                                              shouldDisableActions
-                                            }
-                                            className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
-                                          >
-                                            <Download className="h-3 w-3" />
-                                            {exportingExamId === exam._id
-                                              ? "Gerando..."
-                                              : "Word"}
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleShareExam(exam);
-                                            }}
-                                            disabled={shouldDisableActions}
-                                          >
-                                            <Share2 className="h-3 w-3" />
-                                            Compartilhar
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2 text-blue-600 border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleCopyExam(exam);
-                                            }}
-                                            disabled={shouldDisableActions}
-                                          >
-                                            <Copy className="h-3 w-3" />
-                                            Copiar Prova
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2 text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/20"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleDeleteExam(exam._id);
-                                            }}
-                                            disabled={shouldDisableActions}
-                                          >
-                                            <Trash className="h-3 w-3" />
-                                            Deletar
-                                          </Button>
+
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              <Badge
+                                                variant="secondary"
+                                                className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                              >
+                                                {exam.questions.length} questões
+                                              </Badge>
+                                              <Badge
+                                                variant="secondary"
+                                                className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                              >
+                                                {exam.results.length} resultados
+                                              </Badge>
+                                              <span className="text-footnote text-muted-foreground">
+                                                {formatDistanceToNow(
+                                                  exam.createdAt,
+                                                  {
+                                                    addSuffix: true,
+                                                    locale: ptBR,
+                                                  }
+                                                )}
+                                              </span>
+                                            </div>
+
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button
+                                                  variant="tinted"
+                                                  size="sm"
+                                                  className="text-footnote"
+                                                  disabled={
+                                                    shouldDisableActions
+                                                  }
+                                                >
+                                                  Ações
+                                                  <ChevronDown className="h-3 w-3 ml-1" />
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end">
+                                                {shouldDisableActions ? (
+                                                  <DropdownMenuItem disabled>
+                                                    <Eye className="h-4 w-4 mr-3" />
+                                                    Ver Prova
+                                                  </DropdownMenuItem>
+                                                ) : (
+                                                  <DropdownMenuItem asChild>
+                                                    <Link
+                                                      href={`/dashboard/exams/${exam._id}`}
+                                                    >
+                                                      <Eye className="h-4 w-4 mr-3" />
+                                                      Ver Prova
+                                                    </Link>
+                                                  </DropdownMenuItem>
+                                                )}
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleExportWord(exam);
+                                                  }}
+                                                  disabled={
+                                                    exportingExamId ===
+                                                      exam._id ||
+                                                    shouldDisableActions
+                                                  }
+                                                >
+                                                  <Download className="h-4 w-4 mr-3" />
+                                                  {exportingExamId === exam._id
+                                                    ? "Gerando..."
+                                                    : "Download Word"}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    handleShareExam(exam);
+                                                  }}
+                                                  disabled={
+                                                    shouldDisableActions
+                                                  }
+                                                >
+                                                  <Share2 className="h-4 w-4 mr-3" />
+                                                  Gerar Link
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCopyExam(exam);
+                                                  }}
+                                                  disabled={
+                                                    shouldDisableActions
+                                                  }
+                                                >
+                                                  <Copy className="h-4 w-4 mr-3" />
+                                                  Duplicar Prova
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleExportExamResults(
+                                                      exam
+                                                    );
+                                                  }}
+                                                  disabled={
+                                                    shouldDisableActions ||
+                                                    exam.results.length === 0
+                                                  }
+                                                >
+                                                  <FileSpreadsheet className="h-4 w-4 mr-3" />
+                                                  Exportar CSV
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteExam(exam._id);
+                                                  }}
+                                                  disabled={
+                                                    shouldDisableActions
+                                                  }
+                                                  className="text-apple-red hover:bg-apple-red/10 focus:bg-apple-red/10 focus:text-apple-red"
+                                                >
+                                                  <Trash className="h-4 w-4 mr-3" />
+                                                  Deletar
+                                                </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          </div>
                                         </div>
                                       </div>
+                                    </div>
 
-                                      {/* Results */}
-                                      {(() => {
-                                        const showMore = showMoreResults.has(
-                                          exam._id
-                                        );
-                                        const maxResults = 5;
-                                        const displayedResults = showMore
-                                          ? exam.results
-                                          : exam.results.slice(0, maxResults);
-                                        const hasMoreResults =
-                                          exam.results.length > maxResults;
+                                    {/* Expandable Results Section */}
+                                    {activeExam === exam._id &&
+                                      exam.results.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-apple-gray-4">
+                                          <div className="mb-3">
+                                            <h6 className="text-subhead font-semibold text-foreground">
+                                              Resultados ({exam.results.length})
+                                            </h6>
+                                          </div>
 
-                                        return exam.results.length > 0 ? (
-                                          <div>
-                                            <div className="flex items-center justify-between mb-3">
-                                              <h6 className="font-medium text-sm text-gray-800 dark:text-zinc-200">
-                                                Resultados (
-                                                {exam.results.length})
-                                              </h6>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleExportExamResults(exam);
-                                                }}
-                                                disabled={shouldDisableActions}
-                                                className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50 dark:text-green-400 dark:border-green-400 dark:hover:bg-green-900/20"
-                                              >
-                                                <Download className="h-3 w-3" />
-                                                <span className="hidden sm:inline">
-                                                  Exportar CSV
-                                                </span>
-                                                <span className="sm:hidden">
-                                                  CSV
-                                                </span>
-                                              </Button>
-                                            </div>
-                                            <div className="space-y-2">
-                                              {displayedResults.map(
+                                          <div className="space-y-2">
+                                            {(() => {
+                                              const showMore =
+                                                showMoreResults.has(exam._id);
+                                              const maxResults = 3;
+                                              const displayedResults = showMore
+                                                ? exam.results
+                                                : exam.results.slice(
+                                                    0,
+                                                    maxResults
+                                                  );
+
+                                              return displayedResults.map(
                                                 (result) => (
                                                   <div
                                                     key={result._id}
-                                                    className="flex items-center justify-between p-3 bg-white dark:bg-zinc-800/50 rounded-lg border border-blue-200 dark:border-blue-700"
+                                                    className="flex items-center justify-between p-2 bg-apple-secondary-system-background rounded-apple border border-apple-gray-4"
                                                   >
                                                     <div className="flex-1 min-w-0">
-                                                      <p className="font-mono text-sm text-gray-900 dark:text-zinc-100 truncate">
+                                                      <p className="font-mono text-footnote text-foreground truncate">
                                                         {result.email}
                                                       </p>
-                                                      <p className="text-xs text-gray-500 dark:text-zinc-400">
+                                                      <p className="text-caption-2 text-muted-foreground">
                                                         {formatDate(
                                                           result.createdAt
                                                         )}
                                                       </p>
                                                     </div>
-                                                    <div className="flex items-center gap-4">
-                                                      <span className="text-sm font-medium">
+                                                    <div className="flex items-center gap-3">
+                                                      <span className="text-footnote font-medium text-foreground">
                                                         {result.score}/
                                                         {
                                                           result.examQuestionCount
                                                         }
                                                       </span>
                                                       <span
-                                                        className={`text-sm font-bold ${getPercentageColor(
+                                                        className={`text-footnote font-bold ${getPercentageColor(
                                                           result.percentage
                                                         )}`}
                                                       >
@@ -1432,10 +1434,18 @@ export default function UnifiedOverviewPage() {
                                                     </div>
                                                   </div>
                                                 )
-                                              )}
-                                            </div>
+                                              );
+                                            })()}
+                                          </div>
 
-                                            {hasMoreResults && (
+                                          {(() => {
+                                            const showMore =
+                                              showMoreResults.has(exam._id);
+                                            const maxResults = 3;
+                                            const hasMoreResults =
+                                              exam.results.length > maxResults;
+
+                                            return hasMoreResults ? (
                                               <div className="mt-3 text-center">
                                                 <Button
                                                   variant="ghost"
@@ -1446,56 +1456,56 @@ export default function UnifiedOverviewPage() {
                                                       exam._id
                                                     );
                                                   }}
-                                                  className="text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/50"
+                                                  className="text-footnote text-apple-blue hover:bg-apple-blue/10"
                                                 >
-                                                  {showMore ? (
-                                                    <>
-                                                      Mostrar menos (
-                                                      {exam.results.length -
-                                                        maxResults}{" "}
-                                                      ocultos)
-                                                    </>
-                                                  ) : (
-                                                    <>
-                                                      Mostrar mais{" "}
-                                                      {exam.results.length -
-                                                        maxResults}{" "}
-                                                      resultado(s)
-                                                    </>
-                                                  )}
+                                                  {showMore
+                                                    ? `Mostrar menos (${
+                                                        exam.results.length -
+                                                        maxResults
+                                                      } ocultos)`
+                                                    : `Mostrar mais ${
+                                                        exam.results.length -
+                                                        maxResults
+                                                      } resultado(s)`}
                                                 </Button>
                                               </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <p className="text-sm text-gray-500 dark:text-zinc-400 text-center py-4 bg-white dark:bg-zinc-800/30 rounded-lg border border-blue-200 dark:border-blue-700">
-                                            Ainda não há resultados para esta
-                                            prova
-                                          </p>
-                                        );
-                                      })()}
-                                    </CardContent>
-                                  </Card>
-                                )}
-                              </div>
-                            ))}
+                                            ) : null;
+                                          })()}
+                                        </div>
+                                      )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-gray-500 dark:text-zinc-400 text-sm">
-                            Esta turma ainda não possui provas
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  )}
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                              Esta turma ainda não possui provas
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    )}
+                  </Card>
+                ))
+              ) : (
+                <Card className="hover:apple-shadow apple-transition">
+                  <CardContent className="p-8 text-center">
+                    <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-headline font-semibold text-foreground mb-2">
+                      Nenhum resultado encontrado
+                    </h3>
+                    <p className="text-subhead text-muted-foreground">
+                      Tente ajustar sua pesquisa ou verifique a ortografia.
+                    </p>
+                  </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </>
         ) : (
-          <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+          <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-apple-shadow dark:border-apple-gray-4 dark:bg-apple-secondary-grouped-background">
             <CardContent className="text-center py-12">
               <div className="flex flex-col items-center gap-4">
                 <div className="p-4 bg-gray-100 dark:bg-zinc-800 rounded-full">
@@ -1860,17 +1870,27 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
 
     // Fallback for older browsers
     try {
+      // Store the currently focused element to restore focus later
+      const activeElement = document.activeElement as HTMLElement;
+
       const textArea = document.createElement("textarea");
       textArea.value = shareUrl;
       textArea.style.position = "fixed";
       textArea.style.left = "-999999px";
       textArea.style.top = "-999999px";
+      textArea.style.opacity = "0";
+      textArea.style.pointerEvents = "none";
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
 
       const successful = document.execCommand("copy");
       document.body.removeChild(textArea);
+
+      // Restore focus to the previously focused element
+      if (activeElement && typeof activeElement.focus === "function") {
+        activeElement.focus();
+      }
 
       if (successful) {
         return { success: true, method: "execCommand" };

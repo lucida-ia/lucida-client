@@ -234,16 +234,16 @@ const getMonthlyEquivalent = (plan: PricingPlan) => {
 
 function BillingSkeleton() {
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-64 bg-slate-200 dark:bg-slate-700" />
-        <Skeleton className="h-4 w-96 bg-slate-200 dark:bg-slate-700" />
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-9 w-64 bg-[rgb(var(--apple-gray-5))] dark:bg-[rgb(var(--apple-gray-5))]" />
+        <Skeleton className="h-5 w-96 bg-[rgb(var(--apple-gray-5))] dark:bg-[rgb(var(--apple-gray-5))]" />
       </div>
-      <Skeleton className="h-48 w-full bg-slate-200 dark:bg-slate-700" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
-        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
-        <Skeleton className="h-[400px] bg-slate-200 dark:bg-slate-700" />
+      <Skeleton className="h-48 w-full bg-[rgb(var(--apple-gray-5))] dark:bg-[rgb(var(--apple-gray-5))]" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Skeleton className="h-[400px] bg-[rgb(var(--apple-gray-5))] dark:bg-[rgb(var(--apple-gray-5))]" />
+        <Skeleton className="h-[400px] bg-[rgb(var(--apple-gray-5))] dark:bg-[rgb(var(--apple-gray-5))]" />
+        <Skeleton className="h-[400px] bg-[rgb(var(--apple-gray-5))] dark:bg-[rgb(var(--apple-gray-5))]" />
       </div>
     </div>
   );
@@ -491,54 +491,57 @@ export default function BillingPage() {
 
       <div className="grid gap-4 md:gap-8">
         {error && (
-          <Alert className="border-red-200 bg-red-50 dark:border-red-700/50 dark:bg-red-950/30 shadow-sm dark:shadow-red-900/20">
-            <AlertDescription className="text-red-700 dark:text-red-300">
+          <Alert className="border-[rgb(var(--apple-red)/0.2)] bg-[rgb(var(--apple-red)/0.1)] dark:border-[rgb(var(--apple-red)/0.3)] dark:bg-[rgb(var(--apple-red)/0.15)] apple-shadow-sm">
+            <AlertDescription className="text-[rgb(var(--apple-red))] dark:text-[rgb(var(--apple-red))] text-subhead">
               {error}
             </AlertDescription>
           </Alert>
         )}
 
         {subscription?.plan !== "trial" && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Plan Overview Card */}
-            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800/90 dark:to-slate-700/80 dark:border dark:border-slate-600/20">
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${currentPlan.gradient} opacity-5 dark:opacity-10`}
-              ></div>
-              <CardContent className="relative p-6">
-                <div className="flex items-center gap-4 mb-4">
+            <Card className="relative overflow-hidden border-[rgb(var(--apple-gray-4))] bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow apple-transition">
+              <CardContent className="relative p-6 space-y-4">
+                <div className="flex items-center gap-3">
                   <div
-                    className={`p-3 rounded-xl bg-gradient-to-r ${currentPlan.gradient} shadow-lg`}
+                    className={`p-2.5 rounded-xl bg-gradient-to-r ${currentPlan.gradient}`}
                   >
-                    <currentPlan.icon className="w-6 h-6 text-white" />
+                    <currentPlan.icon className="w-5 h-5 text-white" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold">{currentPlan.name}</h3>
+                  <div className="flex-1">
+                    <h3 className="text-headline text-[rgb(var(--apple-label))]">
+                      {currentPlan.name}
+                    </h3>
                     {currentPlan.popular && (
-                      <Badge className="bg-gradient-to-r from-rose-500 to-pink-600 text-white border-0 text-xs">
+                      <Badge className="mt-1 bg-[rgb(var(--apple-pink))] text-white border-0 text-caption-1">
                         <Star className="w-3 h-3 mr-1" />
                         Popular
                       </Badge>
                     )}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-200 bg-clip-text text-transparent">
+                    <span className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
                       {currentPlan.price}
                     </span>
-                    <span className="text-muted-foreground text-sm">
+                    <span className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                       {currentPlan.period}
                     </span>
                   </div>
                   {getMonthlyEquivalent(currentPlan) && (
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
                       {getMonthlyEquivalent(currentPlan)}
                     </div>
                   )}
-                  <div className="flex flex-wrap gap-1 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {currentPlan.examFormats.map((format) => (
-                      <Badge key={format} variant="outline" className="text-xs">
+                      <Badge
+                        key={format}
+                        variant="outline"
+                        className="text-caption-1 border-[rgb(var(--apple-gray-3))]"
+                      >
                         {format}
                       </Badge>
                     ))}
@@ -548,25 +551,27 @@ export default function BillingPage() {
             </Card>
 
             {/* Status Card */}
-            <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/90 dark:border dark:border-slate-600/20">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-                    <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <Card className="border-[rgb(var(--apple-gray-4))] bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow apple-transition">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[rgb(var(--apple-blue)/0.15)]">
+                    <Shield className="w-5 h-5 text-[rgb(var(--apple-blue))]" />
                   </div>
-                  <h4 className="font-semibold text-lg">Status</h4>
+                  <h4 className="text-headline text-[rgb(var(--apple-label))]">
+                    Status
+                  </h4>
                 </div>
 
                 {subscription && (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                         Situação:
                       </span>
                       <Badge
                         className={`${getStatusColor(
                           subscription.status
-                        )} border text-sm font-medium`}
+                        )} border text-caption-1 font-medium`}
                       >
                         {subscription.status === "active"
                           ? "Ativo"
@@ -576,10 +581,10 @@ export default function BillingPage() {
 
                     {subscription.currentPeriodEnd && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                           Próxima cobrança:
                         </span>
-                        <span className="text-sm font-medium">
+                        <span className="text-subhead font-medium text-[rgb(var(--apple-label))]">
                           {new Date(
                             subscription.currentPeriodEnd
                           ).toLocaleDateString("pt-BR")}
@@ -589,9 +594,9 @@ export default function BillingPage() {
 
                     {subscription.cancelAtPeriodEnd &&
                       subscription.currentPeriodEnd && (
-                        <Alert className="border-amber-200 bg-amber-50 dark:border-amber-700/50 dark:bg-amber-950/30 shadow-sm dark:shadow-amber-900/20">
-                          <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                          <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
+                        <Alert className="border-[rgb(var(--apple-orange)/0.3)] bg-[rgb(var(--apple-orange)/0.1)] dark:border-[rgb(var(--apple-orange)/0.4)] dark:bg-[rgb(var(--apple-orange)/0.15)] apple-shadow-sm">
+                          <Calendar className="w-4 h-4 text-[rgb(var(--apple-orange))]" />
+                          <AlertDescription className="text-[rgb(var(--apple-orange))] text-footnote">
                             Cancelamento em{" "}
                             {new Date(
                               subscription.currentPeriodEnd
@@ -605,24 +610,26 @@ export default function BillingPage() {
             </Card>
 
             {/* Usage Card */}
-            <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/90 dark:border dark:border-slate-600/20 md:col-span-2 lg:col-span-1">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900">
-                    <TrendingUp className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+            <Card className="border-[rgb(var(--apple-gray-4))] bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow apple-transition md:col-span-2 lg:col-span-1">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[rgb(var(--apple-blue)/0.15)]">
+                    <TrendingUp className="w-5 h-5 text-[rgb(var(--apple-blue))]" />
                   </div>
-                  <h4 className="font-semibold text-lg">Uso do Plano</h4>
+                  <h4 className="text-headline text-[rgb(var(--apple-label))]">
+                    Uso do Plano
+                  </h4>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                         Provas este período
                       </span>
-                      <span className="text-lg font-bold">
+                      <span className="text-title-3 font-semibold text-[rgb(var(--apple-label))]">
                         {subscription?.usage?.examsThisPeriod || 0}
-                        <span className="text-muted-foreground font-normal">
+                        <span className="text-subhead text-[rgb(var(--apple-secondary-label))] font-normal">
                           /
                           {currentPlan.maxExams === -1
                             ? "∞"
@@ -631,9 +638,9 @@ export default function BillingPage() {
                       </span>
                     </div>
                     {currentPlan.maxExams !== -1 && (
-                      <div className="space-y-1">
-                        <Progress value={usagePercentage} className="h-3" />
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                      <div className="space-y-2">
+                        <Progress value={usagePercentage} className="h-2" />
+                        <div className="flex justify-between text-caption-2 text-[rgb(var(--apple-tertiary-label))]">
                           <span>0</span>
                           <span>{Math.round(usagePercentage)}% usado</span>
                           <span>{currentPlan.maxExams}</span>
@@ -650,30 +657,30 @@ export default function BillingPage() {
 
         {subscription?.plan == "trial" && (
           <>
-            <div className="flex flex-col items-center space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+            <div className="flex flex-col items-center space-y-5">
+              <div className="text-center space-y-2">
+                <h2 className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
                   Escolha seu Plano
                 </h2>
-                <p className="text-muted-foreground">
+                <p className="text-body text-[rgb(var(--apple-secondary-label))]">
                   Selecione o período que melhor se adapta às suas necessidades
                 </p>
               </div>
 
-              <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800/60 dark:border dark:border-slate-700/50 rounded-xl p-1 shadow-inner dark:shadow-slate-900/20">
+              <div className="inline-flex items-center bg-[rgb(var(--apple-gray-6))] dark:bg-[rgb(var(--apple-gray-5))] rounded-xl p-1 apple-shadow-sm">
                 {PERIOD_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setSelectedPeriod(option.value)}
-                    className={`relative px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                    className={`relative px-4 py-2 rounded-lg text-subhead font-medium apple-transition-fast flex items-center gap-2 ${
                       selectedPeriod === option.value
-                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm dark:shadow-slate-900/40"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                        ? "bg-[rgb(var(--apple-secondary-grouped-background))] text-[rgb(var(--apple-label))] apple-shadow-sm"
+                        : "text-[rgb(var(--apple-secondary-label))] hover:text-[rgb(var(--apple-label))] hover:bg-[rgb(var(--apple-gray-5)/0.5)] dark:hover:bg-[rgb(var(--apple-gray-4)/0.5)]"
                     }`}
                   >
                     {option.label}
                     {option.savings && (
-                      <span className="px-2 py-0.5 text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 rounded-full">
+                      <span className="px-2 py-0.5 text-caption-2 font-semibold bg-[rgb(var(--apple-green)/0.15)] text-[rgb(var(--apple-green))] rounded-full">
                         {option.savings}
                       </span>
                     )}
@@ -683,34 +690,34 @@ export default function BillingPage() {
             </div>
 
             {/* Pricing Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
               {/* Gratis Card */}
-              <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40">
-                <CardHeader className="pb-4 pt-8">
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg">
-                      <Clock className="w-8 h-8 text-white" />
+              <Card className="relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow">
+                <CardHeader className="pb-3 pt-6">
+                  <div className="text-center space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center apple-shadow">
+                      <Clock className="w-7 h-7 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
+                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
                       Gratis
                     </CardTitle>
-                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
                       Grátis
                     </div>
-                    <div className="text-sm text-muted-foreground font-medium">
+                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                       Para começar
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
-                  <ul className="space-y-4 mb-8 flex-1">
+                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                  <ul className="space-y-3 mb-6 flex-1">
                     {GRATIS_PLAN.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
-                          <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                      <li key={index} className="flex items-start gap-2.5">
+                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
                         </div>
-                        <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                        <span className="text-subhead text-[rgb(var(--apple-label))]">
                           {feature}
                         </span>
                       </li>
@@ -718,10 +725,10 @@ export default function BillingPage() {
                   </ul>
 
                   <Button
-                    className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
+                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
                       currentPlan.id === "gratis"
-                        ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
-                        : "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl"
+                        ? "bg-[rgb(var(--apple-teal)/0.1)] text-[rgb(var(--apple-teal))] hover:bg-[rgb(var(--apple-teal)/0.15)] border border-[rgb(var(--apple-teal)/0.3)]"
+                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
                     }`}
                     onClick={() => handleSubscribe(GRATIS_PLAN)}
                     disabled={
@@ -747,66 +754,66 @@ export default function BillingPage() {
 
               {/* Pro Card */}
               <Card
-                className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40 ${
+                className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
                   currentProPlan.savings && currentProPlan.id !== "pro-mensal"
-                    ? "shadow-2xl ring-2 ring-green-500/30 border-green-200 dark:border-green-600/60 dark:ring-green-400/40 transform scale-105"
+                    ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
                     : ""
                 } ${
                   currentPlan.id === currentProPlan.id
-                    ? "ring-2 ring-teal-500/40 border-teal-200 dark:border-teal-600/60 dark:ring-teal-400/50"
+                    ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
                     : ""
                 }`}
               >
                 {currentProPlan.savings &&
                   currentProPlan.id !== "pro-mensal" && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg dark:shadow-green-900/40 whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                      <div className="bg-[rgb(var(--apple-green))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
                         {currentProPlan.savings}
                       </div>
                     </div>
                   )}
 
                 {currentPlan.id === currentProPlan.id && (
-                  <div className="absolute -top-3 right-4 z-20">
-                    <Badge className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white border-0 shadow-lg">
-                      <Check className="w-4 h-4 mr-1" />
+                  <div className="absolute -top-2.5 right-4 z-20">
+                    <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
+                      <Check className="w-3.5 h-3.5 mr-1" />
                       Atual
                     </Badge>
                   </div>
                 )}
 
-                <CardHeader className="pb-4 pt-8">
-                  <div className="text-center mb-6">
+                <CardHeader className="pb-3 pt-6">
+                  <div className="text-center space-y-3">
                     <div
-                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center shadow-lg`}
+                      className={`w-14 h-14 mx-auto rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center apple-shadow`}
                     >
-                      <currentProPlan.icon className="w-8 h-8 text-white" />
+                      <currentProPlan.icon className="w-7 h-7 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
+                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
                       {currentProPlan.name}
                     </CardTitle>
-                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
                       {currentProPlan.price}
                     </div>
-                    <div className="text-sm text-muted-foreground font-medium">
+                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                       {currentProPlan.period}
                     </div>
                     {getMonthlyEquivalent(currentProPlan) && (
-                      <div className="text-sm text-muted-foreground mt-1 font-medium">
+                      <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
                         {getMonthlyEquivalent(currentProPlan)}
                       </div>
                     )}
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
-                  <ul className="space-y-4 mb-8 flex-1">
+                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                  <ul className="space-y-3 mb-6 flex-1">
                     {currentProPlan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
-                          <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                      <li key={index} className="flex items-start gap-2.5">
+                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
                         </div>
-                        <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                        <span className="text-subhead text-[rgb(var(--apple-label))]">
                           {feature}
                         </span>
                       </li>
@@ -814,15 +821,13 @@ export default function BillingPage() {
                   </ul>
 
                   <Button
-                    className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
+                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
                       currentPlan.id === currentProPlan.id
-                        ? "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-700"
+                        ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
                         : currentProPlan.savings &&
                           currentProPlan.id !== "pro-mensal"
-                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
-                        : "bg-gradient-to-r " +
-                          currentProPlan.gradient +
-                          " hover:shadow-lg text-white"
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white apple-shadow"
+                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
                     }`}
                     onClick={() => handleSubscribe(currentProPlan)}
                     disabled={
@@ -848,32 +853,32 @@ export default function BillingPage() {
               </Card>
 
               {/* Personalizado Card */}
-              <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 shadow-lg dark:shadow-slate-900/40">
-                <CardHeader className="pb-4 pt-8">
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-                      <GraduationCap className="w-8 h-8 text-white" />
+              <Card className="relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow">
+                <CardHeader className="pb-3 pt-6">
+                  <div className="text-center space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center apple-shadow">
+                      <GraduationCap className="w-7 h-7 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
+                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
                       Personalizado
                     </CardTitle>
-                    <div className="text-4xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
                       Sob consulta
                     </div>
-                    <div className="text-sm text-muted-foreground font-medium">
+                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                       Para instituições
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
-                  <ul className="space-y-4 mb-8 flex-1">
+                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                  <ul className="space-y-3 mb-6 flex-1">
                     {PERSONALIZADO_PLAN.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <div className="p-1.5 rounded-full bg-teal-100 dark:bg-teal-900 mt-0.5 flex-shrink-0">
-                          <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                      <li key={index} className="flex items-start gap-2.5">
+                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
                         </div>
-                        <span className="leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                        <span className="text-subhead text-[rgb(var(--apple-label))]">
                           {feature}
                         </span>
                       </li>
@@ -881,7 +886,7 @@ export default function BillingPage() {
                   </ul>
 
                   <Button
-                    className="w-full h-12 font-semibold transition-all duration-300 mt-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl rounded-xl"
+                    className="w-full h-11 font-semibold apple-transition mt-auto bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow rounded-xl text-subhead"
                     onClick={() => handleSubscribe(PERSONALIZADO_PLAN)}
                     disabled={processingPlan === "personalizado"}
                   >
@@ -907,25 +912,25 @@ export default function BillingPage() {
           subscription.plan !== "trial" &&
           subscription.plan !== "semi-annual" &&
           subscription.plan !== "admin" && (
-            <Card className="border rounded-lg shadow-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 dark:shadow-slate-900/40">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg text-slate-900 dark:text-slate-100">
-                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                    <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+            <Card className="border-[rgb(var(--apple-gray-4))] rounded-2xl apple-shadow bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))]">
+              <CardHeader className="space-y-2">
+                <CardTitle className="flex items-center gap-3 text-headline text-[rgb(var(--apple-label))]">
+                  <div className="p-2 rounded-lg bg-[rgb(var(--apple-blue)/0.15)]">
+                    <Shield className="w-4 h-4 text-[rgb(var(--apple-blue))]" />
                   </div>
                   Gerenciar Assinatura
                 </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400">
+                <CardDescription className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                   Controle sua assinatura e histórico de pagamentos
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="outline"
                     onClick={handleCustomerPortal}
                     disabled={redirectingToPortal}
-                    className="flex-1"
+                    className="flex-1 h-11 text-subhead font-medium border-[rgb(var(--apple-blue)/0.3)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.1)] hover:border-[rgb(var(--apple-blue)/0.5)]"
                   >
                     {redirectingToPortal ? (
                       <div className="flex items-center gap-2">
@@ -944,7 +949,7 @@ export default function BillingPage() {
                     variant="destructive"
                     onClick={showCancelConfirmation}
                     disabled={subscription.cancelAtPeriodEnd}
-                    className="flex-1"
+                    className="flex-1 h-11 text-subhead font-medium"
                   >
                     {subscription.cancelAtPeriodEnd
                       ? "Cancelamento Agendado"
@@ -957,25 +962,25 @@ export default function BillingPage() {
 
         {/* Confirmation Modal */}
         <AlertDialog open={showCancelModal} onOpenChange={handleModalClose}>
-          <AlertDialogContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600/40 dark:shadow-slate-900/60">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
-                <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <AlertDialogContent className="bg-[rgb(var(--apple-secondary-grouped-background))] border-[rgb(var(--apple-gray-4))] apple-shadow-lg">
+            <AlertDialogHeader className="space-y-3">
+              <AlertDialogTitle className="flex items-center gap-2 text-title-3 font-semibold text-[rgb(var(--apple-label))]">
+                <Shield className="w-5 h-5 text-[rgb(var(--apple-red))]" />
                 {isTrialDowngrade
                   ? "Voltar ao Plano Trial"
                   : "Cancelar Assinatura"}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-base text-slate-600 dark:text-slate-400">
+              <AlertDialogDescription className="text-body text-[rgb(var(--apple-secondary-label))] leading-relaxed">
                 {isTrialDowngrade ? (
                   <>
                     Você tem certeza que deseja voltar ao plano Grátis? Sua
                     assinatura atual será cancelada.
                     <br />
                     <br />
-                    <strong className="text-slate-900 dark:text-slate-100">
+                    <strong className="text-headline text-[rgb(var(--apple-label))]">
                       O que acontecerá:
                     </strong>
-                    <ul className="mt-2 list-disc list-inside text-sm text-muted-foreground">
+                    <ul className="mt-3 list-disc list-inside text-subhead text-[rgb(var(--apple-secondary-label))] space-y-1.5">
                       <li>
                         Sua assinatura atual será cancelada ao final do período
                       </li>
@@ -1002,10 +1007,10 @@ export default function BillingPage() {
                     ação não pode ser desfeita.
                     <br />
                     <br />
-                    <strong className="text-slate-900 dark:text-slate-100">
+                    <strong className="text-headline text-[rgb(var(--apple-label))]">
                       O que acontecerá:
                     </strong>
-                    <ul className="mt-2 list-disc list-inside text-sm text-muted-foreground">
+                    <ul className="mt-3 list-disc list-inside text-subhead text-[rgb(var(--apple-secondary-label))] space-y-1.5">
                       <li>
                         Sua assinatura será cancelada ao final do período atual
                       </li>
@@ -1027,17 +1032,17 @@ export default function BillingPage() {
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="gap-2">
               <AlertDialogCancel
                 disabled={cancellingSubscription}
-                className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="bg-[rgb(var(--apple-secondary-grouped-background))] text-[rgb(var(--apple-label))] border-[rgb(var(--apple-gray-4))] hover:bg-[rgb(var(--apple-gray-6))] h-11 text-subhead font-medium"
               >
                 {isTrialDowngrade ? "Manter Plano Atual" : "Manter Assinatura"}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleCancelSubscription}
                 disabled={cancellingSubscription}
-                className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white"
+                className="bg-[rgb(var(--apple-red))] hover:bg-[rgb(var(--apple-red)/0.9)] text-white h-11 text-subhead font-medium"
               >
                 {cancellingSubscription ? (
                   <div className="flex items-center gap-2">

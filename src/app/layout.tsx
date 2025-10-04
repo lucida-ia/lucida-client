@@ -28,7 +28,10 @@ export default function RootLayout({
         <Analytics />
         <SpeedInsights />
         <GoogleTagManager gtmId="GTM-NWBZ58SG" />
-        <body className={inter.className} suppressHydrationWarning>
+        <body
+          className={`${inter.className} antialiased`}
+          suppressHydrationWarning
+        >
           <ThemeProvider attribute="class" enableSystem>
             <TooltipProvider>
               <div className="flex min-h-screen flex-col">

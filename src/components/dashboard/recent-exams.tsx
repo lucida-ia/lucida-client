@@ -31,9 +31,6 @@ import { ptBR } from "date-fns/locale";
 import { DBExam } from "@/types/exam";
 import axios from "axios";
 import { getImpersonateUserId } from "@/lib/utils";
-import { TooltipContent } from "@radix-ui/react-tooltip";
-import { TooltipTrigger } from "@radix-ui/react-tooltip";
-import { Tooltip } from "@radix-ui/react-tooltip";
 import { ExamSecurityConfigModal } from "../exam/exam-security-config-modal";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -123,7 +120,7 @@ export function RecentExams({ onExamDeleted, userData }: RecentExamsProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-zinc-900/20 dark:border-zinc-700 dark:bg-zinc-900/90">
+    <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-apple-shadow dark:border-apple-gray-4 dark:bg-apple-secondary-grouped-background">
       <CardHeader>
         <CardTitle>Provas Recentes</CardTitle>
         <CardDescription>
@@ -172,88 +169,73 @@ export function RecentExams({ onExamDeleted, userData }: RecentExamsProps) {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() =>
-                                  router.push(`/dashboard/exams/${exam?._id}`)
-                                }
-                                disabled={shouldDisableActions}
-                              >
-                                <FileText className="h-4 w-4" />
-                                <span className="sr-only">Visualizar</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {shouldDisableActions
+                          <Button
+                            variant="tinted"
+                            size="icon"
+                            onClick={() =>
+                              router.push(`/dashboard/exams/${exam?._id}`)
+                            }
+                            disabled={shouldDisableActions}
+                            title={
+                              shouldDisableActions
                                 ? "Upgrade seu plano para acessar"
-                                : "Visualizar Prova"}
-                            </TooltipContent>
-                          </Tooltip>
+                                : "Visualizar Prova"
+                            }
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span className="sr-only">Visualizar</span>
+                          </Button>
 
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleDownloadExam(exam)}
-                                disabled={
-                                  downloadingExamId === exam._id ||
-                                  shouldDisableActions
-                                }
-                              >
-                                <Download className="h-4 w-4" />
-                                <span className="sr-only">Download</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {shouldDisableActions
+                          <Button
+                            variant="tinted"
+                            size="icon"
+                            onClick={() => handleDownloadExam(exam)}
+                            disabled={
+                              downloadingExamId === exam._id ||
+                              shouldDisableActions
+                            }
+                            title={
+                              shouldDisableActions
                                 ? "Upgrade seu plano para acessar"
                                 : downloadingExamId === exam._id
                                 ? "Baixando..."
-                                : "Baixar Prova"}
-                            </TooltipContent>
-                          </Tooltip>
+                                : "Baixar Prova"
+                            }
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download</span>
+                          </Button>
 
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setShareModalExamId(exam._id)}
-                                disabled={shouldDisableActions}
-                              >
-                                <Share2 className="h-4 w-4" />
-                                <span className="sr-only">Compartilhar</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {shouldDisableActions
+                          <Button
+                            variant="tinted"
+                            size="icon"
+                            onClick={() => setShareModalExamId(exam._id)}
+                            disabled={shouldDisableActions}
+                            title={
+                              shouldDisableActions
                                 ? "Upgrade seu plano para acessar"
-                                : "Compartilhar Prova"}
-                            </TooltipContent>
-                          </Tooltip>
+                                : "Compartilhar Prova"
+                            }
+                          >
+                            <Share2 className="h-4 w-4" />
+                            <span className="sr-only">Compartilhar</span>
+                          </Button>
 
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleDeleteExam(exam?._id)}
-                                disabled={shouldDisableActions}
-                              >
-                                <Trash className="h-4 w-4 text-red-500" />
-                                <span className="sr-only">Excluir</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {shouldDisableActions
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDeleteExam(exam?._id)}
+                            disabled={shouldDisableActions}
+                            className="hover:bg-apple-red/90"
+                            title={
+                              shouldDisableActions
                                 ? "Upgrade seu plano para acessar"
-                                : "Excluir Prova"}
-                            </TooltipContent>
-                          </Tooltip>
+                                : "Excluir Prova"
+                            }
+                          >
+                            <Trash className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -265,8 +247,8 @@ export function RecentExams({ onExamDeleted, userData }: RecentExamsProps) {
             {/* Mobile Card View */}
             <div className="block md:hidden space-y-2">
               {exams.map((exam) => (
-                <Card key={exam._id} className="border shadow-sm">
-                  <CardContent className="p-3">
+                <Card key={exam._id}>
+                  <CardContent className="p-4">
                     <div className="flex justify-between items-center">
                       <div className="flex-1 min-w-0 mr-3">
                         <h4 className="font-medium text-sm truncate">
@@ -276,92 +258,76 @@ export function RecentExams({ onExamDeleted, userData }: RecentExamsProps) {
 
                       {/* Actions */}
                       <div className="flex gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() =>
-                                router.push(`/dashboard/exams/${exam?._id}`)
-                              }
-                              disabled={shouldDisableActions}
-                            >
-                              <FileText className="h-3.5 w-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {shouldDisableActions
+                        <Button
+                          variant="tinted"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() =>
+                            router.push(`/dashboard/exams/${exam?._id}`)
+                          }
+                          disabled={shouldDisableActions}
+                          title={
+                            shouldDisableActions
                               ? "Upgrade seu plano para acessar"
-                              : "Visualizar"}
-                          </TooltipContent>
-                        </Tooltip>
+                              : "Visualizar"
+                          }
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                        </Button>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleDownloadExam(exam)}
-                              disabled={
-                                downloadingExamId === exam._id ||
-                                shouldDisableActions
-                              }
-                            >
-                              {downloadingExamId === exam._id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Download className="h-3.5 w-3.5" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {shouldDisableActions
+                        <Button
+                          variant="tinted"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleDownloadExam(exam)}
+                          disabled={
+                            downloadingExamId === exam._id ||
+                            shouldDisableActions
+                          }
+                          title={
+                            shouldDisableActions
                               ? "Upgrade seu plano para acessar"
                               : downloadingExamId === exam._id
                               ? "Baixando..."
-                              : "Baixar"}
-                          </TooltipContent>
-                        </Tooltip>
+                              : "Baixar"
+                          }
+                        >
+                          {downloadingExamId === exam._id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Download className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => setShareModalExamId(exam._id)}
-                              disabled={shouldDisableActions}
-                            >
-                              <Share2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {shouldDisableActions
+                        <Button
+                          variant="tinted"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setShareModalExamId(exam._id)}
+                          disabled={shouldDisableActions}
+                          title={
+                            shouldDisableActions
                               ? "Upgrade seu plano para acessar"
-                              : "Compartilhar"}
-                          </TooltipContent>
-                        </Tooltip>
+                              : "Compartilhar"
+                          }
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </Button>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleDeleteExam(exam?._id)}
-                              disabled={shouldDisableActions}
-                            >
-                              <Trash className="h-3.5 w-3.5 text-red-500" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {shouldDisableActions
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleDeleteExam(exam?._id)}
+                          disabled={shouldDisableActions}
+                          title={
+                            shouldDisableActions
                               ? "Upgrade seu plano para acessar"
-                              : "Excluir"}
-                          </TooltipContent>
-                        </Tooltip>
+                              : "Excluir"
+                          }
+                        >
+                          <Trash className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

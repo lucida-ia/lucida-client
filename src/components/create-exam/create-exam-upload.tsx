@@ -28,7 +28,8 @@ const API_URL = "https://lucida-api-production.up.railway.app";
 
 // YouTube URL validation function
 const isValidYouTubeUrl = (url: string): boolean => {
-  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[\w-]+(&[\w=]*)?$/;
+  const youtubeRegex =
+    /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[\w-]+(&[\w=]*)?$/;
   return youtubeRegex.test(url);
 };
 
@@ -46,7 +47,11 @@ interface CreateExamUploadProps {
   uploadedFiles: File[];
   youtubeUrls?: string[];
   youtubeVideoData?: Record<string, { title?: string; videoId?: string }>;
-  onFilesUploaded: (files: File[], youtubeUrls?: string[], youtubeVideoData?: Record<string, { title?: string; videoId?: string }>) => void;
+  onFilesUploaded: (
+    files: File[],
+    youtubeUrls?: string[],
+    youtubeVideoData?: Record<string, { title?: string; videoId?: string }>
+  ) => void;
   shouldDisableActions?: boolean;
 }
 
@@ -62,14 +67,34 @@ export function CreateExamUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [youtubeUrlList, setYoutubeUrlList] = useState<string[]>(youtubeUrls);
   const [newYoutubeUrl, setNewYoutubeUrl] = useState("");
-  const [youtubeTokens, setYoutubeTokens] = useState<Record<string, { tokens: number; loading: boolean; error?: string; title?: string; videoId?: string }>>(() => {
-    const initialData: Record<string, { tokens: number; loading: boolean; error?: string; title?: string; videoId?: string }> = {};
-    Object.keys(youtubeVideoData).forEach(url => {
+  const [youtubeTokens, setYoutubeTokens] = useState<
+    Record<
+      string,
+      {
+        tokens: number;
+        loading: boolean;
+        error?: string;
+        title?: string;
+        videoId?: string;
+      }
+    >
+  >(() => {
+    const initialData: Record<
+      string,
+      {
+        tokens: number;
+        loading: boolean;
+        error?: string;
+        title?: string;
+        videoId?: string;
+      }
+    > = {};
+    Object.keys(youtubeVideoData).forEach((url) => {
       initialData[url] = {
         tokens: 0,
         loading: false,
         title: youtubeVideoData[url]?.title,
-        videoId: youtubeVideoData[url]?.videoId
+        videoId: youtubeVideoData[url]?.videoId,
       };
     });
     return initialData;
@@ -85,7 +110,7 @@ export function CreateExamUpload({
 
   // Fetch transcripts for existing YouTube URLs
   React.useEffect(() => {
-    youtubeUrls.forEach(url => {
+    youtubeUrls.forEach((url) => {
       if (!youtubeTokens[url]) {
         fetchYoutubeTranscript(url);
       }
@@ -193,17 +218,14 @@ export function CreateExamUpload({
     const estimateTokens = (file: File) => Math.ceil(file.size / 4);
     const tokenFor = (file: File) =>
       fileTokens[file.name] ?? estimateTokens(file);
-    
-    const fileTokensUsed = files.reduce(
-      (sum, file) => sum + tokenFor(file),
-      0
-    );
-    
+
+    const fileTokensUsed = files.reduce((sum, file) => sum + tokenFor(file), 0);
+
     const youtubeTokensUsed = youtubeUrlList.reduce(
       (sum, url) => sum + (youtubeTokens[url]?.tokens || 0),
       0
     );
-    
+
     const totalTokensUsed = fileTokensUsed + youtubeTokensUsed;
     const usagePercentage = Math.round(
       (totalTokensUsed / TOTAL_TOKEN_LIMIT) * 100
@@ -435,55 +457,60 @@ export function CreateExamUpload({
     try {
       setYoutubeTokens((prev) => ({
         ...prev,
-        [url]: { tokens: 0, loading: true }
+        [url]: { tokens: 0, loading: true },
       }));
 
-      const response = await fetch(`${API_URL}/ai-ops/fetch-youtube-transcript`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url }),
-      });
+      const response = await fetch(
+        `${API_URL}/ai-ops/fetch-youtube-transcript`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url }),
+        }
+      );
 
       const data = await response.json();
 
       if (data.success) {
         setYoutubeTokens((prev) => ({
           ...prev,
-          [url]: { 
-            tokens: data.tokens, 
-            loading: false, 
+          [url]: {
+            tokens: data.tokens,
+            loading: false,
             title: data.title,
-            videoId: data.videoId 
-          }
+            videoId: data.videoId,
+          },
         }));
       } else {
         setYoutubeTokens((prev) => ({
           ...prev,
-          [url]: { 
-            tokens: 0, 
-            loading: false, 
+          [url]: {
+            tokens: 0,
+            loading: false,
             error: data.error,
             title: data.title,
-            videoId: data.videoId
-          }
+            videoId: data.videoId,
+          },
         }));
         toast({
           variant: "destructive",
           title: "Erro ao obter transcrição",
-          description: data.error || "Não foi possível obter a transcrição do vídeo.",
+          description:
+            data.error || "Não foi possível obter a transcrição do vídeo.",
         });
       }
     } catch (error) {
       setYoutubeTokens((prev) => ({
         ...prev,
-        [url]: { tokens: 0, loading: false, error: "Erro de rede" }
+        [url]: { tokens: 0, loading: false, error: "Erro de rede" },
       }));
       toast({
         variant: "destructive",
         title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor para obter a transcrição.",
+        description:
+          "Não foi possível conectar ao servidor para obter a transcrição.",
       });
     }
   };
@@ -519,15 +546,17 @@ export function CreateExamUpload({
     const urlToAdd = newYoutubeUrl;
     setYoutubeUrlList((prev) => [...prev, urlToAdd]);
     setNewYoutubeUrl("");
-    
+
     // Fetch transcript immediately after adding
     await fetchYoutubeTranscript(urlToAdd);
   };
 
   const removeYoutubeUrl = (indexToRemove: number) => {
     const urlToRemove = youtubeUrlList[indexToRemove];
-    setYoutubeUrlList((prev) => prev.filter((_, index) => index !== indexToRemove));
-    
+    setYoutubeUrlList((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
+
     // Clean up token data for removed URL
     if (urlToRemove) {
       setYoutubeTokens((prev) => {
@@ -562,11 +591,11 @@ export function CreateExamUpload({
 
     // Extract video data for passing to parent
     const videoData: Record<string, { title?: string; videoId?: string }> = {};
-    youtubeUrlList.forEach(url => {
+    youtubeUrlList.forEach((url) => {
       if (youtubeTokens[url]?.title || youtubeTokens[url]?.videoId) {
         videoData[url] = {
           title: youtubeTokens[url].title,
-          videoId: youtubeTokens[url].videoId
+          videoId: youtubeTokens[url].videoId,
         };
       }
     });
@@ -636,226 +665,290 @@ export function CreateExamUpload({
   }
 
   return (
-    <div className="space-y-6">
-      <UploadArea
-        isDragging={isDragging}
-        handleDragOver={handleDragOver}
-        handleDragLeave={handleDragLeave}
-        handleDrop={handleDrop}
-        handleFileInput={handleFileInput}
-        disabled={shouldDisableActions}
-      />
+    <div className="space-y-8">
+      {/* File Upload Section */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+            <HardDrive className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base md:text-lg font-semibold tracking-tight">
+              Adicionar Material de Estudo
+            </h3>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Envie arquivos PDF, DOC, DOCX ou TXT
+            </p>
+          </div>
+        </div>
 
-      {(files.length > 0 || youtubeUrlList.length > 0) && (
-        <Card>
-          <CardContent className="pt-4 md:pt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                <HardDrive className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <UploadArea
+          isDragging={isDragging}
+          handleDragOver={handleDragOver}
+          handleDragLeave={handleDragLeave}
+          handleDrop={handleDrop}
+          handleFileInput={handleFileInput}
+          disabled={shouldDisableActions}
+        />
+
+        {!shouldDisableActions && subscription?.plan === "trial" && (
+          <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950/50 dark:border-orange-800 rounded-xl">
+            <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+            <AlertDescription className="text-sm text-orange-700 dark:text-orange-400">
+              <strong className="font-semibold">Plano Gratuito:</strong> Você
+              pode enviar apenas 1 material. Faça upgrade para enviar múltiplos
+              materiais e ter acesso completo à plataforma.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-gray-200 dark:border-gray-800" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-4 text-muted-foreground font-medium">
+            ou
+          </span>
+        </div>
+      </div>
+
+      {/* YouTube Section */}
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardContent className="pt-6">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-xl">
+                <Youtube className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-medium">
-                  Material Carregado ({files.length} arquivo{files.length !== 1 ? 's' : ''}{youtubeUrlList.length > 0 ? `, ${youtubeUrlList.length} vídeo${youtubeUrlList.length !== 1 ? 's' : ''}` : ''})
+                <h3 className="text-base md:text-lg font-semibold tracking-tight">
+                  Vídeos do YouTube
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  {files.length > 0 && `${uploadMetrics.totalSizeMB.toFixed(1)} MB`}
-                  {files.length > 0 && youtubeUrlList.length > 0 && ' • '}
-                  {uploadMetrics.usagePercentage}% do limite usado
-                  {uploadMetrics.youtubeTokensUsed > 0 && ` (${uploadMetrics.fileTokensUsed.toLocaleString()} tokens de arquivos + ${uploadMetrics.youtubeTokensUsed.toLocaleString()} tokens do YouTube)`}
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Adicione URLs de vídeos para extrair transcrições
                 </p>
               </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="space-y-2 mb-6">
-              <div className="flex items-center justify-end text-sm">
-                <span
-                  className={`font-medium ${
-                    uploadMetrics.usagePercentage < 60
-                      ? "text-green-600 dark:text-green-400"
-                      : uploadMetrics.usagePercentage < 85
-                      ? "text-yellow-600 dark:text-yellow-400"
-                      : "text-red-600 dark:text-red-400"
-                  }`}
-                >
-                  {uploadMetrics.usagePercentage}%
-                </span>
-              </div>
-              <div className="relative">
-                <div className="h-3 w-full bg-secondary rounded-full">
-                  <div
-                    className={`h-3 rounded-full transition-all ${getProgressColor(
-                      uploadMetrics.usagePercentage
-                    )}`}
-                    style={{ width: `${uploadMetrics.usagePercentage}%` }}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
-
-            <ul className="space-y-2 md:space-y-3">
-              {files.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-md border p-3 gap-3 sm:gap-0 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <File className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium truncate">{file.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(1)} MB • {" • ≈"}
-                        {Math.round(
-                          (fileTokens[file.name] ?? Math.ceil(file.size / 4)) *
-                            0.75
-                        ).toLocaleString()}{" "}
-                        palavras
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeFile(index)}
-                    className="self-end sm:self-center flex-shrink-0 touch-manipulation hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Remover arquivo</span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* YouTube URL Section */}
-      <Card>
-        <CardContent className="pt-4 md:pt-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
-              <Youtube className="h-5 w-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-medium">
-                Vídeos do YouTube
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Adicione URLs de vídeos do YouTube para extrair transcrições
-              </p>
+            <div className="flex gap-3">
+              <Input
+                placeholder="Cole a URL do vídeo do YouTube aqui..."
+                value={newYoutubeUrl}
+                onChange={(e) => setNewYoutubeUrl(e.target.value)}
+                disabled={shouldDisableActions}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    addYoutubeUrl();
+                  }
+                }}
+                className="h-11 rounded-xl border-gray-200 dark:border-gray-800"
+              />
+              <Button
+                onClick={addYoutubeUrl}
+                disabled={shouldDisableActions}
+                size="icon"
+                className="h-11 w-11 rounded-xl"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
             </div>
           </div>
-
-          {/* Add YouTube URL Input */}
-          <div className="flex gap-2 mb-4">
-            <Input
-              placeholder="Cole a URL do vídeo do YouTube aqui..."
-              value={newYoutubeUrl}
-              onChange={(e) => setNewYoutubeUrl(e.target.value)}
-              disabled={shouldDisableActions}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  addYoutubeUrl();
-                }
-              }}
-            />
-            <Button
-              onClick={addYoutubeUrl}
-              disabled={shouldDisableActions}
-              size="icon"
-              variant="outline"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* YouTube URLs List */}
-          {youtubeUrlList.length > 0 && (
-            <ul className="space-y-2 md:space-y-3">
-              {youtubeUrlList.map((url, index) => (
-                <li
-                  key={index}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-md border p-3 gap-3 sm:gap-0 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    {youtubeTokens[url]?.loading ? (
-                      <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 animate-spin" />
-                    ) : youtubeTokens[url]?.error ? (
-                      <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                    ) : (
-                      <Youtube className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium truncate">
-                        {youtubeTokens[url]?.loading ? (
-                          "Carregando..."
-                        ) : youtubeTokens[url]?.title ? (
-                          youtubeTokens[url].title
-                        ) : (
-                          url
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {youtubeTokens[url]?.loading ? (
-                          "Obtendo informações do vídeo..."
-                        ) : youtubeTokens[url]?.error ? (
-                          <span className="text-red-600 dark:text-red-400">
-                            {youtubeTokens[url].error}
-                          </span>
-                        ) : youtubeTokens[url]?.tokens ? (
-                          `≈${Math.round(youtubeTokens[url].tokens * 0.75).toLocaleString()} palavras • ${youtubeTokens[url].tokens.toLocaleString()} tokens`
-                        ) : (
-                          "Vídeo do YouTube"
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeYoutubeUrl(index)}
-                    disabled={shouldDisableActions}
-                    className="self-end sm:self-center flex-shrink-0 touch-manipulation hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Remover URL</span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
         </CardContent>
       </Card>
 
-      {!shouldDisableActions && subscription?.plan === "trial" && (
-        <Alert className="bg-orange-50 border-orange-200 items-start dark:bg-orange-950 dark:border-orange-800">
-          <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
-          <AlertDescription className="text-orange-600 dark:text-orange-400">
-            <strong>Sem plano ativo:</strong> Você pode enviar apenas 1
-            material. Faça upgrade para enviar múltiplos materiais e ter acesso
-            completo à plataforma.
-          </AlertDescription>
-        </Alert>
+      {/* Uploaded Materials Summary */}
+      {(files.length > 0 || youtubeUrlList.length > 0) && (
+        <>
+          <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+            <CardContent className="pt-6">
+              <div className="space-y-6">
+                {/* Summary Header */}
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-xl">
+                    <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base md:text-lg font-semibold tracking-tight">
+                      Materiais Adicionados
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {files.length + youtubeUrlList.length} item
+                      {files.length + youtubeUrlList.length !== 1
+                        ? "ns"
+                        : ""}{" "}
+                      {files.length > 0 &&
+                        `• ${uploadMetrics.totalSizeMB.toFixed(1)} MB`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-3 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Uso do limite de conteúdo
+                    </span>
+                    <span
+                      className={`text-sm font-semibold ${
+                        uploadMetrics.usagePercentage < 60
+                          ? "text-green-600 dark:text-green-400"
+                          : uploadMetrics.usagePercentage < 85
+                          ? "text-yellow-600 dark:text-yellow-400"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {uploadMetrics.usagePercentage}%
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <div className="h-2 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-500 ease-out ${getProgressColor(
+                          uploadMetrics.usagePercentage
+                        )}`}
+                        style={{ width: `${uploadMetrics.usagePercentage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {uploadMetrics.totalTokensUsed.toLocaleString()} de{" "}
+                    {TOTAL_TOKEN_LIMIT.toLocaleString()} tokens utilizados
+                  </p>
+                </div>
+
+                {/* Files List */}
+                {files.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-muted-foreground">
+                      Arquivos ({files.length})
+                    </h4>
+                    <ul className="space-y-2">
+                      {files.map((file, index) => (
+                        <li
+                          key={index}
+                          className="group flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-gray-200 dark:border-gray-800 p-4 gap-3 sm:gap-0 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all duration-200"
+                        >
+                          <div className="flex items-center space-x-3 min-w-0 flex-1">
+                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg flex-shrink-0">
+                              <File className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-sm truncate">
+                                {file.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {(file.size / 1024 / 1024).toFixed(1)} MB • ≈
+                                {Math.round(
+                                  (fileTokens[file.name] ??
+                                    Math.ceil(file.size / 4)) * 0.75
+                                ).toLocaleString()}{" "}
+                                palavras
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFile(index)}
+                            className="self-end sm:self-center flex-shrink-0 h-9 w-9 rounded-lg hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remover arquivo</span>
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* YouTube Videos List */}
+                {youtubeUrlList.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-muted-foreground">
+                      Vídeos do YouTube ({youtubeUrlList.length})
+                    </h4>
+                    <ul className="space-y-2">
+                      {youtubeUrlList.map((url, index) => (
+                        <li
+                          key={index}
+                          className="group flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-gray-200 dark:border-gray-800 p-4 gap-3 sm:gap-0 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all duration-200"
+                        >
+                          <div className="flex items-center space-x-3 min-w-0 flex-1">
+                            <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded-lg flex-shrink-0">
+                              {youtubeTokens[url]?.loading ? (
+                                <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400 animate-spin" />
+                              ) : youtubeTokens[url]?.error ? (
+                                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                              ) : (
+                                <Youtube className="h-5 w-5 text-red-600 dark:text-red-400" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-sm truncate">
+                                {youtubeTokens[url]?.loading
+                                  ? "Carregando..."
+                                  : youtubeTokens[url]?.title
+                                  ? youtubeTokens[url].title
+                                  : url}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {youtubeTokens[url]?.loading ? (
+                                  "Obtendo informações do vídeo..."
+                                ) : youtubeTokens[url]?.error ? (
+                                  <span className="text-red-600 dark:text-red-400">
+                                    {youtubeTokens[url].error}
+                                  </span>
+                                ) : youtubeTokens[url]?.tokens ? (
+                                  `≈${Math.round(
+                                    youtubeTokens[url].tokens * 0.75
+                                  ).toLocaleString()} palavras • ${youtubeTokens[
+                                    url
+                                  ].tokens.toLocaleString()} tokens`
+                                ) : (
+                                  "Vídeo do YouTube"
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeYoutubeUrl(index)}
+                            disabled={shouldDisableActions}
+                            className="self-end sm:self-center flex-shrink-0 h-9 w-9 rounded-lg hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remover URL</span>
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
 
-      <Alert className="bg-blue-50 border-blue-200 items-start dark:bg-blue-950 dark:border-blue-800">
+      {/* Info Alert */}
+      <Alert className="bg-blue-50 border-blue-200 items-start dark:bg-blue-950/50 dark:border-blue-800 rounded-xl">
         <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-        <AlertDescription className="text-blue-600 dark:text-blue-400">
+        <AlertDescription className="text-sm text-blue-700 dark:text-blue-400">
           Seu material será usado apenas para gerar questões da prova e não será
           compartilhado ou armazenado permanentemente.
         </AlertDescription>
       </Alert>
 
-      <div className="flex justify-end">
+      {/* Continue Button */}
+      <div className="flex justify-end pt-2">
         <Button
           onClick={handleContinue}
           disabled={shouldDisableActions}
-          className="w-full sm:w-auto touch-manipulation"
+          className="h-11 px-6 rounded-xl font-medium w-full sm:w-auto"
         >
           <span className="hidden sm:inline">
             Continuar para Personalização

@@ -70,7 +70,41 @@ export function NavBar() {
         {/* Auth Button */}
         <div className="flex items-center">
           {isSignedIn ? (
-            <UserButton />
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonTrigger: "shadow-none dark:text-white text-white",
+                  button: "shadow-none",
+                  userButtonPopoverCard:
+                    "bg-[rgb(var(--apple-secondary-grouped-background))] border-[rgb(var(--apple-gray-4))] apple-shadow-lg",
+                  userButtonPopoverActionButton:
+                    "text-[rgb(var(--apple-label))] hover:bg-[rgb(var(--apple-gray-6))] dark:hover:bg-[rgb(var(--apple-gray-5))] apple-transition-fast",
+                  userButtonPopoverActionButtonText: "text-subhead",
+                  userButtonPopoverActionButtonIcon:
+                    "text-[rgb(var(--apple-secondary-label))]",
+                  userButtonPopoverFooter:
+                    "bg-[rgb(var(--apple-secondary-grouped-background))] border-t-[rgb(var(--apple-gray-4))]",
+                  userButtonPopoverFooterAction:
+                    "text-[rgb(var(--apple-secondary-label))] hover:text-[rgb(var(--apple-label))]",
+                  userButtonPopoverMain:
+                    "bg-[rgb(var(--apple-secondary-grouped-background))]",
+                  userButtonPopoverHeader:
+                    "bg-[rgb(var(--apple-secondary-grouped-background))]",
+                  userButtonPopoverHeaderTitle:
+                    "text-[rgb(var(--apple-label))] font-medium",
+                  userButtonPopoverHeaderSubtitle:
+                    "text-[rgb(var(--apple-secondary-label))]",
+                  userButtonPopoverIdentity:
+                    "bg-[rgb(var(--apple-secondary-grouped-background))]",
+                  userButtonPopoverIdentityBox:
+                    "bg-[rgb(var(--apple-secondary-grouped-background))]",
+                  userButtonPopoverIdentityText:
+                    "text-[rgb(var(--apple-label))] font-medium",
+                  userButtonPopoverIdentitySecondaryText:
+                    "text-[rgb(var(--apple-secondary-label))]",
+                },
+              }}
+            />
           ) : (
             <Link href="/sign-in">
               <Button

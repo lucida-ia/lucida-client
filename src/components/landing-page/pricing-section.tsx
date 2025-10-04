@@ -284,7 +284,7 @@ export function PricingSection() {
               >
                 {currentProPlan.hasPromo && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
                       OFERTA ESPECIAL
                     </div>
                   </div>
@@ -293,7 +293,7 @@ export function PricingSection() {
                   currentProPlan.id !== "monthly" &&
                   !currentProPlan.hasPromo && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
                         {currentProPlan.savings}
                       </div>
                     </div>

@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   ArrowRight,
   GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import axios from "axios";
 
@@ -149,7 +150,7 @@ export function CreateExamPreview({
       }
 
       formData.append("config", JSON.stringify(config));
-      
+
       if (youtubeUrls.length > 0) {
         formData.append("youtubeUrls", JSON.stringify(youtubeUrls));
       }
@@ -235,13 +236,13 @@ export function CreateExamPreview({
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "fácil":
-        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
+        return "bg-green-50 text-[#34C759] border-green-200 dark:bg-green-950/30 dark:text-[#32D74B] dark:border-green-800/50 font-semibold";
       case "médio":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800";
+        return "bg-orange-50 text-[#FF9500] border-orange-200 dark:bg-orange-950/30 dark:text-[#FF9F0A] dark:border-orange-800/50 font-semibold";
       case "difícil":
-        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
+        return "bg-red-50 text-[#FF3B30] border-red-200 dark:bg-red-950/30 dark:text-[#FF453A] dark:border-red-800/50 font-semibold";
       case "misto":
-        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800";
+        return "bg-blue-50 text-[#007AFF] border-blue-200 dark:bg-blue-950/30 dark:text-[#0A84FF] dark:border-blue-800/50 font-semibold";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700";
     }
@@ -308,119 +309,146 @@ export function CreateExamPreview({
       {/* Loading Modal */}
       <Dialog open={isGenerating} onOpenChange={() => {}}>
         <DialogContent
-          className="sm:max-w-md [&>button]:hidden"
+          className="sm:max-w-lg [&>button]:hidden border-gray-200 dark:border-gray-800 overflow-hidden"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogTitle className="sr-only">Gerando Prova</DialogTitle>
-          <div className="flex flex-col items-center justify-center py-8 px-4">
-            <div className="relative">
-              <div className="p-4 bg-primary/10 rounded-full mb-6">
-                <Loader2 className="h-8 w-8 text-primary animate-spin" />
-              </div>
-              <div className="absolute -top-1 -right-1">
-                <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 opacity-50"></div>
+
+          <div className="relative flex flex-col items-center justify-center py-12 px-6">
+            {/* Main icon container with glow */}
+            <div className="relative mb-8">
+              {/* Outer glow ring */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 dark:from-blue-500 dark:to-indigo-600 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
+
+              {/* Icon container */}
+              <div className="relative p-6 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 rounded-3xl shadow-2xl border-2 border-white/50 dark:border-gray-700/50">
+                <div className="relative">
+                  <Sparkles className="animate-pulse h-14 w-14 text-[#007AFF] dark:text-[#0A84FF] drop-shadow-[0_0_12px_rgba(0,122,255,0.6)] dark:drop-shadow-[0_0_16px_rgba(10,132,255,0.8)]" />
+                </div>
               </div>
             </div>
-            <div className="text-center space-y-3">
-              <h3 className="text-xl font-semibold">
-                Gerando e Salvando Prova
-              </h3>
-              <p className="text-muted-foreground text-sm max-w-sm">
-                {progressMessage}
-              </p>
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="h-2 w-2 bg-primary rounded-full animate-bounce"></div>
+
+            {/* Text content */}
+            <div className="text-center space-y-4 max-w-md">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                  Gerando e Salvando Prova
+                </h3>
+                <div className="h-1 w-32 mx-auto bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
               </div>
+
+              <div className="p-4 bg-white/60 dark:bg-gray-900/40 rounded-xl border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
+                <p className="text-sm font-medium text-foreground flex items-center justify-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#007AFF] dark:text-[#0A84FF] animate-pulse" />
+                  {progressMessage}
+                </p>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Isso pode levar alguns momentos...
+              </p>
+            </div>
+
+            {/* Progress dots */}
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <div className="h-3 w-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s] shadow-lg"></div>
+              <div className="h-3 w-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s] shadow-lg"></div>
+              <div className="h-3 w-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full animate-bounce shadow-lg"></div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Exam Details Card */}
-      <Card className="hover:border-primary/20 transition-colors">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <FileText className="h-5 w-5 text-primary" />
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <FileText className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">Detalhes da Prova</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                Detalhes da Prova
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
                 Informações gerais sobre a prova que será gerada.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-4 bg-muted/50 rounded-lg border transition-colors">
-            <h4 className="font-semibold text-lg mb-1">{config.title}</h4>
+          <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800">
+            <h4 className="font-semibold text-lg md:text-xl mb-2">
+              {config.title}
+            </h4>
             {config.description && (
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {config.description}
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-center gap-3 p-5 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                <Users className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                   Turma
                 </p>
-                <p className="text-lg font-semibold">{config.class.name}</p>
+                <p className="text-base font-semibold">{config.class.name}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-                <GraduationCap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <div className="flex items-center gap-3 p-5 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                <GraduationCap className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                   Tipo de Prova
                 </p>
-                <Badge variant="secondary" className="font-medium">
+                <p className="text-base font-semibold">
                   {config.questionStyle === "simple"
                     ? "Simples"
                     : config.questionStyle === "enem"
                     ? "Estilo ENEM"
                     : "Estilo ENADE"}
-                </Badge>
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                <Timer className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <div className="flex items-center gap-3 p-5 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                <Timer className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                   Tempo Limite
                 </p>
-                <p className="text-lg font-semibold">
+                <p className="text-base font-semibold">
                   {config.timeLimit} minutos
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                {getDifficultyIcon(config.difficulty)}
+            <div className="flex items-center gap-3 p-5 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                <Target className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                   Dificuldade
                 </p>
                 <Badge
                   className={`${getDifficultyColor(
                     config.difficulty
-                  )} font-medium border`}
+                  )} border-2 px-3 py-1`}
                 >
                   {capitalizeDifficulty(config.difficulty)}
                 </Badge>
@@ -431,51 +459,55 @@ export function CreateExamPreview({
       </Card>
 
       {/* Question Configuration Card */}
-      <Card className="hover:border-primary/20 transition-colors">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Settings className="h-5 w-5 text-primary" />
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <Settings className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
                 Configuração das Questões
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm mt-1">
                 Detalhes sobre os tipos e quantidade de questões.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-              <Hash className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-4 p-6 border-2 border-blue-200 dark:border-blue-800/50 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+            <div className="p-3 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
+              <Hash className="h-7 w-7 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                 Total de Questões
               </p>
-              <p className="text-2xl font-bold">{config.questionCount}</p>
+              <p className="text-3xl font-bold text-foreground">
+                {config.questionCount}
+              </p>
             </div>
-            <Badge variant="secondary" className="px-3 py-1">
+            <Badge className="px-4 py-2 rounded-lg font-semibold bg-[#007AFF] hover:bg-[#0066DD] text-white">
               {config.questionCount} questões
             </Badge>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Tipos de Questões Habilitados</p>
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-muted-foreground">
+              Tipos de Questões Habilitados
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {activeQuestionTypes.map(({ key, label }) => (
                 <div
                   key={key}
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all"
                 >
-                  <div className="p-1 bg-muted rounded">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                     {getQuestionTypeIcon(key)}
                   </div>
-                  <span className="text-sm font-medium">{label}</span>
-                  <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
+                  <span className="text-sm font-semibold flex-1">{label}</span>
+                  <CheckCircle className="h-5 w-5 text-[#34C759] dark:text-[#32D74B]" />
                 </div>
               ))}
             </div>
@@ -483,46 +515,48 @@ export function CreateExamPreview({
 
           {/* Difficulty Distribution - Only shown when "misto" is selected */}
           {config.difficulty === "misto" && config.difficultyDistribution && (
-            <div className="space-y-3">
-              <p className="text-sm font-medium">Distribuição de Dificuldade</p>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex items-center gap-2 p-3 border rounded-lg bg-green-50 dark:bg-green-900/20">
-                  <div className="p-1 bg-green-100 dark:bg-green-800 rounded">
-                    <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <div className="space-y-4">
+              <p className="text-sm font-semibold text-muted-foreground">
+                Distribuição de Dificuldade
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex items-center gap-3 p-4 border-2 border-green-200 dark:border-green-800/50 rounded-xl bg-green-50 dark:bg-green-950/30">
+                  <div className="p-2 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
+                    <div className="w-3 h-3 bg-[#34C759] dark:bg-[#32D74B] rounded-full"></div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-[#34C759] dark:text-[#32D74B] uppercase tracking-wider mb-0.5">
                       Fácil
                     </p>
-                    <p className="text-lg font-bold text-green-900 dark:text-green-200">
+                    <p className="text-2xl font-bold text-foreground">
                       {config.difficultyDistribution.fácil}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                  <div className="p-1 bg-yellow-100 dark:bg-yellow-800 rounded">
-                    <Settings className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <div className="flex items-center gap-3 p-4 border-2 border-orange-200 dark:border-orange-800/50 rounded-xl bg-orange-50 dark:bg-orange-950/30">
+                  <div className="p-2 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
+                    <div className="w-3 h-3 bg-[#FF9500] dark:bg-[#FF9F0A] rounded-full"></div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-[#FF9500] dark:text-[#FF9F0A] uppercase tracking-wider mb-0.5">
                       Médio
                     </p>
-                    <p className="text-lg font-bold text-yellow-900 dark:text-yellow-200">
+                    <p className="text-2xl font-bold text-foreground">
                       {config.difficultyDistribution.médio}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-3 border rounded-lg bg-red-50 dark:bg-red-900/20">
-                  <div className="p-1 bg-red-100 dark:bg-red-800 rounded">
-                    <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <div className="flex items-center gap-3 p-4 border-2 border-red-200 dark:border-red-800/50 rounded-xl bg-red-50 dark:bg-red-950/30">
+                  <div className="p-2 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
+                    <div className="w-3 h-3 bg-[#FF3B30] dark:bg-[#FF453A] rounded-full"></div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-red-800 dark:text-red-300">
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-[#FF3B30] dark:text-[#FF453A] uppercase tracking-wider mb-0.5">
                       Difícil
                     </p>
-                    <p className="text-lg font-bold text-red-900 dark:text-red-200">
+                    <p className="text-2xl font-bold text-foreground">
                       {config.difficultyDistribution.difícil}
                     </p>
                   </div>
@@ -534,15 +568,17 @@ export function CreateExamPreview({
       </Card>
 
       {/* Source Materials Card */}
-      <Card className="hover:border-primary/20 transition-colors">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <FileText className="h-5 w-5 text-primary" />
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <FileCheck className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">Materiais de Origem</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                Materiais de Origem
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
                 Arquivos que serão processados para gerar as questões.
               </CardDescription>
             </div>
@@ -553,18 +589,18 @@ export function CreateExamPreview({
             {files.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all"
               >
-                <div className="p-2 bg-muted rounded-lg">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium">{file.name}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate">{file.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-5 w-5 text-[#34C759] dark:text-[#32D74B] flex-shrink-0" />
               </div>
             ))}
           </div>
@@ -582,13 +618,15 @@ export function CreateExamPreview({
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-lg font-semibold">Vídeos do YouTube</h3>
                 <p className="text-sm text-muted-foreground">
-                  {youtubeUrls.length} vídeo{youtubeUrls.length !== 1 ? 's' : ''} adicionado{youtubeUrls.length !== 1 ? 's' : ''}
+                  {youtubeUrls.length} vídeo
+                  {youtubeUrls.length !== 1 ? "s" : ""} adicionado
+                  {youtubeUrls.length !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -606,7 +644,7 @@ export function CreateExamPreview({
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                     </svg>
                   </div>
                   <div className="flex-1">
@@ -626,41 +664,49 @@ export function CreateExamPreview({
       )}
 
       {/* Generation Card */}
-      <Card className="hover:border-primary/20 transition-colors border-2 border-dashed">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Zap className="h-5 w-5 text-primary" />
+      <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700/50 shadow-lg bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
+              <Zap className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">Gerar e Salvar Prova</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                Gerar e Salvar Prova
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
                 Tudo pronto! Clique no botão para processar os materiais e gerar
                 as questões.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="text-center py-8">
-          <div className="space-y-4">
-            <div className="p-4 bg-primary/5 rounded-full w-fit mx-auto">
-              <Zap className="h-8 w-8 text-primary" />
+        <CardContent className="text-center py-12">
+          <div className="space-y-6">
+            <div className="relative inline-block">
+              <div className="p-6 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 rounded-2xl shadow-lg">
+                <Sparkles className="h-12 w-12 text-[#007AFF] dark:text-[#0A84FF] drop-shadow-[0_0_8px_rgba(0,122,255,0.5)] dark:drop-shadow-[0_0_12px_rgba(10,132,255,0.6)] animate-pulse" />
+              </div>
+              <div className="absolute -top-1 -right-1 h-4 w-4 bg-[#34C759] dark:bg-[#32D74B] rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Pronto para Gerar!</h3>
-              <p className="text-muted-foreground text-sm">
+              <h3 className="text-xl font-bold mb-2 tracking-tight">
+                Pronto para Gerar!
+              </h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
                 Processaremos seus arquivos e criaremos questões personalizadas
+                baseadas no seu conteúdo
               </p>
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-3 pt-0">
+        <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-2">
           <Button
             type="button"
             variant="outline"
             onClick={onBack}
             disabled={isGenerating || shouldDisableActions}
-            className="gap-2 w-full sm:w-auto touch-manipulation"
+            className="h-11 px-6 rounded-xl font-medium gap-2 w-full sm:w-auto"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">Voltar para Personalização</span>
@@ -669,7 +715,7 @@ export function CreateExamPreview({
           <Button
             onClick={() => handleUploadFilesAndGenerateQuestions(files)}
             disabled={isGenerating || shouldDisableActions}
-            className="gap-2 w-full sm:w-auto touch-manipulation"
+            className="h-11 px-6 rounded-xl font-medium gap-2 w-full sm:w-auto"
           >
             {isGenerating ? (
               <>

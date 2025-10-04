@@ -81,19 +81,18 @@ export function PromoDialog({ isTrialUser, isLoading }: PromoDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogPortal>
-        <DialogOverlay className="backdrop-blur-sm bg-black/40 dark:bg-black/60" />
-        <DialogContent className="w-[95vw] mx-auto backdrop-blur-md bg-white/95 dark:bg-gray-900/95 border border-white/20 dark:border-gray-700/30 shadow-2xl rounded-lg dark:shadow-none">
+        <DialogOverlay className="backdrop-blur-sm bg-black/40 dark:bg-apple-gray-6/60" />
+        <DialogContent className="w-[95vw] mx-auto">
           <DialogHeader className="text-center">
-            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-pink-600 dark:from-orange-600 dark:to-pink-700 shadow-lg dark:shadow-none">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-apple-orange apple-shadow">
               <Gift className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
-            <DialogTitle className="text-center text-lg sm:text-xl font-bold leading-tight px-2 sm:px-0 text-gray-900 dark:text-white">
+            <DialogTitle className="text-center text-headline sm:text-title-3 font-bold leading-tight px-2 sm:px-0 text-foreground">
               🎉 Oferta Especial Lucida!
             </DialogTitle>
-            <DialogDescription className="text-center text-sm sm:text-base mt-2 px-2 sm:px-0 leading-relaxed text-gray-600 dark:text-gray-400">
+            <DialogDescription className="text-center text-subhead sm:text-body mt-2 px-2 sm:px-0 leading-relaxed text-muted-foreground">
               Experimente todos os recursos da Lucida <br />
-              pagando só{" "}
-              <strong className="text-orange-600 dark:text-orange-300">
+              pagando só <strong className="text-apple-orange">
                 R$ 1,99
               </strong>{" "}
               no seu primeiro mês!

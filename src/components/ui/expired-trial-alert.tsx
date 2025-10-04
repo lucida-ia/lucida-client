@@ -12,10 +12,10 @@ export function ExpiredTrialAlert({
 }: ExpiredTrialAlertProps) {
   return (
     <Alert
-      className={`bg-red-50 border-red-200 items-start dark:bg-red-950 dark:border-red-800 ${className}`}
+      className={`bg-apple-red/10 border-apple-red/30 items-start dark:bg-apple-red/20 dark:border-apple-red/40 rounded-apple ${className}`}
     >
-      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-      <AlertDescription className="text-red-600 dark:text-red-400">
+      <AlertTriangle className="h-4 w-4 text-apple-red mt-0.5 flex-shrink-0" />
+      <AlertDescription className="text-apple-red dark:text-apple-red">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <strong>Período de teste expirado:</strong> Sua avaliação gratuita
@@ -25,7 +25,8 @@ export function ExpiredTrialAlert({
           <Link href="/dashboard/billing">
             <Button
               size="sm"
-              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 self-start sm:self-auto"
+              variant="destructive"
+              className="font-semibold self-start sm:self-auto"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Ver Planos

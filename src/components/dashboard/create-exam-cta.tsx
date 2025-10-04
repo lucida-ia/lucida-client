@@ -16,7 +16,7 @@ export function CreateExamCTA({ userData }: CreateExamCTAProps) {
     return (
       <Button disabled>
         <PlusCircle className="mr-2 h-4 w-4" />
-        Criar Prova
+        Criar Avaliação
       </Button>
     );
   }
@@ -28,7 +28,7 @@ export function CreateExamCTA({ userData }: CreateExamCTAProps) {
         className="flex items-center justify-center gap-2"
       >
         <PlusCircle className="h-4 w-4" />
-        <span className="hidden sm:block m-0 p-0">Criar Prova</span>
+        <span className="hidden sm:block m-0 p-0">Criar Avaliação</span>
       </Link>
     </Button>
   );
