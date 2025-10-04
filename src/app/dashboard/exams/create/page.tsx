@@ -12,12 +12,15 @@ import { CreateExamPreview } from "@/components/create-exam/create-exam-preview"
 import { useToast } from "@/hooks/use-toast";
 import { isTrialUserPastOneWeek, getImpersonateUserId } from "@/lib/utils";
 import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
+import { Upload, Settings, Eye } from "lucide-react";
 
 export default function CreateExamPage() {
   const [activeTab, setActiveTab] = useState("upload");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [youtubeUrls, setYoutubeUrls] = useState<string[]>([]);
-  const [youtubeVideoData, setYoutubeVideoData] = useState<Record<string, { title?: string; videoId?: string }>>({});
+  const [youtubeVideoData, setYoutubeVideoData] = useState<
+    Record<string, { title?: string; videoId?: string }>
+  >({});
   const [examConfig, setExamConfig] = useState({
     title: "",
     description: "",
@@ -69,7 +72,11 @@ export default function CreateExamPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeTab]);
 
-  const handleFilesUploaded = (files: File[], youtubeUrls?: string[], youtubeVideoData?: Record<string, { title?: string; videoId?: string }>) => {
+  const handleFilesUploaded = (
+    files: File[],
+    youtubeUrls?: string[],
+    youtubeVideoData?: Record<string, { title?: string; videoId?: string }>
+  ) => {
     setUploadedFiles(files);
     setYoutubeUrls(youtubeUrls || []);
     setYoutubeVideoData(youtubeVideoData || {});
@@ -181,33 +188,42 @@ export default function CreateExamPage() {
       <Tabs
         value={activeTab}
         onValueChange={shouldDisableActions ? undefined : setActiveTab}
-        className="mt-6"
+        className="mt-8"
       >
-        <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-gray-100 dark:bg-apple-gray-6 rounded-xl border border-gray-200 dark:border-apple-gray-4">
           <TabsTrigger
             value="upload"
             disabled={shouldDisableActions}
-            className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-800 data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
           >
-            <span className="hidden sm:inline">1. </span>Enviar Conteúdo
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">Enviar Conteúdo</span>
+            <span className="sm:hidden">Upload</span>
           </TabsTrigger>
           <TabsTrigger
             value="customize"
-            disabled={(uploadedFiles.length === 0 && youtubeUrls.length === 0) || shouldDisableActions}
-            className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
+            disabled={
+              (uploadedFiles.length === 0 && youtubeUrls.length === 0) ||
+              shouldDisableActions
+            }
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-800 data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
           >
-            <span className="hidden sm:inline">2. </span>Personalizar
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Personalizar</span>
+            <span className="sm:hidden">Config</span>
           </TabsTrigger>
           <TabsTrigger
             value="preview"
             disabled={!examConfig.title || shouldDisableActions}
-            className="text-xs md:text-sm px-2 py-2 md:px-3 md:py-2"
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-800 data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
           >
-            <span className="hidden sm:inline">3. </span>Visualizar e Gerar
+            <Eye className="h-4 w-4" />
+            <span className="hidden sm:inline">Revisar & Gerar</span>
+            <span className="sm:hidden">Revisar</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload">
+        <TabsContent value="upload" className="mt-8">
           <CreateExamUpload
             uploadedFiles={uploadedFiles}
             youtubeUrls={youtubeUrls}
@@ -217,7 +233,7 @@ export default function CreateExamPage() {
           />
         </TabsContent>
 
-        <TabsContent value="customize">
+        <TabsContent value="customize" className="mt-8">
           <CreateExamCustomize
             files={uploadedFiles}
             initialConfig={examConfig}
@@ -227,7 +243,7 @@ export default function CreateExamPage() {
           />
         </TabsContent>
 
-        <TabsContent value="preview">
+        <TabsContent value="preview" className="mt-8">
           <CreateExamPreview
             files={uploadedFiles}
             youtubeUrls={youtubeUrls}

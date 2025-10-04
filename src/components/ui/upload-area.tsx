@@ -36,12 +36,12 @@ const UploadArea = ({
                 ? "Upload disabled"
                 : "Drop files here or click to select files"
             }
-            className={`rounded-lg border-2 border-dashed p-6 md:p-10 transition-all duration-200 ${
+            className={`rounded-apple border-2 border-dashed p-6 md:p-10 apple-transition ${
               disabled
-                ? "border-muted-foreground/10 bg-muted/20 opacity-60"
+                ? "border-apple-gray-4/50 bg-apple-gray-6/50 opacity-60"
                 : isDragging
-                ? "border-primary bg-primary/5"
-                : "border-muted-foreground/25"
+                ? "border-apple-blue bg-apple-blue/5"
+                : "border-apple-gray-4"
             }`}
             onClick={
               disabled
@@ -61,16 +61,16 @@ const UploadArea = ({
             onDragLeave={disabled ? undefined : handleDragLeave}
             onDrop={disabled ? undefined : handleDrop}
           >
-            <div className="flex flex-col items-center justify-center space-y-3 md:space-y-4 text-center">
-              <Upload className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />
-              <div className="space-y-1 md:space-y-2">
-                <h3 className="text-lg md:text-xl font-semibold">
+            <div className="flex flex-col items-center justify-center space-y-4 md:space-y-6 text-center">
+              <Upload className="h-12 w-12 md:h-16 md:w-16 text-apple-blue" />
+              <div className="space-y-2 md:space-y-3">
+                <h3 className="text-headline md:text-title-3 font-semibold text-foreground">
                   Arraste e solte seu material
                 </h3>
-                <p className="text-sm text-muted-foreground px-2">
+                <p className="text-subhead text-muted-foreground px-2">
                   Faça upload de múltiplos arquivos PDF, DOC, DOCX ou TXT
                 </p>
-                <p className="text-xs text-muted-foreground px-2">
+                <p className="text-footnote text-muted-foreground px-2">
                   Limites: até ≈ 375.000 palavras no total
                 </p>
               </div>
@@ -78,7 +78,7 @@ const UploadArea = ({
                 <label htmlFor="file-upload">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="tinted"
                     className="cursor-pointer touch-manipulation"
                     size="default"
                   >

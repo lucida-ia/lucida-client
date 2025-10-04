@@ -8,13 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import {
-  BarChart3,
-  FileText,
-  Users,
-  Calendar,
-  AlertCircle,
-} from "lucide-react";
+import { BarChart3, FileText, Calendar, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { getImpersonateUserId } from "@/lib/utils";
 import UpgradeOverlay from "@/components/analytics/UpgradeOverlay";
@@ -34,26 +28,35 @@ interface ExamData {
 
 function ExamCardSkeleton() {
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-6 w-16" />
-        </div>
-        <Skeleton className="h-4 w-32" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-4 w-16" />
+    <Card className="group">
+      <CardContent className="p-0">
+        <div className="p-5 space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-full" />
+            <Skeleton className="h-3 w-24" />
           </div>
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-12" />
-          </div>
-          <div className="pt-4">
-            <Skeleton className="h-10 w-full" />
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-8" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-4 w-8" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -123,8 +126,8 @@ export default function AnalyticsPage() {
           text="Visualize dados detalhados e estatísticas das suas avaliações"
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8">
+          {Array.from({ length: 8 }).map((_, i) => (
             <ExamCardSkeleton key={i} />
           ))}
         </div>
@@ -148,77 +151,107 @@ export default function AnalyticsPage() {
 
       <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
         {exams.length === 0 ? (
-          <Card className="mt-6">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
+          <Card className="mt-8">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-4">
+                <BarChart3 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-title-3 font-semibold mb-2">
                 Nenhuma prova encontrada
               </h3>
-              <p className="text-muted-foreground text-center mb-4">
+              <p className="text-subhead text-secondary-label text-center max-w-md mb-6">
                 Você ainda não criou nenhuma prova. Crie sua primeira avaliação
                 para ver as análises aqui.
               </p>
-              <Button onClick={() => router.push("/dashboard/exams/create")}>
+              <Button
+                onClick={() => router.push("/dashboard/exams/create")}
+                size="lg"
+              >
                 Criar Primeira Prova
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8 mt-6">
+          <div className="space-y-10 mt-8">
             {/* Exams with analytics */}
             {examsWithSubmissions.length > 0 && (
-              <div>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Provas com Dados Disponíveis ({examsWithSubmissions.length})
-                </h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-title-2 font-semibold tracking-tight">
+                      Provas com Dados Disponíveis
+                    </h2>
+                    <p className="text-subhead text-secondary-label mt-1">
+                      {examsWithSubmissions.length}{" "}
+                      {examsWithSubmissions.length === 1 ? "prova" : "provas"}{" "}
+                      com submissões
+                    </p>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {examsWithSubmissions.map((exam) => (
                     <Card
                       key={exam.id}
-                      className="hover:shadow-lg transition-shadow"
+                      className="group hover:shadow-md hover:border-border/60 transition-all duration-200 cursor-pointer"
+                      onClick={() => handleViewAnalytics(exam.id)}
                     >
-                      <CardHeader className="pb-4">
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg font-medium text-left leading-tight">
-                            {exam.title}
-                          </CardTitle>
-                          <Badge variant="secondary" className="ml-2 shrink-0">
-                            {exam.submissionCount} respostas
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {exam.className}
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1">
-                              <FileText className="h-4 w-4" />
-                              Questões:
-                            </span>
-                            <span className="font-medium">
-                              {exam.questionCount}
-                            </span>
+                      <CardContent className="p-0">
+                        <div className="p-5 space-y-4">
+                          {/* Title and class */}
+                          <div className="space-y-1">
+                            <h3 className="text-headline font-semibold leading-tight text-label group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                              {exam.title}
+                            </h3>
+                            <p className="text-footnote text-secondary-label line-clamp-1">
+                              {exam.className}
+                            </p>
                           </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              Criada em:
-                            </span>
-                            <span className="font-medium">
-                              {formatDate(exam.createdAt)}
-                            </span>
+
+                          {/* Stats */}
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+                                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-caption-1 text-tertiary-label">
+                                  Questões
+                                </p>
+                                <p className="text-callout font-semibold text-label">
+                                  {exam.questionCount}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
+                                <BarChart3 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-caption-1 text-tertiary-label">
+                                  Respostas
+                                </p>
+                                <p className="text-callout font-semibold text-label">
+                                  {exam.submissionCount}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-apple-gray-6 flex items-center justify-center flex-shrink-0">
+                                <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-caption-1 text-tertiary-label">
+                                  Criada em
+                                </p>
+                                <p className="text-footnote font-medium text-label">
+                                  {formatDate(exam.createdAt)}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          <Button
-                            className="w-full mt-4"
-                            onClick={() => handleViewAnalytics(exam.id)}
-                          >
-                            <BarChart3 className="h-4 w-4 mr-2" />
-                            Ver Analytics
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -229,53 +262,77 @@ export default function AnalyticsPage() {
 
             {/* Exams without analytics */}
             {examsWithoutSubmissions.length > 0 && (
-              <div>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                  Provas sem Dados ({examsWithoutSubmissions.length})
-                </h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-title-2 font-semibold tracking-tight">
+                      Provas sem Dados
+                    </h2>
+                    <p className="text-subhead text-secondary-label mt-1">
+                      {examsWithoutSubmissions.length}{" "}
+                      {examsWithoutSubmissions.length === 1
+                        ? "prova"
+                        : "provas"}{" "}
+                      aguardando submissões
+                    </p>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {examsWithoutSubmissions.map((exam) => (
-                    <Card key={exam.id} className="opacity-75">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg font-medium text-left leading-tight">
-                            {exam.title}
-                          </CardTitle>
-                          <Badge variant="outline" className="ml-2 shrink-0">
-                            Sem respostas
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {exam.className}
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1">
-                              <FileText className="h-4 w-4" />
-                              Questões:
-                            </span>
-                            <span className="font-medium">
-                              {exam.questionCount}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              Criada em:
-                            </span>
-                            <span className="font-medium">
-                              {formatDate(exam.createdAt)}
-                            </span>
-                          </div>
-                          <div className="mt-4 p-3 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground text-center">
-                              Esta prova ainda não possui respostas para gerar
-                              análises
+                    <Card key={exam.id} className="opacity-60">
+                      <CardContent className="p-0">
+                        <div className="p-5 space-y-4">
+                          {/* Title and class */}
+                          <div className="space-y-1">
+                            <h3 className="text-headline font-semibold leading-tight text-label line-clamp-2">
+                              {exam.title}
+                            </h3>
+                            <p className="text-footnote text-secondary-label line-clamp-1">
+                              {exam.className}
                             </p>
+                          </div>
+
+                          {/* Stats */}
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-apple-gray-6 flex items-center justify-center flex-shrink-0">
+                                <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-caption-1 text-tertiary-label">
+                                  Questões
+                                </p>
+                                <p className="text-callout font-semibold text-label">
+                                  {exam.questionCount}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-apple-gray-6 flex items-center justify-center flex-shrink-0">
+                                <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-caption-1 text-tertiary-label">
+                                  Criada em
+                                </p>
+                                <p className="text-footnote font-medium text-label">
+                                  {formatDate(exam.createdAt)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Info message */}
+                          <div className="p-3 bg-secondary-system-background rounded-lg border border-border/50">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                              <p className="text-caption-1 text-secondary-label">
+                                Esta prova ainda não possui respostas para gerar
+                                análises
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </CardContent>

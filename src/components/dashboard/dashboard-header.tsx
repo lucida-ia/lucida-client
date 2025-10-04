@@ -41,16 +41,20 @@ export function DashboardHeader({
   };
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="grid gap-1">
-        <h1 className="font-heading text-xl md:text-2xl lg:text-3xl font-medium">
+    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="grid gap-2">
+        <h1 className="text-title-2 md:text-title-1 lg:text-large-title font-bold text-foreground">
           {heading}
         </h1>
-        {text && <p className="text-sm md:text-base text-muted-foreground">{text}</p>}
+        {text && (
+          <p className="text-subhead md:text-body text-muted-foreground">
+            {text}
+          </p>
+        )}
       </div>
       <div className="flex gap-2 items-center">
         {isAdmin && (
-          <div className="flex items-center gap-2 border rounded-lg p-2">
+          <div className="flex items-center gap-2 rounded-apple p-4 bg-card apple-shadow">
             <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center gap-2">
               <Input
@@ -59,7 +63,12 @@ export function DashboardHeader({
                 onChange={(e) => setTargetId(e.target.value)}
                 className="h-8 w-56"
               />
-              <Button size="sm" onClick={handleImpersonate} className="h-8">
+              <Button
+                size="sm"
+                variant="tinted"
+                onClick={handleImpersonate}
+                className="h-8"
+              >
                 Ver usuário
               </Button>
               {impersonating && (
@@ -67,7 +76,12 @@ export function DashboardHeader({
                   <Badge variant="secondary" className="hidden md:inline">
                     {impersonating}
                   </Badge>
-                  <Button variant="outline" size="sm" onClick={handleRevert} className="h-8">
+                  <Button
+                    variant="gray"
+                    size="sm"
+                    onClick={handleRevert}
+                    className="h-8"
+                  >
                     Voltar
                   </Button>
                 </>

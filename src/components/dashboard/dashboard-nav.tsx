@@ -65,7 +65,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
- 
 
 type NavItem = {
   title: string;
@@ -104,7 +103,6 @@ export function useNavItems() {
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,
       role: ["admin", "teacher"],
-      isNew: true,
     },
     {
       title: "Planos",
@@ -154,37 +152,23 @@ export function DashboardNav() {
     <TooltipProvider>
       <div
         className={cn(
-          "hidden border-r bg-muted/40 lg:block sticky top-0 left-0 h-screen transition-all duration-300 ease-in-out",
+          "hidden bg-apple-secondary-system-background lg:block sticky top-0 left-0 h-screen apple-transition-slow",
           isCollapsed ? "w-16" : "w-64"
         )}
       >
-        <div className="flex h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 justify-between">
+        <div className="flex h-screen flex-col gap-2 pt-5">
+          <div className="flex h-16 items-center px-4 justify-between">
             {!isCollapsed && (
               <Link
                 href="/dashboard"
-                className="flex items-center space-x-2 w-24"
+                className="flex items-center space-x-2 w-24 ml-3"
               >
                 <LucidaLogo />
               </Link>
             )}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleCollapse}
-                className="h-8 w-8 p-0"
-              >
-                {isCollapsed ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
           </div>
           <div className="flex-1 overflow-y-auto py-2">
-            <nav className="grid items-start px-2 text-sm font-medium gap-1">
+            <nav className="grid items-start px-3 text-callout font-medium gap-1">
               {navItems.map((item, index) => (
                 <div key={index}>
                   {isCollapsed ? (
@@ -192,11 +176,12 @@ export function DashboardNav() {
                       <TooltipTrigger asChild>
                         <Button
                           disabled={item.disabled}
-                          size="sm"
-                          variant="ghost"
+                          size="icon"
+                          variant="plain"
                           className={cn(
-                            "w-full justify-center p-2 h-10",
-                            pathname === item.href && "bg-muted text-primary"
+                            "w-full justify-center p-2 h-11 rounded-apple",
+                            pathname === item.href &&
+                              "bg-apple-blue/10 text-apple-blue"
                           )}
                           asChild
                         >
@@ -204,7 +189,7 @@ export function DashboardNav() {
                             <div className="relative flex items-center justify-center">
                               {item.icon}
                               {item.isNew && (
-                                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600" />
+                                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-apple-red" />
                               )}
                             </div>
                           </Link>
@@ -214,7 +199,7 @@ export function DashboardNav() {
                         <div className="flex items-center gap-2">
                           <p>{item.title}</p>
                           {item.isNew && (
-                            <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-semibold px-2 py-0.5 tracking-wide shadow-sm">
+                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
                               Novidade
                             </span>
                           )}
@@ -224,18 +209,19 @@ export function DashboardNav() {
                   ) : (
                     <Button
                       disabled={item.disabled}
-                      size="sm"
-                      variant="ghost"
+                      size="default"
+                      variant="plain"
                       className={cn(
-                        "w-full justify-start gap-3",
-                        pathname === item.href && "bg-muted text-primary"
+                        "w-full justify-start gap-3 h-11 rounded-apple",
+                        pathname === item.href &&
+                          "bg-apple-blue/10 text-apple-blue"
                       )}
                       asChild
                     >
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                          "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
                           item.disabled && "opacity-50 cursor-not-allowed"
                         )}
                       >
@@ -243,7 +229,7 @@ export function DashboardNav() {
                         <span className="flex items-center gap-2">
                           {item.title}
                           {item.isNew && (
-                            <span className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-semibold px-2 py-0.5  tracking-wide shadow-sm">
+                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
                               Novidade
                             </span>
                           )}
@@ -265,7 +251,7 @@ export function DashboardNav() {
                         appearance={{
                           elements: {
                             userButtonTrigger:
-                              "shadow-none dark:text-white text-black",
+                              "shadow-none dark:text-[rgb(var(--apple-label))] text-[rgb(var(--apple-label))]",
                             button: "shadow-none",
                           },
                         }}
@@ -295,14 +281,18 @@ export function DashboardNav() {
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <div className="w-full flex justify-center items-center p-2 rounded-lg hover:cursor-pointer hover:bg-muted/50 transition-all duration-300 border border-black/10 hover:border-black/20 dark:border-white/10 dark:hover:border-white/20">
+                <div className="w-full flex justify-center items-center p-2 rounded-xl bg-[rgb(var(--apple-gray-6))] dark:bg-[rgb(var(--apple-gray-5))] hover:bg-[rgb(var(--apple-gray-5))] dark:hover:bg-[rgb(var(--apple-gray-4))] apple-transition-fast border border-[rgb(var(--apple-gray-4))] dark:border-[rgb(var(--apple-gray-4))]">
                   <UserButton
                     showName={true}
                     appearance={{
                       elements: {
                         userButtonTrigger:
-                          "shadow-none dark:text-white text-black",
-                        button: "shadow-none",
+                          "shadow-none text-[rgb(var(--apple-label))] dark:text-[rgb(var(--apple-label))] hover:text-[rgb(var(--apple-blue))] dark:hover:text-[rgb(var(--apple-blue))] apple-transition-fast",
+                        button:
+                          "shadow-none bg-transparent hover:bg-transparent",
+                        userButtonBox: "gap-2",
+                        userButtonOuterBox: "gap-2",
+                        avatarBox: "w-8 h-8",
                       },
                     }}
                   >

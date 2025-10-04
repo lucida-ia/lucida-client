@@ -373,15 +373,17 @@ export function CreateExamCustomize({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Exam Details Card */}
-      <Card className="hover:border-primary/20 transition-colors">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <FileText className="h-5 w-5 text-primary" />
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <FileText className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">Detalhes da Prova</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                Detalhes da Prova
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
                 Defina as informações básicas sobre sua prova.
               </CardDescription>
             </div>
@@ -389,8 +391,8 @@ export function CreateExamCustomize({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-sm font-medium">
+            <div className="space-y-3">
+              <Label htmlFor="title" className="text-sm font-semibold">
                 Título da Prova <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -399,14 +401,14 @@ export function CreateExamCustomize({
                 value={config.title}
                 onChange={handleInputChange}
                 placeholder="ex., Prova de Biologia"
-                className="transition-all focus:ring-2 focus:ring-primary/20"
+                className="h-11 rounded-xl border-gray-200 dark:border-gray-800"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label
                 htmlFor="class"
-                className="text-sm font-medium flex items-center gap-2"
+                className="text-sm font-semibold flex items-center gap-2"
               >
                 <Users className="h-4 w-4" />
                 Turma <span className="text-red-500">*</span>
@@ -417,7 +419,7 @@ export function CreateExamCustomize({
                   value={config.class._id || ""}
                   onValueChange={handleClassChange}
                 >
-                  <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
+                  <SelectTrigger className="h-11 rounded-xl border-gray-200 dark:border-gray-800">
                     <SelectValue placeholder="Selecione a turma" />
                   </SelectTrigger>
                   <SelectContent>
@@ -443,7 +445,7 @@ export function CreateExamCustomize({
                     placeholder="Nome da nova turma"
                     value={newClassName}
                     onChange={(e) => setNewClassName(e.target.value)}
-                    className="transition-all focus:ring-2 focus:ring-primary/20"
+                    className="h-11 rounded-xl border-gray-200 dark:border-gray-800"
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         handleCreateClass();
@@ -455,6 +457,7 @@ export function CreateExamCustomize({
                     size="icon"
                     onClick={handleCreateClass}
                     disabled={isCreatingClass || !newClassName.trim()}
+                    className="h-11 w-11 rounded-xl"
                   >
                     {isCreatingClass ? (
                       <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
@@ -467,6 +470,7 @@ export function CreateExamCustomize({
                     variant="outline"
                     size="icon"
                     onClick={() => setShowCreateClass(false)}
+                    className="h-11 w-11 rounded-xl"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -475,8 +479,8 @@ export function CreateExamCustomize({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">
+          <div className="space-y-3">
+            <Label htmlFor="description" className="text-sm font-semibold">
               Descrição
             </Label>
             <Textarea
@@ -486,22 +490,24 @@ export function CreateExamCustomize({
               onChange={handleInputChange}
               placeholder="Breve descrição do conteúdo e propósito da prova"
               rows={3}
-              className="transition-all focus:ring-2 focus:ring-primary/20"
+              className="rounded-xl border-gray-200 dark:border-gray-800 resize-none"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Question Style Card */}
-      <Card className="hover:border-primary/20 transition-colors">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Target className="h-5 w-5 text-primary" />
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <Target className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">Estilo das Questões</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                Estilo das Questões
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
                 Selecione o estilo de questões para a sua prova.
               </CardDescription>
             </div>
@@ -517,14 +523,16 @@ export function CreateExamCustomize({
             <ToggleGroupItem
               value="simple"
               aria-label="Toggle simple"
-              className="h-auto p-6 border data-[state=on]:border-primary/20 data-[state=on]:bg-primary/5"
+              className="h-auto p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800 data-[state=on]:text-apple-blue data-[state=on]:border-[#007AFF] data-[state=on]:bg-blue-50 dark:data-[state=on]:bg-blue-950/30 transition-all hover:border-gray-300 dark:hover:border-gray-700"
             >
-              <div className="text-left space-y-2">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  <div className="font-semibold text-lg">Simples</div>
+              <div className="text-left space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <BookOpen className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
+                  </div>
+                  <div className="font-semibold text-base">Simples</div>
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground leading-relaxed">
                   Questões diretas com base no conteúdo.
                 </div>
               </div>
@@ -532,14 +540,16 @@ export function CreateExamCustomize({
             <ToggleGroupItem
               value="enem"
               aria-label="Toggle enem"
-              className="h-auto p-6 border data-[state=on]:border-primary/20 data-[state=on]:bg-primary/5"
+              className="h-auto p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800 data-[state=on]:text-apple-blue data-[state=on]:border-[#007AFF] data-[state=on]:bg-blue-50 dark:data-[state=on]:bg-blue-950/30 transition-all hover:border-gray-300 dark:hover:border-gray-700"
             >
-              <div className="text-left space-y-2">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
-                  <div className="font-semibold text-lg">ENEM</div>
+              <div className="text-left space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <GraduationCap className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
+                  </div>
+                  <div className="font-semibold text-base">ENEM</div>
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground leading-relaxed">
                   Questões contextualizadas e densas.
                 </div>
               </div>
@@ -547,7 +557,7 @@ export function CreateExamCustomize({
             <ToggleGroupItem
               value="enade"
               aria-label="Toggle enade"
-              className="h-auto p-6 border data-[state=on]:border-primary/20 data-[state=on]:bg-primary/5"
+              className="h-auto p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800 data-[state=on]:text-apple-blue data-[state=on]:border-[#007AFF] data-[state=on]:bg-blue-50 dark:data-[state=on]:bg-blue-950/30 transition-all hover:border-gray-300 dark:hover:border-gray-700"
               disabled={subscription?.plan === "trial"}
               onClick={() => {
                 if (subscription?.plan === "trial") {
@@ -560,21 +570,23 @@ export function CreateExamCustomize({
                 }
               }}
             >
-              <div className="text-left space-y-2">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  <div className="font-semibold text-lg">ENADE</div>
+              <div className="text-left space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <Target className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
+                  </div>
+                  <div className="font-semibold text-base">ENADE</div>
                   {subscription?.plan === "trial" && (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 ml-auto"
                     >
                       <Star className="h-3 w-3" />
                       Premium
                     </Badge>
                   )}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground leading-relaxed">
                   Questões com estudos de caso profissionais.
                 </div>
               </div>
@@ -584,17 +596,17 @@ export function CreateExamCustomize({
       </Card>
 
       {/* Question Configuration Card */}
-      <Card className="hover:border-primary/20 transition-colors">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Settings className="h-5 w-5 text-primary" />
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <Settings className="h-6 w-6 text-[#007AFF] dark:text-[#0A84FF]" />
             </div>
             <div>
-              <CardTitle className="text-xl">
+              <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
                 Configurações das Questões
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm mt-1">
                 Configure os tipos e número de questões.
               </CardDescription>
             </div>
@@ -602,16 +614,16 @@ export function CreateExamCustomize({
         </CardHeader>
         <CardContent className="space-y-8">
           {/* Question Count */}
-          <div className="space-y-4">
+          <div className="space-y-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-medium">
+              <Label className="text-base font-semibold">
                 Número de Questões
               </Label>
-              <Badge variant="secondary" className="px-3 py-1">
+              <Badge className="px-3 py-1.5 rounded-lg font-semibold bg-[#007AFF] hover:bg-[#0066DD] text-white">
                 {config.questionCount} questões
               </Badge>
             </div>
-            <div className="px-3">
+            <div className="px-2">
               <Slider
                 value={[config.questionCount]}
                 min={1}
@@ -620,7 +632,7 @@ export function CreateExamCustomize({
                 onValueChange={handleQuestionCountChange}
                 className="w-full"
               />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <div className="flex justify-between text-xs text-muted-foreground mt-3">
                 <span>1</span>
                 <span>{maxQuestions}</span>
               </div>
@@ -641,9 +653,9 @@ export function CreateExamCustomize({
 
           {/* Question Types */}
           <div className="space-y-4">
-            <Label className="text-base font-medium">Tipos de Questões</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+            <Label className="text-base font-semibold">Tipos de Questões</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
                 <Checkbox
                   id="multipleChoice"
                   checked={config.questionTypes.multipleChoice}
@@ -657,18 +669,19 @@ export function CreateExamCustomize({
                     config.questionStyle === "enem" ||
                     config.questionStyle === "enade"
                   }
+                  className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
                 />
                 <Label
                   htmlFor="multipleChoice"
-                  className="text-sm font-medium cursor-pointer"
+                  className="text-sm font-medium cursor-pointer flex-1"
                 >
                   Múltipla Escolha
                 </Label>
                 {config.questionTypes.multipleChoice && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
                 )}
               </div>
-              <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
                 <Checkbox
                   id="trueFalse"
                   checked={config.questionTypes.trueFalse}
@@ -679,15 +692,16 @@ export function CreateExamCustomize({
                     config.questionStyle === "enem" ||
                     config.questionStyle === "enade"
                   }
+                  className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
                 />
                 <Label
                   htmlFor="trueFalse"
-                  className="text-sm font-medium cursor-pointer"
+                  className="text-sm font-medium cursor-pointer flex-1"
                 >
                   Verdadeiro/Falso
                 </Label>
                 {config.questionTypes.trueFalse && (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
                 )}
               </div>
             </div>
@@ -702,15 +716,15 @@ export function CreateExamCustomize({
           </div>
 
           {/* Difficulty Level */}
-          <div className="space-y-3">
-            <Label htmlFor="difficulty" className="text-base font-medium">
+          <div className="space-y-4">
+            <Label htmlFor="difficulty" className="text-base font-semibold">
               Nível de Dificuldade
             </Label>
             <Select
               value={config.difficulty}
               onValueChange={handleDifficultyChange}
             >
-              <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
+              <SelectTrigger className="h-11 rounded-xl border-gray-200 dark:border-gray-800">
                 <SelectValue placeholder="Selecione o nível de dificuldade" />
               </SelectTrigger>
               <SelectContent>
@@ -744,18 +758,21 @@ export function CreateExamCustomize({
 
           {/* Difficulty Distribution - Only shown when "misto" is selected */}
           {config.difficulty === "misto" && (
-            <div className="space-y-4 border border-blue-200 dark:border-muted rounded-lg p-4 bg-blue-50 dark:bg-muted/30">
-              <Label className="text-base font-medium text-blue-800 dark:text-foreground">
-                Distribuição de Dificuldade
-              </Label>
-              <p className="text-sm text-blue-600 dark:text-muted-foreground">
-                Defina quantas questões de cada nível de dificuldade você
-                deseja.
-              </p>
+            <div className="space-y-5 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-200 dark:border-blue-800/50">
+              <div className="space-y-2">
+                <Label className="text-base font-semibold text-foreground">
+                  Distribuição de Dificuldade
+                </Label>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Defina quantas questões de cada nível de dificuldade você
+                  deseja.
+                </p>
+              </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-green-700">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-[#34C759] dark:text-[#32D74B] flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#34C759] dark:bg-[#32D74B] rounded-full"></div>
                     Fácil
                   </Label>
                   <Input
@@ -769,12 +786,13 @@ export function CreateExamCustomize({
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className="border-green-300 focus:border-green-500"
+                    className="h-12 rounded-xl text-center text-lg font-semibold border-2 border-green-200 dark:border-green-800/50 focus:border-[#34C759] dark:focus:border-[#32D74B] bg-white dark:bg-gray-900"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-yellow-700">
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-[#FF9500] dark:text-[#FF9F0A] flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#FF9500] dark:bg-[#FF9F0A] rounded-full"></div>
                     Médio
                   </Label>
                   <Input
@@ -788,12 +806,13 @@ export function CreateExamCustomize({
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className="border-yellow-300 focus:border-yellow-500"
+                    className="h-12 rounded-xl text-center text-lg font-semibold border-2 border-orange-200 dark:border-orange-800/50 focus:border-[#FF9500] dark:focus:border-[#FF9F0A] bg-white dark:bg-gray-900"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-red-700">
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-[#FF3B30] dark:text-[#FF453A] flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#FF3B30] dark:bg-[#FF453A] rounded-full"></div>
                     Difícil
                   </Label>
                   <Input
@@ -807,20 +826,22 @@ export function CreateExamCustomize({
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className="border-red-300 focus:border-red-500"
+                    className="h-12 rounded-xl text-center text-lg font-semibold border-2 border-red-200 dark:border-red-800/50 focus:border-[#FF3B30] dark:focus:border-[#FF453A] bg-white dark:bg-gray-900"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-blue-600 dark:text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-white/60 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700">
+                <span className="text-sm font-semibold text-[#007AFF] dark:text-[#0A84FF]">
                   Total:{" "}
-                  {difficultyDistribution.fácil +
-                    difficultyDistribution.médio +
-                    difficultyDistribution.difícil}{" "}
+                  <span className="text-lg">
+                    {difficultyDistribution.fácil +
+                      difficultyDistribution.médio +
+                      difficultyDistribution.difícil}
+                  </span>{" "}
                   questões
                 </span>
-                <span className="text-blue-600 dark:text-white">
+                <span className="text-sm text-muted-foreground">
                   Máximo: {config.questionCount} questões
                 </span>
               </div>
@@ -829,25 +850,32 @@ export function CreateExamCustomize({
                 difficultyDistribution.médio +
                 difficultyDistribution.difícil >
                 config.questionCount && (
-                <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-200 dark:border-red-800">
-                  ⚠️ O total de questões não pode exceder {config.questionCount}
+                <div className="flex items-start gap-3 text-sm bg-red-50 dark:bg-red-950/30 p-4 rounded-xl border border-red-200 dark:border-red-800">
+                  <div className="flex-shrink-0 w-5 h-5 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                    <span className="text-red-600 dark:text-red-400 text-xs font-bold">
+                      !
+                    </span>
+                  </div>
+                  <p className="text-red-600 dark:text-red-400 font-medium">
+                    O total de questões não pode exceder {config.questionCount}
+                  </p>
                 </div>
               )}
             </div>
           )}
 
           {/* Time Limit */}
-          <div className="space-y-4">
+          <div className="space-y-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4" />
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Clock className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
                 Tempo Limite
               </Label>
-              <Badge variant="secondary" className="px-3 py-1">
+              <Badge className="px-3 py-1.5 rounded-lg font-semibold bg-[#007AFF] hover:bg-[#0066DD] text-white">
                 {config.timeLimit} minutos
               </Badge>
             </div>
-            <div className="px-3">
+            <div className="px-2">
               <Slider
                 value={[config.timeLimit]}
                 min={15}
@@ -856,7 +884,7 @@ export function CreateExamCustomize({
                 onValueChange={handleTimeLimitChange}
                 className="w-full"
               />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <div className="flex justify-between text-xs text-muted-foreground mt-3">
                 <span>15 min</span>
                 <span>180 min</span>
               </div>
@@ -866,13 +894,13 @@ export function CreateExamCustomize({
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row sm:justify-between gap-3 pt-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
           disabled={shouldDisableActions}
-          className="gap-2 w-full sm:w-auto touch-manipulation"
+          className="h-11 px-6 rounded-xl font-medium gap-2 w-full sm:w-auto"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Voltar para Upload</span>
@@ -882,7 +910,7 @@ export function CreateExamCustomize({
         <Button
           onClick={handleReviewConfig}
           disabled={shouldDisableActions}
-          className="gap-2 w-full sm:w-auto touch-manipulation"
+          className="h-11 px-6 rounded-xl font-medium gap-2 w-full sm:w-auto"
         >
           <span className="hidden sm:inline">Revisar Configurações</span>
           <span className="sm:hidden">Revisar</span>

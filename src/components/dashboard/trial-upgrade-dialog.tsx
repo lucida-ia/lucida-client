@@ -60,7 +60,7 @@ export function TrialUpgradeDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogPortal>
         <DialogOverlay className="backdrop-blur-sm bg-black/30" />
-        <DialogContent className="w-[95vw] mx-auto backdrop-blur-md bg-white/95 dark:bg-gray-900/95 border border-white/20 dark:border-gray-700/30 shadow-2xl rounded-lg">
+        <DialogContent className="w-[95vw] mx-auto backdrop-blur-md bg-white/95 dark:bg-apple-secondary-grouped-background/95 border border-white/20 dark:border-apple-gray-4/30 shadow-2xl rounded-lg">
           <DialogHeader className="text-center">
             <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600">
               <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
