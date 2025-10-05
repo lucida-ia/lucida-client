@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -24,14 +25,10 @@ interface ExamSecurityConfig {
 }
 
 interface ExamSecurityConfigModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   examId: string;
 }
 
-export function ExamSecurityConfigModal({
-  open,
-  onOpenChange,
+export function ExamSecurityConfigContent({
   examId,
 }: ExamSecurityConfigModalProps) {
   const [config, setConfig] = useState<ExamSecurityConfig>({
@@ -45,9 +42,9 @@ export function ExamSecurityConfigModal({
   const [showUrlModal, setShowUrlModal] = useState(false);
   const { toast } = useToast();
 
-  // Fetch exam data when modal opens
+  // Fetch exam data when component mounts
   useEffect(() => {
-    if (open && examId) {
+    if (examId) {
       const fetchExamData = async () => {
         try {
           const response = await axios.get(`/api/exam/${examId}`);
@@ -60,7 +57,7 @@ export function ExamSecurityConfigModal({
       };
       fetchExamData();
     }
-  }, [open, examId]);
+  }, [examId]);
 
   const handleConfigChange = (
     key: keyof ExamSecurityConfig,
@@ -167,7 +164,7 @@ export function ExamSecurityConfigModal({
               "O link da prova foi copiado com as configurações de segurança aplicadas.",
           });
         }
-        onOpenChange(false);
+        // Dialog will close automatically via DialogTrigger
       } else {
         // Show modal with selectable link if all methods fail
         setShareUrl(shareUrl);
@@ -184,183 +181,172 @@ export function ExamSecurityConfigModal({
     }
   };
 
-  const handleCancel = () => {
-    onOpenChange(false);
-  };
-
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px] p-6">
-          <DialogHeader className="space-y-3">
-            <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
-              <Share2 className="h-5 w-5 text-foreground" />
-              Compartilhar Prova
-            </DialogTitle>
-            <div className="text-left">
-              <h3 className="text-lg font-semibold text-foreground">
-                {examTitle}
-              </h3>
-              <DialogDescription className="mt-1 text-sm text-muted-foreground">
-                Configure as opções de segurança antes de compartilhar esta
-                prova.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
+      <DialogHeader className="space-y-3">
+        <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <Share2 className="h-5 w-5 text-foreground" />
+          Compartilhar Prova
+        </DialogTitle>
+        <div className="text-left">
+          <h3 className="text-lg font-semibold text-foreground">{examTitle}</h3>
+          <DialogDescription className="mt-1 text-sm text-muted-foreground">
+            Configure as opções de segurança antes de compartilhar esta prova.
+          </DialogDescription>
+        </div>
+      </DialogHeader>
 
-          <div className="space-y-3 py-4">
-            {/* Permitir consulta durante a prova */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-              <div className="flex-1">
-                <Label
-                  htmlFor="allowConsultation"
-                  className="text-sm font-medium leading-none cursor-pointer text-foreground"
-                >
-                  Permitir consulta durante a prova
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Alunos podem acessar materiais de apoio durante a realização
-                </p>
-              </div>
-              <Switch
-                id="allowConsultation"
-                checked={config.allowConsultation}
-                onCheckedChange={(checked) =>
-                  handleConfigChange("allowConsultation", checked)
-                }
-                className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300"
-              />
-            </div>
-
-            {/* Mostrar pontuação ao final */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-              <div className="flex-1">
-                <Label
-                  htmlFor="showScoreAtEnd"
-                  className="text-sm font-medium leading-none cursor-pointer text-foreground"
-                >
-                  Mostrar pontuação ao final
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Exibir a nota final para o aluno após completar a prova
-                </p>
-              </div>
-              <Switch
-                id="showScoreAtEnd"
-                checked={config.showScoreAtEnd}
-                onCheckedChange={(checked) =>
-                  handleConfigChange("showScoreAtEnd", checked)
-                }
-                className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300"
-              />
-            </div>
-
-            {/* Mostrar respostas corretas ao final */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-              <div className="flex-1">
-                <Label
-                  htmlFor="showCorrectAnswersAtEnd"
-                  className="text-sm font-medium leading-none cursor-pointer text-foreground"
-                >
-                  Mostrar respostas corretas ao final
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Revelar as respostas corretas após a conclusão da prova
-                </p>
-              </div>
-              <Switch
-                id="showCorrectAnswersAtEnd"
-                checked={config.showCorrectAnswersAtEnd}
-                onCheckedChange={(checked) =>
-                  handleConfigChange("showCorrectAnswersAtEnd", checked)
-                }
-                className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isLoading}
-              className="flex-1"
+      <div className="space-y-3 py-4">
+        {/* Permitir consulta durante a prova */}
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex-1">
+            <Label
+              htmlFor="allowConsultation"
+              className="text-sm font-medium leading-none cursor-pointer text-foreground"
             >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={isLoading}
-              className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Share2 className="h-4 w-4" />
-              {isLoading ? "Gerando..." : "Gerar Link"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Fallback URL Modal */}
-      <Dialog open={showUrlModal} onOpenChange={setShowUrlModal}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Share2 className="h-5 w-5" />
-              Link da Prova Gerado
-            </DialogTitle>
-            <DialogDescription>
-              Copie o link abaixo para compartilhar a prova:
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="flex items-center space-x-2">
-              <Input
-                value={shareUrl}
-                readOnly
-                className="flex-1"
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <Button
-                size="sm"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(shareUrl);
-                    toast({
-                      title: "Copiado!",
-                      description: "Link copiado para a área de transferência.",
-                    });
-                    setShowUrlModal(false);
-                  } catch {
-                    // If clipboard still fails, just select the text
-                    const input = document.querySelector(
-                      "input[readonly]"
-                    ) as HTMLInputElement;
-                    if (input) {
-                      input.select();
-                      input.setSelectionRange(0, 99999);
-                    }
-                  }
-                }}
-                variant="outline"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-              Toque no campo acima para selecionar todo o link, depois use
-              Ctrl+C (ou Cmd+C no Mac) para copiar.
+              Permitir consulta durante a prova
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Alunos podem acessar materiais de apoio durante a realização
             </p>
           </div>
+          <Switch
+            id="allowConsultation"
+            checked={config.allowConsultation}
+            onCheckedChange={(checked) =>
+              handleConfigChange("allowConsultation", checked)
+            }
+            className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300"
+          />
+        </div>
 
-          <DialogFooter>
-            <Button onClick={() => setShowUrlModal(false)} className="w-full">
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Mostrar pontuação ao final */}
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex-1">
+            <Label
+              htmlFor="showScoreAtEnd"
+              className="text-sm font-medium leading-none cursor-pointer text-foreground"
+            >
+              Mostrar pontuação ao final
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Exibir a nota final para o aluno após completar a prova
+            </p>
+          </div>
+          <Switch
+            id="showScoreAtEnd"
+            checked={config.showScoreAtEnd}
+            onCheckedChange={(checked) =>
+              handleConfigChange("showScoreAtEnd", checked)
+            }
+            className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300"
+          />
+        </div>
+
+        {/* Mostrar respostas corretas ao final */}
+        <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex-1">
+            <Label
+              htmlFor="showCorrectAnswersAtEnd"
+              className="text-sm font-medium leading-none cursor-pointer text-foreground"
+            >
+              Mostrar respostas corretas ao final
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Revelar as respostas corretas após a conclusão da prova
+            </p>
+          </div>
+          <Switch
+            id="showCorrectAnswersAtEnd"
+            checked={config.showCorrectAnswersAtEnd}
+            onCheckedChange={(checked) =>
+              handleConfigChange("showCorrectAnswersAtEnd", checked)
+            }
+            className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-300"
+          />
+        </div>
+      </div>
+
+      <DialogFooter className="flex gap-3 pt-4">
+        <DialogClose asChild>
+          <Button variant="outline" disabled={isLoading} className="flex-1">
+            Cancelar
+          </Button>
+        </DialogClose>
+        <Button
+          onClick={handleConfirm}
+          disabled={isLoading}
+          className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Share2 className="h-4 w-4" />
+          {isLoading ? "Gerando..." : "Gerar Link"}
+        </Button>
+      </DialogFooter>
+
+      {/* Fallback URL Modal */}
+      {showUrlModal && (
+        <Dialog open={showUrlModal} onOpenChange={setShowUrlModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5" />
+                Link da Prova Gerado
+              </DialogTitle>
+              <DialogDescription>
+                Copie o link abaixo para compartilhar a prova:
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="flex items-center space-x-2">
+                <Input
+                  value={shareUrl}
+                  readOnly
+                  className="flex-1"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(shareUrl);
+                      toast({
+                        title: "Copiado!",
+                        description:
+                          "Link copiado para a área de transferência.",
+                      });
+                      setShowUrlModal(false);
+                    } catch {
+                      // If clipboard still fails, just select the text
+                      const input = document.querySelector(
+                        "input[readonly]"
+                      ) as HTMLInputElement;
+                      if (input) {
+                        input.select();
+                        input.setSelectionRange(0, 99999);
+                      }
+                    }
+                  }}
+                  variant="outline"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                Toque no campo acima para selecionar todo o link, depois use
+                Ctrl+C (ou Cmd+C no Mac) para copiar.
+              </p>
+            </div>
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button className="w-full">Fechar</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

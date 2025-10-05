@@ -882,7 +882,8 @@ export default function UnifiedOverviewPage() {
               filteredData.classes.map((classItem: any) => (
                 <Card
                   key={classItem.id}
-                  className="hover:apple-shadow apple-transition"
+                  className="hover:apple-shadow apple-transition cursor-pointer"
+                  onClick={() => toggleClassExpansion(classItem.id)}
                 >
                   <CardHeader className="p-4">
                     {/* Mobile Layout */}
@@ -891,7 +892,10 @@ export default function UnifiedOverviewPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => toggleClassExpansion(classItem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleClassExpansion(classItem.id);
+                          }}
                           className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition mt-1 rounded-apple"
                         >
                           <div
@@ -981,7 +985,10 @@ export default function UnifiedOverviewPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => toggleClassExpansion(classItem.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleClassExpansion(classItem.id);
+                          }}
                           className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition rounded-apple"
                         >
                           <div
@@ -1085,7 +1092,10 @@ export default function UnifiedOverviewPage() {
                                   <div className="block md:hidden">
                                     <div
                                       className="cursor-pointer"
-                                      onClick={() => toggleExamDetail(exam._id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleExamDetail(exam._id);
+                                      }}
                                     >
                                       <div className="flex items-start gap-3 mb-2">
                                         <Button
@@ -1388,7 +1398,10 @@ export default function UnifiedOverviewPage() {
                                   <div className="hidden md:block">
                                     <div
                                       className="flex items-start justify-between cursor-pointer"
-                                      onClick={() => toggleExamDetail(exam._id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleExamDetail(exam._id);
+                                      }}
                                     >
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
