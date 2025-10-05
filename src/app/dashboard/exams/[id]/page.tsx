@@ -26,6 +26,14 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -46,6 +54,22 @@ export default function ExamPreviewPage() {
   const [editedExamTitle, setEditedExamTitle] = useState("");
   const [editedExamDescription, setEditedExamDescription] = useState("");
   const [isSavingExamDetails, setIsSavingExamDetails] = useState(false);
+  // Add state for new question modal
+  const [isNewQuestionModalOpen, setIsNewQuestionModalOpen] = useState(false);
+  const [newQuestion, setNewQuestion] = useState({
+    title: "",
+    context: "",
+    question: "",
+    options: ["", ""],
+    correctAnswer: 0,
+    explanation: "",
+    difficulty: "médio" as "fácil" | "médio" | "difícil",
+    subject: "",
+  });
+  const [isSavingNewQuestion, setIsSavingNewQuestion] = useState(false);
+  // Add state for delete confirmation
+  const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
+  const [isDeletingQuestion, setIsDeletingQuestion] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -204,6 +228,143 @@ export default function ExamPreviewPage() {
       });
     } finally {
       setIsSavingExamDetails(false);
+    }
+  };
+
+  // Functions for new question modal
+  const openNewQuestionModal = () => {
+    setNewQuestion({
+      title: "",
+      context: "",
+      question: "",
+      options: ["", ""],
+      correctAnswer: 0,
+      explanation: "",
+      difficulty: "médio",
+      subject: "",
+    });
+    setIsNewQuestionModalOpen(true);
+  };
+
+  const closeNewQuestionModal = () => {
+    setIsNewQuestionModalOpen(false);
+  };
+
+  const updateNewQuestion = (field: string, value: any) => {
+    setNewQuestion({
+      ...newQuestion,
+      [field]: value,
+    });
+  };
+
+  const updateNewQuestionOption = (optionIndex: number, value: string) => {
+    const updatedOptions = [...newQuestion.options];
+    updatedOptions[optionIndex] = value;
+    setNewQuestion({
+      ...newQuestion,
+      options: updatedOptions,
+    });
+  };
+
+  const addNewQuestionOption = () => {
+    setNewQuestion({
+      ...newQuestion,
+      options: [...newQuestion.options, ""],
+    });
+  };
+
+  const removeNewQuestionOption = (optionIndex: number) => {
+    if (newQuestion.options.length > 2) {
+      const updatedOptions = newQuestion.options.filter(
+        (_: any, index: number) => index !== optionIndex
+      );
+      setNewQuestion({
+        ...newQuestion,
+        options: updatedOptions,
+        correctAnswer:
+          newQuestion.correctAnswer > optionIndex
+            ? newQuestion.correctAnswer - 1
+            : newQuestion.correctAnswer,
+      });
+    }
+  };
+
+  const saveNewQuestion = async () => {
+    if (!exam || !newQuestion.question.trim()) return;
+
+    setIsSavingNewQuestion(true);
+    try {
+      const questionToAdd = {
+        question: newQuestion.question.trim(),
+        context: newQuestion.context.trim() || undefined,
+        options: newQuestion.options.filter((opt) => opt.trim()),
+        correctAnswer: newQuestion.correctAnswer,
+        explanation: newQuestion.explanation.trim() || undefined,
+        difficulty: newQuestion.difficulty,
+        subject: newQuestion.subject.trim() || undefined,
+      };
+
+      const updatedQuestions = [...exam.questions, questionToAdd];
+      const updatedExam = {
+        ...exam,
+        questions: updatedQuestions,
+      };
+
+      await axios.put(`/api/exam/${params.id}`, updatedExam);
+      setExam(updatedExam);
+      setIsNewQuestionModalOpen(false);
+      toast({
+        title: "Questão adicionada",
+        description: "A nova questão foi adicionada com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao adicionar a questão. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingNewQuestion(false);
+    }
+  };
+
+  // Functions for deleting questions
+  const confirmDeleteQuestion = (questionIndex: number) => {
+    setQuestionToDelete(questionIndex);
+  };
+
+  const cancelDeleteQuestion = () => {
+    setQuestionToDelete(null);
+  };
+
+  const deleteQuestion = async () => {
+    if (!exam || questionToDelete === null) return;
+
+    setIsDeletingQuestion(true);
+    try {
+      const updatedQuestions = exam.questions.filter(
+        (_, index) => index !== questionToDelete
+      );
+      const updatedExam = {
+        ...exam,
+        questions: updatedQuestions,
+      };
+
+      await axios.put(`/api/exam/${params.id}`, updatedExam);
+      setExam(updatedExam);
+      setQuestionToDelete(null);
+      toast({
+        title: "Questão removida",
+        description: "A questão foi removida com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao remover a questão. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingQuestion(false);
     }
   };
 
@@ -403,8 +564,8 @@ export default function ExamPreviewPage() {
                                   </Badge>
                                 )}
                               </div>
-                              {/* Mobile Edit Button */}
-                              <div className="sm:hidden">
+                              {/* Mobile Action Buttons */}
+                              <div className="sm:hidden flex gap-1">
                                 <Button
                                   size="sm"
                                   variant="gray"
@@ -412,6 +573,14 @@ export default function ExamPreviewPage() {
                                   className="p-1.5"
                                 >
                                   <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => confirmDeleteQuestion(index)}
+                                  className="p-1.5"
+                                >
+                                  <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
                             </div>
@@ -553,15 +722,26 @@ export default function ExamPreviewPage() {
                             </Button>
                           </div>
                         ) : (
-                          <Button
-                            size="sm"
-                            variant="gray"
-                            onClick={() => startEditingQuestion(index)}
-                            className="gap-2"
-                          >
-                            <Edit className="h-3 w-3" />
-                            Editar
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="gray"
+                              onClick={() => startEditingQuestion(index)}
+                              className="gap-2"
+                            >
+                              <Edit className="h-3 w-3" />
+                              Editar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => confirmDeleteQuestion(index)}
+                              className="gap-2"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Excluir
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -810,10 +990,236 @@ export default function ExamPreviewPage() {
                   </div>
                 </div>
               ))}
+
+              {/* Add New Question Button */}
+              <div className="mt-6 pt-6 border-t border-apple-gray-4 dark:border-apple-gray-3">
+                <Button
+                  onClick={openNewQuestionModal}
+                  variant="outline"
+                  className="w-full gap-2 hover:bg-apple-blue/5 dark:hover:bg-apple-blue/10 hover:border-apple-blue/30 dark:hover:border-apple-blue/30 apple-transition"
+                >
+                  <Plus className="h-4 w-4" />
+                  Adicionar nova questão
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* New Question Modal */}
+      <Dialog
+        open={isNewQuestionModalOpen}
+        onOpenChange={setIsNewQuestionModalOpen}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Adicionar Nova Questão</DialogTitle>
+            <DialogDescription>
+              Preencha os campos abaixo para criar uma nova questão para esta
+              prova.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Título */}
+            <div>
+              <label className="text-subhead font-medium mb-2 block text-foreground">
+                Título:
+              </label>
+              <Input
+                value={newQuestion.title}
+                onChange={(e) => updateNewQuestion("title", e.target.value)}
+                placeholder="Título da questão (opcional)"
+              />
+            </div>
+
+            {/* Contexto */}
+            <div>
+              <label className="text-subhead font-medium mb-2 block text-foreground">
+                Contexto:
+              </label>
+              <Textarea
+                value={newQuestion.context}
+                onChange={(e) => updateNewQuestion("context", e.target.value)}
+                placeholder="Contexto da questão (opcional)"
+                className="min-h-[80px]"
+              />
+            </div>
+
+            {/* Pergunta */}
+            <div>
+              <label className="text-subhead font-medium mb-2 block text-foreground">
+                Pergunta: *
+              </label>
+              <Textarea
+                value={newQuestion.question}
+                onChange={(e) => updateNewQuestion("question", e.target.value)}
+                placeholder="Digite a pergunta"
+                className="min-h-[80px]"
+                required
+              />
+            </div>
+
+            {/* Opções */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-subhead font-medium text-foreground">
+                  Opções: *
+                </label>
+                <Button
+                  size="sm"
+                  variant="gray"
+                  onClick={addNewQuestionOption}
+                  className="gap-2"
+                >
+                  <Plus className="h-3 w-3" />
+                  Adicionar Opção
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {newQuestion.options.map((option, optionIndex) => (
+                  <div
+                    key={optionIndex}
+                    className="flex items-center gap-3 p-3 bg-apple-secondary-system-background rounded-apple border border-apple-gray-4 dark:border-apple-gray-3"
+                  >
+                    <input
+                      type="radio"
+                      name="correct-answer"
+                      checked={newQuestion.correctAnswer === optionIndex}
+                      onChange={() =>
+                        updateNewQuestion("correctAnswer", optionIndex)
+                      }
+                      className="text-apple-blue focus:ring-apple-blue"
+                    />
+                    <Input
+                      value={option}
+                      onChange={(e) =>
+                        updateNewQuestionOption(optionIndex, e.target.value)
+                      }
+                      className="flex-1"
+                      placeholder={`Opção ${optionIndex + 1}`}
+                    />
+                    {newQuestion.options.length > 2 && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => removeNewQuestionOption(optionIndex)}
+                        className="px-2 hover:bg-apple-red/90"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Explicação */}
+            <div>
+              <label className="text-subhead font-medium mb-2 block text-foreground">
+                Explicação:
+              </label>
+              <Textarea
+                value={newQuestion.explanation}
+                onChange={(e) =>
+                  updateNewQuestion("explanation", e.target.value)
+                }
+                placeholder="Explicação da resposta correta (opcional)"
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeNewQuestionModal}
+              disabled={isSavingNewQuestion}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={saveNewQuestion}
+              disabled={
+                isSavingNewQuestion ||
+                !newQuestion.question.trim() ||
+                newQuestion.options.filter((opt) => opt.trim()).length < 2
+              }
+              className="gap-2"
+            >
+              {isSavingNewQuestion ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"></div>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Adicionar Questão
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Question Confirmation Dialog */}
+      <Dialog
+        open={questionToDelete !== null}
+        onOpenChange={() => setQuestionToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir esta questão? Esta ação não pode
+              ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+
+          {questionToDelete !== null && exam && (
+            <div className="py-4">
+              <div className="p-4 bg-apple-red/5 dark:bg-apple-red/10 rounded-apple border border-apple-red/20 dark:border-apple-red/30">
+                <h4 className="text-subhead font-semibold text-apple-red mb-2">
+                  Questão {questionToDelete + 1}:
+                </h4>
+                <p className="text-subhead text-foreground leading-relaxed">
+                  {exam.questions[questionToDelete].question}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={cancelDeleteQuestion}
+              disabled={isDeletingQuestion}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={deleteQuestion}
+              disabled={isDeletingQuestion}
+              className="gap-2"
+            >
+              {isDeletingQuestion ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"></div>
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Excluir Questão
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
