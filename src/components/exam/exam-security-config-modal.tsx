@@ -350,3 +350,22 @@ export function ExamSecurityConfigContent({
     </>
   );
 }
+
+// Original modal component for standalone use
+export function ExamSecurityConfigModal({
+  open,
+  onOpenChange,
+  examId,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  examId: string;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px] p-6">
+        <ExamSecurityConfigContent examId={examId} />
+      </DialogContent>
+    </Dialog>
+  );
+}
