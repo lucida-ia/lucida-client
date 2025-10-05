@@ -24,14 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={localization}>
-      <html lang="pt-BR" suppressHydrationWarning>
+      <html lang="pt-BR">
         <Analytics />
         <SpeedInsights />
         <GoogleTagManager gtmId="GTM-NWBZ58SG" />
-        <body
-          className={`${inter.className} antialiased`}
-          suppressHydrationWarning
-        >
+        <body className={`${inter.className} antialiased`}>
           <ThemeProvider attribute="class" enableSystem>
             <TooltipProvider>
               <div className="flex min-h-screen flex-col">

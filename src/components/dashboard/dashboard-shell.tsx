@@ -17,7 +17,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <DashboardMobileHeader />
       </div>
 
-      <main className="flex w-full flex-col overflow-hidden">
+      <main className="flex w-full flex-col">
         <div className="flex-1 space-y-6 p-4 pt-20 lg:pt-8 lg:p-8 animate-apple-fade-in">
           {children}
         </div>

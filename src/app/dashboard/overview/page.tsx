@@ -16,6 +16,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -179,10 +181,6 @@ export default function UnifiedOverviewPage() {
     null
   );
 
-  // Share modal state
-  const [shareModalOpen, setShareModalOpen] = React.useState(false);
-  const [examToShare, setExamToShare] = React.useState<ExamData | null>(null);
-
   // Edit class state
   const [editingClass, setEditingClass] = React.useState<ClassData | null>(
     null
@@ -195,14 +193,12 @@ export default function UnifiedOverviewPage() {
   const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Create class modal state
-  const [isCreateClassModalOpen, setIsCreateClassModalOpen] =
-    React.useState(false);
   const [newClassName, setNewClassName] = React.useState("");
   const [isCreatingClass, setIsCreatingClass] = React.useState(false);
 
   // Copy exam modal state
   const [isCopyDialogOpen, setIsCopyDialogOpen] = React.useState(false);
-  const [examToCopy, setExamToCopy] = React.useState<ExamData | null>(null);
+  const [exam, setExamToCopy] = React.useState<ExamData | null>(null);
   const [selectedTargetClassId, setSelectedTargetClassId] = React.useState("");
   const [isCopyingExam, setIsCopyingExam] = React.useState(false);
   const [isCreatingNewClass, setIsCreatingNewClass] = React.useState(false);
@@ -475,7 +471,6 @@ export default function UnifiedOverviewPage() {
         toast({
           title: "Turma criada com sucesso",
         });
-        setIsCreateClassModalOpen(false);
         setNewClassName("");
         fetchData();
       }
@@ -488,11 +483,6 @@ export default function UnifiedOverviewPage() {
     } finally {
       setIsCreatingClass(false);
     }
-  };
-
-  const openCreateClassModal = () => {
-    setNewClassName("");
-    setIsCreateClassModalOpen(true);
   };
 
   const handleDeleteExam = async (examId: string) => {
@@ -593,11 +583,6 @@ export default function UnifiedOverviewPage() {
     }
   };
 
-  const handleShareExam = (exam: ExamData) => {
-    setExamToShare(exam);
-    setShareModalOpen(true);
-  };
-
   const handleCopyExam = (exam: ExamData) => {
     setExamToCopy(exam);
     setSelectedTargetClassId("");
@@ -606,9 +591,7 @@ export default function UnifiedOverviewPage() {
     setIsCopyDialogOpen(true);
   };
 
-  const handleCopyExamToClass = async () => {
-    if (!examToCopy) return;
-
+  const handleCopyExamToClass = async (exam: ExamData) => {
     // If creating a new class, handle that first
     if (isCreatingNewClass) {
       if (!newClassNameForCopy.trim()) {
@@ -643,10 +626,10 @@ export default function UnifiedOverviewPage() {
       // Create payload in the expected format
       const payload = {
         config: {
-          title: `${examToCopy.title}`,
-          description: examToCopy.description || "",
+          title: `${exam.title}`,
+          description: exam.description || "",
           questionStyle: "simple" as const,
-          questionCount: examToCopy.questions.length,
+          questionCount: exam.questions.length,
           class: {
             _id: selectedTargetClassId,
             name: targetClass.name,
@@ -660,7 +643,7 @@ export default function UnifiedOverviewPage() {
           difficulty: "médio",
           timeLimit: 60,
         },
-        questions: examToCopy.questions,
+        questions: exam.questions,
       };
 
       const response = await axios.post("/api/exam/copy" + qs, payload);
@@ -668,7 +651,7 @@ export default function UnifiedOverviewPage() {
       if (response.data.status === "success") {
         toast({
           title: "Prova copiada com sucesso!",
-          description: `A prova "${examToCopy.title}" foi copiada para a turma "${targetClass.name}". Esta ação não afeta seus limites de uso.`,
+          description: `A prova "${exam.title}" foi copiada para a turma "${targetClass.name}". Esta ação não afeta seus limites de uso.`,
         });
 
         // Close dialog and refresh data
@@ -694,7 +677,7 @@ export default function UnifiedOverviewPage() {
   };
 
   const handleCreateClassAndCopy = async () => {
-    if (!examToCopy || !newClassNameForCopy.trim()) return;
+    if (!exam || !newClassNameForCopy.trim()) return;
 
     try {
       setIsCopyingExam(true);
@@ -717,10 +700,10 @@ export default function UnifiedOverviewPage() {
       // Then copy the exam to the new class
       const payload = {
         config: {
-          title: `${examToCopy.title}`,
-          description: examToCopy.description || "",
+          title: `${exam.title}`,
+          description: exam.description || "",
           questionStyle: "simple" as const,
-          questionCount: examToCopy.questions.length,
+          questionCount: exam.questions.length,
           class: {
             _id: newClassId,
             name: newClassNameForCopy.trim(),
@@ -734,7 +717,7 @@ export default function UnifiedOverviewPage() {
           difficulty: "médio",
           timeLimit: 60,
         },
-        questions: examToCopy.questions,
+        questions: exam.questions,
       };
 
       const examResponse = await axios.post("/api/exam/copy" + qs, payload);
@@ -743,7 +726,7 @@ export default function UnifiedOverviewPage() {
         toast({
           title: "Turma criada e prova copiada!",
           description: `A turma "${newClassNameForCopy.trim()}" foi criada e a prova "${
-            examToCopy.title
+            exam.title
           }" foi copiada para ela. Esta ação não afeta seus limites de uso.`,
         });
 
@@ -773,7 +756,7 @@ export default function UnifiedOverviewPage() {
 
   React.useEffect(() => {
     fetchData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -806,13 +789,60 @@ export default function UnifiedOverviewPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={openCreateClassModal}
-              disabled={shouldDisableActions}
-            >
-              <GraduationCap className="h-4 w-4 mr-2" />
-              Nova Turma
-            </DropdownMenuItem>
+            <Dialog>
+              <DialogTrigger asChild>
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  disabled={shouldDisableActions}
+                >
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  Nova Turma
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    Criar Nova Turma
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-class-name">Nome da Turma</Label>
+                    <Input
+                      id="new-class-name"
+                      placeholder="Digite o nome da turma"
+                      value={newClassName}
+                      onChange={(e) => setNewClassName(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <DialogClose asChild>
+                    <Button variant="outline" disabled={isCreatingClass}>
+                      Cancelar
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    onClick={handleCreateClass}
+                    disabled={isCreatingClass || !newClassName.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isCreatingClass ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                        Criando...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Turma
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             <DropdownMenuItem
               onClick={() => router.push("/dashboard/exams/create")}
               disabled={shouldDisableActions}
@@ -848,223 +878,527 @@ export default function UnifiedOverviewPage() {
             </div>
 
             {/* Classes List */}
-            <div className="space-y-4">
-              {filteredData && filteredData.classes.length > 0 ? (
-                filteredData.classes.map((classItem) => (
-                  <Card
-                    key={classItem.id}
-                    className="hover:apple-shadow apple-transition"
-                  >
-                    <CardHeader className="p-4">
-                      {/* Mobile Layout */}
-                      <div className="block md:hidden">
-                        <div className="flex items-start gap-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleClassExpansion(classItem.id)}
-                            className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition mt-1 rounded-apple"
+            {filteredData && filteredData.classes.length > 0 ? (
+              filteredData.classes.map((classItem: any) => (
+                <Card
+                  key={classItem.id}
+                  className="hover:apple-shadow apple-transition"
+                >
+                  <CardHeader className="p-4">
+                    {/* Mobile Layout */}
+                    <div className="block md:hidden">
+                      <div className="flex items-start gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleClassExpansion(classItem.id)}
+                          className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition mt-1 rounded-apple"
+                        >
+                          <div
+                            className={`transform transition-transform duration-200 ${
+                              expandedClasses.has(classItem.id)
+                                ? "rotate-90"
+                                : "rotate-0"
+                            }`}
                           >
-                            <div
-                              className={`transform transition-transform duration-200 ${
-                                expandedClasses.has(classItem.id)
-                                  ? "rotate-90"
-                                  : "rotate-0"
-                              }`}
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </div>
-                          </Button>
-                          <div className="flex-1 space-y-1">
-                            <div>
-                              <h3 className="font-semibold text-headline text-foreground text-center">
-                                {classItem.name}
-                              </h3>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light text-footnote hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
-                                >
-                                  {classItem.exams.length} provas
-                                </Badge>
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light text-footnote hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
-                                >
-                                  {classItem.totalResults} resultados
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="h-4 w-px bg-border"></div>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="tinted"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleExportClassResults(classItem);
-                                    }}
-                                    disabled={
-                                      classItem.totalResults === 0 ||
-                                      shouldDisableActions
-                                    }
-                                    title="Exportar resultados"
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="tinted"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditClass(classItem);
-                                    }}
-                                    disabled={shouldDisableActions}
-                                    title="Editar turma"
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteClass(classItem.id);
-                                    }}
-                                    disabled={shouldDisableActions}
-                                    className="hover:bg-apple-red/90"
-                                    title="Deletar turma"
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
+                            <ChevronRight className="h-4 w-4" />
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout */}
-                      <div className="hidden md:flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleClassExpansion(classItem.id)}
-                            className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition rounded-apple"
-                          >
-                            <div
-                              className={`transform transition-transform duration-200 ${
-                                expandedClasses.has(classItem.id)
-                                  ? "rotate-90"
-                                  : "rotate-0"
-                              }`}
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </div>
-                          </Button>
+                        </Button>
+                        <div className="flex-1 space-y-1">
                           <div>
-                            <CardTitle className="text-headline font-semibold text-foreground text-center">
+                            <h3 className="font-semibold text-headline text-foreground text-center">
                               {classItem.name}
-                            </CardTitle>
+                            </h3>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="secondary"
-                              className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
-                            >
-                              {classItem.exams.length} provas
-                            </Badge>
-                            <Badge
-                              variant="secondary"
-                              className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
-                            >
-                              {classItem.totalResults} resultados
-                            </Badge>
-                          </div>
-                          <div className="h-4 w-px bg-border"></div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="tinted"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleExportClassResults(classItem);
-                              }}
-                              disabled={
-                                classItem.totalResults === 0 ||
-                                shouldDisableActions
-                              }
-                              title="Exportar resultados"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="tinted"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditClass(classItem);
-                              }}
-                              disabled={shouldDisableActions}
-                              title="Editar turma"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClass(classItem.id);
-                              }}
-                              disabled={shouldDisableActions}
-                              className="hover:bg-apple-red/90"
-                              title="Deletar turma"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge
+                                variant="secondary"
+                                className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light text-footnote hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
+                              >
+                                {classItem.exams.length} provas
+                              </Badge>
+                              <Badge
+                                variant="secondary"
+                                className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light text-footnote hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
+                              >
+                                {classItem.totalResults} resultados
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-px bg-border"></div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="tinted"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleExportClassResults(classItem);
+                                  }}
+                                  disabled={
+                                    classItem.totalResults === 0 ||
+                                    shouldDisableActions
+                                  }
+                                  title="Exportar resultados"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="tinted"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditClass(classItem);
+                                  }}
+                                  disabled={shouldDisableActions}
+                                  title="Editar turma"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClass(classItem.id);
+                                  }}
+                                  disabled={shouldDisableActions}
+                                  className="hover:bg-apple-red/90"
+                                  title="Deletar turma"
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </CardHeader>
+                    </div>
 
-                    {expandedClasses.has(classItem.id) && (
-                      <CardContent className="p-6 pt-0">
-                        {/* Exam Grid */}
-                        {classItem.exams.length > 0 ? (
+                    {/* Desktop Layout */}
+                    <div className="hidden md:flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleClassExpansion(classItem.id)}
+                          className="p-2 h-auto hover:bg-apple-gray-5/50 apple-transition rounded-apple"
+                        >
+                          <div
+                            className={`transform transition-transform duration-200 ${
+                              expandedClasses.has(classItem.id)
+                                ? "rotate-90"
+                                : "rotate-0"
+                            }`}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </div>
+                        </Button>
+                        <div>
+                          <CardTitle className="text-headline font-semibold text-foreground text-center">
+                            {classItem.name}
+                          </CardTitle>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="secondary"
+                            className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
+                          >
+                            {classItem.exams.length} provas
+                          </Badge>
+                          <Badge
+                            variant="secondary"
+                            className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition border border-apple-blue/20 dark:border-apple-blue/30"
+                          >
+                            {classItem.totalResults} resultados
+                          </Badge>
+                        </div>
+                        <div className="h-4 w-px bg-border"></div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="tinted"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExportClassResults(classItem);
+                            }}
+                            disabled={
+                              classItem.totalResults === 0 ||
+                              shouldDisableActions
+                            }
+                            title="Exportar resultados"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="tinted"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClass(classItem);
+                            }}
+                            disabled={shouldDisableActions}
+                            title="Editar turma"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClass(classItem.id);
+                            }}
+                            disabled={shouldDisableActions}
+                            className="hover:bg-apple-red/90"
+                            title="Deletar turma"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  {expandedClasses.has(classItem.id) && (
+                    <CardContent className="p-6 pt-0">
+                      {/* Exam Grid */}
+                      {classItem.exams.length > 0 ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <FileText className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
+                            <h4 className="font-medium text-gray-700 dark:text-zinc-300">
+                              Provas da Turma ({classItem.exams.length})
+                            </h4>
+                          </div>
+
                           <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-4">
-                              <FileText className="h-4 w-4 text-gray-600 dark:text-zinc-400" />
-                              <h4 className="font-medium text-gray-700 dark:text-zinc-300">
-                                Provas da Turma ({classItem.exams.length})
-                              </h4>
-                            </div>
+                            {classItem.exams.map((exam: any, index: number) => (
+                              <Card
+                                key={exam._id}
+                                className="hover:apple-shadow apple-transition"
+                              >
+                                <CardContent className="p-3">
+                                  {/* Mobile Layout */}
+                                  <div className="block md:hidden">
+                                    <div
+                                      className="cursor-pointer"
+                                      onClick={() => toggleExamDetail(exam._id)}
+                                    >
+                                      <div className="flex items-start gap-3 mb-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon-sm"
+                                          className="h-6 w-6 p-0 hover:bg-apple-gray-5/50 rounded-apple mt-1 flex-shrink-0"
+                                        >
+                                          <div
+                                            className={`transform apple-transition ${
+                                              activeExam === exam._id
+                                                ? "rotate-90"
+                                                : "rotate-0"
+                                            }`}
+                                          >
+                                            <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                          </div>
+                                        </Button>
+                                        <div className="flex-1 min-w-0">
+                                          <h5 className="font-semibold text-body text-foreground mb-1">
+                                            {exam.title}
+                                          </h5>
+                                          {exam.description && (
+                                            <p className="text-subhead text-muted-foreground mb-2 line-clamp-2">
+                                              {exam.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
 
-                            <div className="space-y-4">
-                              {classItem.exams.map((exam, index) => (
-                                <Card
-                                  key={exam._id}
-                                  className="hover:apple-shadow apple-transition"
-                                >
-                                  <CardContent className="p-3">
-                                    {/* Mobile Layout */}
-                                    <div className="block md:hidden">
-                                      <div
-                                        className="cursor-pointer"
-                                        onClick={() =>
-                                          toggleExamDetail(exam._id)
-                                        }
-                                      >
-                                        <div className="flex items-start gap-3 mb-2">
+                                      {/* Mobile Badges */}
+                                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                                        <Badge
+                                          variant="secondary"
+                                          className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                        >
+                                          {exam.questions.length} questões
+                                        </Badge>
+                                        <Badge
+                                          variant="secondary"
+                                          className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                        >
+                                          {exam.results.length} resultados
+                                        </Badge>
+                                        <span className="text-footnote text-muted-foreground">
+                                          {formatDistanceToNow(exam.createdAt, {
+                                            addSuffix: true,
+                                            locale: ptBR,
+                                          })}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Mobile Actions */}
+                                    <div className="flex items-center justify-end pt-2 border-t border-apple-gray-4">
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            variant="tinted"
+                                            size="sm"
+                                            className="text-footnote"
+                                            disabled={shouldDisableActions}
+                                          >
+                                            Ações
+                                            <ChevronDown className="h-3 w-3 ml-1" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          {shouldDisableActions ? (
+                                            <DropdownMenuItem disabled>
+                                              <Eye className="h-4 w-4 mr-3" />
+                                              Ver Prova
+                                            </DropdownMenuItem>
+                                          ) : (
+                                            <DropdownMenuItem asChild>
+                                              <Link
+                                                href={`/dashboard/exams/${exam._id}`}
+                                              >
+                                                <Eye className="h-4 w-4 mr-3" />
+                                                Ver Prova
+                                              </Link>
+                                            </DropdownMenuItem>
+                                          )}
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleExportWord(exam);
+                                            }}
+                                            disabled={
+                                              exportingExamId === exam._id ||
+                                              shouldDisableActions
+                                            }
+                                          >
+                                            <Download className="h-4 w-4 mr-3" />
+                                            {exportingExamId === exam._id
+                                              ? "Gerando..."
+                                              : "Download Word"}
+                                          </DropdownMenuItem>
+                                          <Dialog>
+                                            <DialogTrigger asChild>
+                                              <DropdownMenuItem
+                                                onSelect={(e) =>
+                                                  e.preventDefault()
+                                                }
+                                                disabled={shouldDisableActions}
+                                              >
+                                                <Share2 className="h-4 w-4 mr-3" />
+                                                Gerar Link
+                                              </DropdownMenuItem>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[500px]">
+                                              <DialogHeader>
+                                                <DialogTitle className="flex items-center gap-2">
+                                                  <Share2 className="h-5 w-5" />
+                                                  Compartilhar Prova
+                                                </DialogTitle>
+                                              </DialogHeader>
+                                              <ShareExamContent
+                                                exam={exam}
+                                                toast={toast}
+                                              />
+                                            </DialogContent>
+                                          </Dialog>
+                                          <Dialog>
+                                            <DialogTrigger asChild>
+                                              <DropdownMenuItem
+                                                onSelect={(e) =>
+                                                  e.preventDefault()
+                                                }
+                                                disabled={shouldDisableActions}
+                                              >
+                                                <Copy className="h-4 w-4 mr-3" />
+                                                Duplicar Prova
+                                              </DropdownMenuItem>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[425px]">
+                                              <DialogHeader>
+                                                <DialogTitle className="flex items-center gap-2">
+                                                  <Copy className="h-5 w-5" />
+                                                  Duplicar Prova
+                                                </DialogTitle>
+                                              </DialogHeader>
+                                              <div className="space-y-4 py-4">
+                                                <div className="space-y-2">
+                                                  <Label htmlFor="target-class">
+                                                    Escolher Turma
+                                                  </Label>
+                                                  <Select
+                                                    value={
+                                                      selectedTargetClassId
+                                                    }
+                                                    onValueChange={(value) => {
+                                                      setSelectedTargetClassId(
+                                                        value
+                                                      );
+                                                      setIsCreatingNewClass(
+                                                        false
+                                                      );
+                                                    }}
+                                                  >
+                                                    <SelectTrigger>
+                                                      <SelectValue placeholder="Selecione uma turma" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                      {userData?.classes?.map(
+                                                        (classItem: any) => (
+                                                          <SelectItem
+                                                            key={classItem._id}
+                                                            value={
+                                                              classItem._id
+                                                            }
+                                                          >
+                                                            {classItem.name}
+                                                          </SelectItem>
+                                                        )
+                                                      )}
+                                                    </SelectContent>
+                                                  </Select>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                  <input
+                                                    type="checkbox"
+                                                    id="create-new-class"
+                                                    checked={isCreatingNewClass}
+                                                    onChange={(e) => {
+                                                      setIsCreatingNewClass(
+                                                        e.target.checked
+                                                      );
+                                                      if (e.target.checked) {
+                                                        setSelectedTargetClassId(
+                                                          ""
+                                                        );
+                                                      }
+                                                    }}
+                                                    className="rounded border-gray-300"
+                                                  />
+                                                  <Label
+                                                    htmlFor="create-new-class"
+                                                    className="text-sm"
+                                                  >
+                                                    Criar nova turma
+                                                  </Label>
+                                                </div>
+                                                {isCreatingNewClass && (
+                                                  <div className="space-y-2">
+                                                    <Label htmlFor="new-class-name">
+                                                      Nome da Nova Turma
+                                                    </Label>
+                                                    <Input
+                                                      id="new-class-name"
+                                                      placeholder="Digite o nome da nova turma"
+                                                      value={
+                                                        newClassNameForCopy
+                                                      }
+                                                      onChange={(e) =>
+                                                        setNewClassNameForCopy(
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                  </div>
+                                                )}
+                                              </div>
+                                              <div className="flex justify-end gap-2 pt-4">
+                                                <DialogClose asChild>
+                                                  <Button
+                                                    variant="outline"
+                                                    disabled={isCopyingExam}
+                                                    onClick={() => {
+                                                      setIsCopyDialogOpen(
+                                                        false
+                                                      );
+                                                      setExamToCopy(null);
+                                                      setSelectedTargetClassId(
+                                                        ""
+                                                      );
+                                                      setIsCreatingNewClass(
+                                                        false
+                                                      );
+                                                      setNewClassNameForCopy(
+                                                        ""
+                                                      );
+                                                    }}
+                                                  >
+                                                    Cancelar
+                                                  </Button>
+                                                </DialogClose>
+                                                <Button
+                                                  onClick={() => {
+                                                    handleCopyExamToClass(exam);
+                                                  }}
+                                                  disabled={
+                                                    isCopyingExam ||
+                                                    (!isCreatingNewClass &&
+                                                      !selectedTargetClassId) ||
+                                                    (isCreatingNewClass &&
+                                                      !newClassNameForCopy.trim())
+                                                  }
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                >
+                                                  {isCopyingExam
+                                                    ? isCreatingNewClass
+                                                      ? "Criando turma e copiando..."
+                                                      : "Copiando..."
+                                                    : "Duplicar Prova"}
+                                                </Button>
+                                              </div>
+                                            </DialogContent>
+                                          </Dialog>
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleExportExamResults(exam);
+                                            }}
+                                            disabled={
+                                              shouldDisableActions ||
+                                              exam.results.length === 0
+                                            }
+                                          >
+                                            <FileSpreadsheet className="h-4 w-4 mr-3" />
+                                            Exportar CSV
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteExam(exam._id);
+                                            }}
+                                            disabled={shouldDisableActions}
+                                            className="text-apple-red hover:bg-apple-red/10 focus:bg-apple-red/10 focus:text-apple-red"
+                                          >
+                                            <Trash className="h-4 w-4 mr-3" />
+                                            Deletar
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </div>
+                                  </div>
+
+                                  {/* Desktop Layout */}
+                                  <div className="hidden md:block">
+                                    <div
+                                      className="flex items-start justify-between cursor-pointer"
+                                      onClick={() => toggleExamDetail(exam._id)}
+                                    >
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <h5 className="font-semibold text-body text-foreground truncate">
+                                            {exam.title}
+                                          </h5>
                                           <Button
                                             variant="ghost"
                                             size="icon-sm"
-                                            className="h-6 w-6 p-0 hover:bg-apple-gray-5/50 rounded-apple mt-1 flex-shrink-0"
+                                            className="h-6 w-6 p-0 hover:bg-apple-gray-5/50 rounded-apple"
                                           >
                                             <div
                                               className={`transform apple-transition ${
@@ -1076,433 +1410,427 @@ export default function UnifiedOverviewPage() {
                                               <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                             </div>
                                           </Button>
-                                          <div className="flex-1 min-w-0">
-                                            <h5 className="font-semibold text-body text-foreground mb-1">
-                                              {exam.title}
-                                            </h5>
-                                            {exam.description && (
-                                              <p className="text-subhead text-muted-foreground mb-2 line-clamp-2">
-                                                {exam.description}
-                                              </p>
-                                            )}
-                                          </div>
                                         </div>
 
-                                        {/* Mobile Badges */}
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                          <Badge
-                                            variant="secondary"
-                                            className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
-                                          >
-                                            {exam.questions.length} questões
-                                          </Badge>
-                                          <Badge
-                                            variant="secondary"
-                                            className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
-                                          >
-                                            {exam.results.length} resultados
-                                          </Badge>
-                                          <span className="text-footnote text-muted-foreground">
-                                            {formatDistanceToNow(
-                                              exam.createdAt,
-                                              {
-                                                addSuffix: true,
-                                                locale: ptBR,
-                                              }
-                                            )}
-                                          </span>
-                                        </div>
-                                      </div>
+                                        {exam.description && (
+                                          <p className="text-subhead text-muted-foreground mb-2 line-clamp-2">
+                                            {exam.description}
+                                          </p>
+                                        )}
 
-                                      {/* Mobile Actions */}
-                                      <div className="flex items-center justify-end pt-2 border-t border-apple-gray-4">
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <Button
-                                              variant="tinted"
-                                              size="sm"
-                                              className="text-footnote"
-                                              disabled={shouldDisableActions}
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                            <Badge
+                                              variant="secondary"
+                                              className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
                                             >
-                                              Ações
-                                              <ChevronDown className="h-3 w-3 ml-1" />
-                                            </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="end">
-                                            {shouldDisableActions ? (
-                                              <DropdownMenuItem disabled>
-                                                <Eye className="h-4 w-4 mr-3" />
-                                                Ver Prova
-                                              </DropdownMenuItem>
-                                            ) : (
-                                              <DropdownMenuItem asChild>
-                                                <Link
-                                                  href={`/dashboard/exams/${exam._id}`}
-                                                >
+                                              {exam.questions.length} questões
+                                            </Badge>
+                                            <Badge
+                                              variant="secondary"
+                                              className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
+                                            >
+                                              {exam.results.length} resultados
+                                            </Badge>
+                                            <span className="text-footnote text-muted-foreground">
+                                              {formatDistanceToNow(
+                                                exam.createdAt,
+                                                {
+                                                  addSuffix: true,
+                                                  locale: ptBR,
+                                                }
+                                              )}
+                                            </span>
+                                          </div>
+
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button
+                                                variant="tinted"
+                                                size="sm"
+                                                className="text-footnote"
+                                                disabled={shouldDisableActions}
+                                              >
+                                                Ações
+                                                <ChevronDown className="h-3 w-3 ml-1" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                              {shouldDisableActions ? (
+                                                <DropdownMenuItem disabled>
                                                   <Eye className="h-4 w-4 mr-3" />
                                                   Ver Prova
-                                                </Link>
-                                              </DropdownMenuItem>
-                                            )}
-                                            <DropdownMenuItem
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleExportWord(exam);
-                                              }}
-                                              disabled={
-                                                exportingExamId === exam._id ||
-                                                shouldDisableActions
-                                              }
-                                            >
-                                              <Download className="h-4 w-4 mr-3" />
-                                              {exportingExamId === exam._id
-                                                ? "Gerando..."
-                                                : "Download Word"}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleShareExam(exam);
-                                              }}
-                                              disabled={shouldDisableActions}
-                                            >
-                                              <Share2 className="h-4 w-4 mr-3" />
-                                              Gerar Link
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCopyExam(exam);
-                                              }}
-                                              disabled={shouldDisableActions}
-                                            >
-                                              <Copy className="h-4 w-4 mr-3" />
-                                              Duplicar Prova
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleExportExamResults(exam);
-                                              }}
-                                              disabled={
-                                                shouldDisableActions ||
-                                                exam.results.length === 0
-                                              }
-                                            >
-                                              <FileSpreadsheet className="h-4 w-4 mr-3" />
-                                              Exportar CSV
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteExam(exam._id);
-                                              }}
-                                              disabled={shouldDisableActions}
-                                              className="text-apple-red hover:bg-apple-red/10 focus:bg-apple-red/10 focus:text-apple-red"
-                                            >
-                                              <Trash className="h-4 w-4 mr-3" />
-                                              Deletar
-                                            </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      </div>
-                                    </div>
-
-                                    {/* Desktop Layout */}
-                                    <div className="hidden md:block">
-                                      <div
-                                        className="flex items-start justify-between cursor-pointer"
-                                        onClick={() =>
-                                          toggleExamDetail(exam._id)
-                                        }
-                                      >
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-2 mb-1">
-                                            <h5 className="font-semibold text-body text-foreground truncate">
-                                              {exam.title}
-                                            </h5>
-                                            <Button
-                                              variant="ghost"
-                                              size="icon-sm"
-                                              className="h-6 w-6 p-0 hover:bg-apple-gray-5/50 rounded-apple"
-                                            >
-                                              <div
-                                                className={`transform apple-transition ${
-                                                  activeExam === exam._id
-                                                    ? "rotate-90"
-                                                    : "rotate-0"
-                                                }`}
-                                              >
-                                                <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                                              </div>
-                                            </Button>
-                                          </div>
-
-                                          {exam.description && (
-                                            <p className="text-subhead text-muted-foreground mb-2 line-clamp-2">
-                                              {exam.description}
-                                            </p>
-                                          )}
-
-                                          <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                              <Badge
-                                                variant="secondary"
-                                                className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
-                                              >
-                                                {exam.questions.length} questões
-                                              </Badge>
-                                              <Badge
-                                                variant="secondary"
-                                                className="bg-apple-blue/10 dark:bg-apple-blue/15 text-apple-blue dark:text-apple-blue-light border-apple-blue/20 dark:border-apple-blue/30 hover:bg-apple-blue/20 dark:hover:bg-apple-blue/25 apple-transition"
-                                              >
-                                                {exam.results.length} resultados
-                                              </Badge>
-                                              <span className="text-footnote text-muted-foreground">
-                                                {formatDistanceToNow(
-                                                  exam.createdAt,
-                                                  {
-                                                    addSuffix: true,
-                                                    locale: ptBR,
-                                                  }
-                                                )}
-                                              </span>
-                                            </div>
-
-                                            <DropdownMenu>
-                                              <DropdownMenuTrigger asChild>
-                                                <Button
-                                                  variant="tinted"
-                                                  size="sm"
-                                                  className="text-footnote"
-                                                  disabled={
-                                                    shouldDisableActions
-                                                  }
-                                                >
-                                                  Ações
-                                                  <ChevronDown className="h-3 w-3 ml-1" />
-                                                </Button>
-                                              </DropdownMenuTrigger>
-                                              <DropdownMenuContent align="end">
-                                                {shouldDisableActions ? (
-                                                  <DropdownMenuItem disabled>
+                                                </DropdownMenuItem>
+                                              ) : (
+                                                <DropdownMenuItem asChild>
+                                                  <Link
+                                                    href={`/dashboard/exams/${exam._id}`}
+                                                  >
                                                     <Eye className="h-4 w-4 mr-3" />
                                                     Ver Prova
+                                                  </Link>
+                                                </DropdownMenuItem>
+                                              )}
+                                              <DropdownMenuItem
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleExportWord(exam);
+                                                }}
+                                                disabled={
+                                                  exportingExamId ===
+                                                    exam._id ||
+                                                  shouldDisableActions
+                                                }
+                                              >
+                                                <Download className="h-4 w-4 mr-3" />
+                                                {exportingExamId === exam._id
+                                                  ? "Gerando..."
+                                                  : "Download Word"}
+                                              </DropdownMenuItem>
+                                              <Dialog>
+                                                <DialogTrigger asChild>
+                                                  <DropdownMenuItem
+                                                    onSelect={(e) =>
+                                                      e.preventDefault()
+                                                    }
+                                                    disabled={
+                                                      shouldDisableActions
+                                                    }
+                                                  >
+                                                    <Share2 className="h-4 w-4 mr-3" />
+                                                    Gerar Link
                                                   </DropdownMenuItem>
-                                                ) : (
-                                                  <DropdownMenuItem asChild>
-                                                    <Link
-                                                      href={`/dashboard/exams/${exam._id}`}
+                                                </DialogTrigger>
+                                                <DialogContent className="sm:max-w-[500px]">
+                                                  <DialogHeader>
+                                                    <DialogTitle className="flex items-center gap-2">
+                                                      <Share2 className="h-5 w-5" />
+                                                      Compartilhar Prova
+                                                    </DialogTitle>
+                                                  </DialogHeader>
+                                                  <ShareExamContent
+                                                    exam={exam}
+                                                    toast={toast}
+                                                  />
+                                                </DialogContent>
+                                              </Dialog>
+                                              <Dialog>
+                                                <DialogTrigger asChild>
+                                                  <DropdownMenuItem
+                                                    onSelect={(e) =>
+                                                      e.preventDefault()
+                                                    }
+                                                    disabled={
+                                                      shouldDisableActions
+                                                    }
+                                                  >
+                                                    <Copy className="h-4 w-4 mr-3" />
+                                                    Duplicar Prova
+                                                  </DropdownMenuItem>
+                                                </DialogTrigger>
+                                                <DialogContent className="sm:max-w-[425px]">
+                                                  <DialogHeader>
+                                                    <DialogTitle className="flex items-center gap-2">
+                                                      <Copy className="h-5 w-5" />
+                                                      Duplicar Prova
+                                                    </DialogTitle>
+                                                  </DialogHeader>
+                                                  <div className="space-y-4 py-4">
+                                                    <div className="space-y-2">
+                                                      <Label htmlFor="target-class-2">
+                                                        Escolher Turma
+                                                      </Label>
+                                                      <Select
+                                                        value={
+                                                          selectedTargetClassId
+                                                        }
+                                                        onValueChange={(
+                                                          value
+                                                        ) => {
+                                                          setSelectedTargetClassId(
+                                                            value
+                                                          );
+                                                          setIsCreatingNewClass(
+                                                            false
+                                                          );
+                                                        }}
+                                                      >
+                                                        <SelectTrigger>
+                                                          <SelectValue placeholder="Selecione uma turma" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                          {userData?.classes?.map(
+                                                            (
+                                                              classItem: any
+                                                            ) => (
+                                                              <SelectItem
+                                                                key={
+                                                                  classItem._id
+                                                                }
+                                                                value={
+                                                                  classItem._id
+                                                                }
+                                                              >
+                                                                {classItem.name}
+                                                              </SelectItem>
+                                                            )
+                                                          )}
+                                                        </SelectContent>
+                                                      </Select>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                      <input
+                                                        type="checkbox"
+                                                        id="create-new-class-2"
+                                                        checked={
+                                                          isCreatingNewClass
+                                                        }
+                                                        onChange={(e) => {
+                                                          setIsCreatingNewClass(
+                                                            e.target.checked
+                                                          );
+                                                          if (
+                                                            e.target.checked
+                                                          ) {
+                                                            setSelectedTargetClassId(
+                                                              ""
+                                                            );
+                                                          }
+                                                        }}
+                                                        className="rounded border-gray-300"
+                                                      />
+                                                      <Label
+                                                        htmlFor="create-new-class-2"
+                                                        className="text-sm"
+                                                      >
+                                                        Criar nova turma
+                                                      </Label>
+                                                    </div>
+                                                    {isCreatingNewClass && (
+                                                      <div className="space-y-2">
+                                                        <Label htmlFor="new-class-name-2">
+                                                          Nome da Nova Turma
+                                                        </Label>
+                                                        <Input
+                                                          id="new-class-name-2"
+                                                          placeholder="Digite o nome da nova turma"
+                                                          value={
+                                                            newClassNameForCopy
+                                                          }
+                                                          onChange={(e) =>
+                                                            setNewClassNameForCopy(
+                                                              e.target.value
+                                                            )
+                                                          }
+                                                        />
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                  <div className="flex justify-end gap-2 pt-4">
+                                                    <DialogClose asChild>
+                                                      <Button
+                                                        variant="outline"
+                                                        disabled={isCopyingExam}
+                                                        onClick={() => {
+                                                          setIsCopyDialogOpen(
+                                                            false
+                                                          );
+                                                          setExamToCopy(null);
+                                                          setSelectedTargetClassId(
+                                                            ""
+                                                          );
+                                                          setIsCreatingNewClass(
+                                                            false
+                                                          );
+                                                          setNewClassNameForCopy(
+                                                            ""
+                                                          );
+                                                        }}
+                                                      >
+                                                        Cancelar
+                                                      </Button>
+                                                    </DialogClose>
+                                                    <Button
+                                                      onClick={() => {
+                                                        handleCopyExamToClass(
+                                                          exam
+                                                        );
+                                                      }}
+                                                      disabled={
+                                                        isCopyingExam ||
+                                                        (!isCreatingNewClass &&
+                                                          !selectedTargetClassId) ||
+                                                        (isCreatingNewClass &&
+                                                          !newClassNameForCopy.trim())
+                                                      }
+                                                      className="bg-blue-600 hover:bg-blue-700 text-white"
                                                     >
-                                                      <Eye className="h-4 w-4 mr-3" />
-                                                      Ver Prova
-                                                    </Link>
-                                                  </DropdownMenuItem>
-                                                )}
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleExportWord(exam);
-                                                  }}
-                                                  disabled={
-                                                    exportingExamId ===
-                                                      exam._id ||
-                                                    shouldDisableActions
-                                                  }
-                                                >
-                                                  <Download className="h-4 w-4 mr-3" />
-                                                  {exportingExamId === exam._id
-                                                    ? "Gerando..."
-                                                    : "Download Word"}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    handleShareExam(exam);
-                                                  }}
-                                                  disabled={
-                                                    shouldDisableActions
-                                                  }
-                                                >
-                                                  <Share2 className="h-4 w-4 mr-3" />
-                                                  Gerar Link
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCopyExam(exam);
-                                                  }}
-                                                  disabled={
-                                                    shouldDisableActions
-                                                  }
-                                                >
-                                                  <Copy className="h-4 w-4 mr-3" />
-                                                  Duplicar Prova
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleExportExamResults(
-                                                      exam
-                                                    );
-                                                  }}
-                                                  disabled={
-                                                    shouldDisableActions ||
-                                                    exam.results.length === 0
-                                                  }
-                                                >
-                                                  <FileSpreadsheet className="h-4 w-4 mr-3" />
-                                                  Exportar CSV
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteExam(exam._id);
-                                                  }}
-                                                  disabled={
-                                                    shouldDisableActions
-                                                  }
-                                                  className="text-apple-red hover:bg-apple-red/10 focus:bg-apple-red/10 focus:text-apple-red"
-                                                >
-                                                  <Trash className="h-4 w-4 mr-3" />
-                                                  Deletar
-                                                </DropdownMenuItem>
-                                              </DropdownMenuContent>
-                                            </DropdownMenu>
-                                          </div>
+                                                      {isCopyingExam
+                                                        ? isCreatingNewClass
+                                                          ? "Criando turma e copiando..."
+                                                          : "Copiando..."
+                                                        : "Duplicar Prova"}
+                                                    </Button>
+                                                  </div>
+                                                </DialogContent>
+                                              </Dialog>
+                                              <DropdownMenuItem
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleExportExamResults(exam);
+                                                }}
+                                                disabled={
+                                                  shouldDisableActions ||
+                                                  exam.results.length === 0
+                                                }
+                                              >
+                                                <FileSpreadsheet className="h-4 w-4 mr-3" />
+                                                Exportar CSV
+                                              </DropdownMenuItem>
+                                              <DropdownMenuSeparator />
+                                              <DropdownMenuItem
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleDeleteExam(exam._id);
+                                                }}
+                                                disabled={shouldDisableActions}
+                                                className="text-apple-red hover:bg-apple-red/10 focus:bg-apple-red/10 focus:text-apple-red"
+                                              >
+                                                <Trash className="h-4 w-4 mr-3" />
+                                                Deletar
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
                                         </div>
                                       </div>
                                     </div>
+                                  </div>
 
-                                    {/* Expandable Results Section */}
-                                    {activeExam === exam._id &&
-                                      exam.results.length > 0 && (
-                                        <div className="mt-4 pt-4 border-t border-apple-gray-4">
-                                          <div className="mb-3">
-                                            <h6 className="text-subhead font-semibold text-foreground">
-                                              Resultados ({exam.results.length})
-                                            </h6>
-                                          </div>
+                                  {/* Expandable Results Section */}
+                                  {activeExam === exam._id &&
+                                    exam.results.length > 0 && (
+                                      <div className="mt-4 pt-4 border-t border-apple-gray-4">
+                                        <div className="mb-3">
+                                          <h6 className="text-subhead font-semibold text-foreground">
+                                            Resultados ({exam.results.length})
+                                          </h6>
+                                        </div>
 
-                                          <div className="space-y-2">
-                                            {(() => {
-                                              const showMore =
-                                                showMoreResults.has(exam._id);
-                                              const maxResults = 3;
-                                              const displayedResults = showMore
-                                                ? exam.results
-                                                : exam.results.slice(
-                                                    0,
-                                                    maxResults
-                                                  );
-
-                                              return displayedResults.map(
-                                                (result) => (
-                                                  <div
-                                                    key={result._id}
-                                                    className="flex items-center justify-between p-2 bg-apple-secondary-system-background rounded-apple border border-apple-gray-4"
-                                                  >
-                                                    <div className="flex-1 min-w-0">
-                                                      <p className="font-mono text-footnote text-foreground truncate">
-                                                        {result.email}
-                                                      </p>
-                                                      <p className="text-caption-2 text-muted-foreground">
-                                                        {formatDate(
-                                                          result.createdAt
-                                                        )}
-                                                      </p>
-                                                    </div>
-                                                    <div className="flex items-center gap-3">
-                                                      <span className="text-footnote font-medium text-foreground">
-                                                        {result.score}/
-                                                        {
-                                                          result.examQuestionCount
-                                                        }
-                                                      </span>
-                                                      <span
-                                                        className={`text-footnote font-bold ${getPercentageColor(
-                                                          result.percentage
-                                                        )}`}
-                                                      >
-                                                        {(
-                                                          result.percentage *
-                                                          100
-                                                        ).toFixed(1)}
-                                                        %
-                                                      </span>
-                                                    </div>
-                                                  </div>
-                                                )
-                                              );
-                                            })()}
-                                          </div>
-
+                                        <div className="space-y-2">
                                           {(() => {
                                             const showMore =
                                               showMoreResults.has(exam._id);
                                             const maxResults = 3;
-                                            const hasMoreResults =
-                                              exam.results.length > maxResults;
+                                            const displayedResults = showMore
+                                              ? exam.results
+                                              : exam.results.slice(
+                                                  0,
+                                                  maxResults
+                                                );
 
-                                            return hasMoreResults ? (
-                                              <div className="mt-3 text-center">
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleShowMoreResults(
-                                                      exam._id
-                                                    );
-                                                  }}
-                                                  className="text-footnote text-apple-blue hover:bg-apple-blue/10"
+                                            return displayedResults.map(
+                                              (result: any) => (
+                                                <div
+                                                  key={result._id}
+                                                  className="flex items-center justify-between p-2 bg-apple-secondary-system-background rounded-apple border border-apple-gray-4"
                                                 >
-                                                  {showMore
-                                                    ? `Mostrar menos (${
-                                                        exam.results.length -
-                                                        maxResults
-                                                      } ocultos)`
-                                                    : `Mostrar mais ${
-                                                        exam.results.length -
-                                                        maxResults
-                                                      } resultado(s)`}
-                                                </Button>
-                                              </div>
-                                            ) : null;
+                                                  <div className="flex-1 min-w-0">
+                                                    <p className="font-mono text-footnote text-foreground truncate">
+                                                      {result.email}
+                                                    </p>
+                                                    <p className="text-caption-2 text-muted-foreground">
+                                                      {formatDate(
+                                                        result.createdAt
+                                                      )}
+                                                    </p>
+                                                  </div>
+                                                  <div className="flex items-center gap-3">
+                                                    <span className="text-footnote font-medium text-foreground">
+                                                      {result.score}/
+                                                      {result.examQuestionCount}
+                                                    </span>
+                                                    <span
+                                                      className={`text-footnote font-bold ${getPercentageColor(
+                                                        result.percentage
+                                                      )}`}
+                                                    >
+                                                      {(
+                                                        result.percentage * 100
+                                                      ).toFixed(1)}
+                                                      %
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              )
+                                            );
                                           })()}
                                         </div>
-                                      )}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
+
+                                        {(() => {
+                                          const showMore = showMoreResults.has(
+                                            exam._id
+                                          );
+                                          const maxResults = 3;
+                                          const hasMoreResults =
+                                            exam.results.length > maxResults;
+
+                                          return hasMoreResults ? (
+                                            <div className="mt-3 text-center">
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  toggleShowMoreResults(
+                                                    exam._id
+                                                  );
+                                                }}
+                                                className="text-footnote text-apple-blue hover:bg-apple-blue/10"
+                                              >
+                                                {showMore
+                                                  ? `Mostrar menos (${
+                                                      exam.results.length -
+                                                      maxResults
+                                                    } ocultos)`
+                                                  : `Mostrar mais ${
+                                                      exam.results.length -
+                                                      maxResults
+                                                    } resultado(s)`}
+                                              </Button>
+                                            </div>
+                                          ) : null;
+                                        })()}
+                                      </div>
+                                    )}
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
-                        ) : (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500 dark:text-zinc-400 text-sm">
-                              Esta turma ainda não possui provas
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    )}
-                  </Card>
-                ))
-              ) : (
-                <Card className="hover:apple-shadow apple-transition">
-                  <CardContent className="p-8 text-center">
-                    <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-headline font-semibold text-foreground mb-2">
-                      Nenhum resultado encontrado
-                    </h3>
-                    <p className="text-subhead text-muted-foreground">
-                      Tente ajustar sua pesquisa ou verifique a ortografia.
-                    </p>
-                  </CardContent>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                            Esta turma ainda não possui provas
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  )}
                 </Card>
-              )}
-            </div>
+              ))
+            ) : (
+              <Card className="hover:apple-shadow apple-transition">
+                <CardContent className="p-8 text-center">
+                  <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-headline font-semibold text-foreground mb-2">
+                    Nenhum resultado encontrado
+                  </h3>
+                  <p className="text-subhead text-muted-foreground">
+                    Tente ajustar sua pesquisa ou verifique a ortografia.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </>
         ) : (
           <Card className="hover:shadow-lg transition-all duration-200 dark:shadow-apple-shadow dark:border-apple-gray-4 dark:bg-apple-secondary-grouped-background">
@@ -1519,13 +1847,59 @@ export default function UnifiedOverviewPage() {
                     Comece criando sua primeira turma para organizar suas
                     provas.
                   </p>
-                  <Button
-                    onClick={openCreateClassModal}
-                    disabled={shouldDisableActions}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar Primeira Turma
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button disabled={shouldDisableActions}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Primeira Turma
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <GraduationCap className="h-5 w-5" />
+                          Criar Nova Turma
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new-class-name-empty">
+                            Nome da Turma
+                          </Label>
+                          <Input
+                            id="new-class-name-empty"
+                            placeholder="Digite o nome da turma"
+                            value={newClassName}
+                            onChange={(e) => setNewClassName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-4">
+                        <DialogClose asChild>
+                          <Button variant="outline" disabled={isCreatingClass}>
+                            Cancelar
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          onClick={handleCreateClass}
+                          disabled={isCreatingClass || !newClassName.trim()}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          {isCreatingClass ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                              Criando...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Criar Turma
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </CardContent>
@@ -1543,69 +1917,6 @@ export default function UnifiedOverviewPage() {
           <ArrowUp className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
       )}
-
-      {/* Create Class Modal */}
-      <Dialog
-        open={isCreateClassModalOpen}
-        onOpenChange={setIsCreateClassModalOpen}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              Criar Nova Turma
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-class-name">Nome da Turma</Label>
-              <Input
-                id="new-class-name"
-                placeholder="Digite o nome da turma"
-                value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
-                disabled={isCreatingClass}
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    !isCreatingClass &&
-                    newClassName.trim()
-                  ) {
-                    handleCreateClass();
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateClassModalOpen(false)}
-              disabled={isCreatingClass}
-            >
-              <X className="h-4 w-4 mr-2" />
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCreateClass}
-              disabled={isCreatingClass || !newClassName.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isCreatingClass ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                  Criando...
-                </>
-              ) : (
-                <>
-                  <GraduationCap className="h-4 w-4 mr-2" />
-                  Criar Turma
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Edit Class Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -1646,14 +1957,12 @@ export default function UnifiedOverviewPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-              disabled={isUpdating}
-            >
-              <X className="h-4 w-4 mr-2" />
-              Cancelar
-            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isUpdating}>
+                <X className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+            </DialogClose>
             <Button
               onClick={handleUpdateClass}
               disabled={isUpdating || !editFormData.name.trim()}
@@ -1674,141 +1983,6 @@ export default function UnifiedOverviewPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Share Exam Modal */}
-      <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Share2 className="h-5 w-5" />
-              Compartilhar Prova
-            </DialogTitle>
-          </DialogHeader>
-          {examToShare && (
-            <ShareExamContent
-              exam={examToShare}
-              onClose={() => setShareModalOpen(false)}
-              toast={toast}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Copy Exam Modal */}
-      <Dialog open={isCopyDialogOpen} onOpenChange={setIsCopyDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Copy className="h-5 w-5" />
-              Copiar Prova
-            </DialogTitle>
-          </DialogHeader>
-          {examToCopy && (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">
-                  Prova selecionada:
-                </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {examToCopy.title}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="target-class">Turma de destino:</Label>
-                <Select
-                  value={
-                    isCreatingNewClass ? "create-new" : selectedTargetClassId
-                  }
-                  onValueChange={(value) => {
-                    if (value === "create-new") {
-                      setIsCreatingNewClass(true);
-                      setSelectedTargetClassId("");
-                    } else {
-                      setIsCreatingNewClass(false);
-                      setSelectedTargetClassId(value);
-                      setNewClassNameForCopy("");
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma turma ou crie uma nova" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="create-new">
-                      <div className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Criar nova turma
-                      </div>
-                    </SelectItem>
-                    {data?.classes
-                      .filter(
-                        (classItem) =>
-                          // Filter out the current class of the exam
-                          !classItem.exams.some((e) => e._id === examToCopy._id)
-                      )
-                      .map((classItem) => (
-                        <SelectItem key={classItem.id} value={classItem.id}>
-                          {classItem.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {isCreatingNewClass && (
-                <div className="space-y-2">
-                  <Label htmlFor="new-class-name">Nome da nova turma:</Label>
-                  <Input
-                    id="new-class-name"
-                    value={newClassNameForCopy}
-                    onChange={(e) => setNewClassNameForCopy(e.target.value)}
-                    placeholder="Digite o nome da nova turma"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isCopyingExam) {
-                        handleCopyExamToClass();
-                      }
-                    }}
-                  />
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsCopyDialogOpen(false);
-                    setExamToCopy(null);
-                    setSelectedTargetClassId("");
-                    setIsCreatingNewClass(false);
-                    setNewClassNameForCopy("");
-                  }}
-                  disabled={isCopyingExam}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleCopyExamToClass}
-                  disabled={
-                    isCopyingExam ||
-                    (!isCreatingNewClass && !selectedTargetClassId) ||
-                    (isCreatingNewClass && !newClassNameForCopy.trim())
-                  }
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {isCopyingExam
-                    ? isCreatingNewClass
-                      ? "Criando turma e copiando..."
-                      : "Copiando..."
-                    : isCreatingNewClass
-                    ? "Criar turma e copiar"
-                    : "Copiar Prova"}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
@@ -1816,11 +1990,10 @@ export default function UnifiedOverviewPage() {
 // Share Exam Content Component
 interface ShareExamContentProps {
   exam: ExamData;
-  onClose: () => void;
   toast: any;
 }
 
-function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
+function ShareExamContent({ exam, toast }: ShareExamContentProps) {
   const [config, setConfig] = React.useState({
     allowConsultation: false,
     showScoreAtEnd: true,
@@ -1929,7 +2102,7 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
               "O link da prova foi copiado com as configurações de segurança aplicadas.",
           });
         }
-        onClose();
+        // Don't auto-close dialog, let user close manually
       } else {
         // Fallback: show the URL so user can copy manually
         toast({
@@ -1937,7 +2110,7 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
           description: `Link: ${shareUrl}`,
           duration: 15000, // Show longer so user can copy
         });
-        onClose();
+        // Don't auto-close dialog, let user close manually
       }
     } catch (error) {
       toast({
@@ -2028,9 +2201,11 @@ function ShareExamContent({ exam, onClose, toast }: ShareExamContentProps) {
       </div>
 
       <div className="flex items-center gap-2 justify-end pt-4 border-t">
-        <Button variant="outline" onClick={onClose} disabled={isGenerating}>
-          Cancelar
-        </Button>
+        <DialogClose asChild>
+          <Button variant="outline" disabled={isGenerating}>
+            Cancelar
+          </Button>
+        </DialogClose>
         <Button
           onClick={handleGenerateLink}
           disabled={isGenerating}

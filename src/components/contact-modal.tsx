@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Send, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -37,11 +38,13 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleInputChange = (field: keyof ContactForm, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,11 +80,15 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
         }, 2000);
       } else {
         setSubmitStatus("error");
-        setErrorMessage(data.error || "Erro ao enviar mensagem. Tente novamente.");
+        setErrorMessage(
+          data.error || "Erro ao enviar mensagem. Tente novamente."
+        );
       }
     } catch (error) {
       setSubmitStatus("error");
-      setErrorMessage("Erro de conexão. Verifique sua internet e tente novamente.");
+      setErrorMessage(
+        "Erro de conexão. Verifique sua internet e tente novamente."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -115,8 +122,9 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
             Entre em Contato
           </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
-            Tem alguma dúvida sobre nossos planos ou precisa de um plano personalizado? 
-            Entre em contato conosco! Responderemos em até 24 horas.
+            Tem alguma dúvida sobre nossos planos ou precisa de um plano
+            personalizado? Entre em contato conosco! Responderemos em até 24
+            horas.
           </DialogDescription>
         </DialogHeader>
 
@@ -173,7 +181,9 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
                   id="modal-whatsapp"
                   type="tel"
                   value={formData.whatsapp}
-                  onChange={(e) => handleInputChange("whatsapp", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("whatsapp", e.target.value)
+                  }
                   placeholder="(11) 99999-9999"
                   required
                 />
@@ -204,26 +214,28 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
               />
             </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-12 font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Enviando...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Send className="w-4 h-4" />
-                  Enviar Mensagem
-                </div>
-              )}
-            </Button>
+            <DialogClose asChild>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Enviando...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Send className="w-4 h-4" />
+                    Enviar Mensagem
+                  </div>
+                )}
+              </Button>
+            </DialogClose>
           </form>
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}
