@@ -67,6 +67,7 @@ export async function PUT(
       {
         title: examData.title,
         description: examData.description,
+        duration: examData.duration,
         questions: examData.questions,
       },
       { new: true }
@@ -91,4 +92,4 @@ export async function PUT(
       { status: 500 }
     );
   }
-} 
+}

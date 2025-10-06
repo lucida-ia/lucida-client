@@ -14,7 +14,7 @@ type Question = {
   context?: string;
   options: string[];
   correctAnswer: number;
-  difficulty?: 'fácil' | 'médio' | 'difícil';
+  difficulty?: "fácil" | "médio" | "difícil";
   subject?: string;
   explanation?: string;
 };
@@ -44,6 +44,7 @@ type DBExam = {
   _id: string;
   title: string;
   description: string;
+  duration: number;
   questions: Question[];
   createdAt: Date;
   updatedAt: Date;
@@ -55,4 +56,12 @@ type DBClass = {
   exams: DBExam[];
 };
 
-export type { Exam, Question, Config, QuestionType, DBExam, DBClass, DifficultyDistribution };
+export type {
+  Exam,
+  Question,
+  Config,
+  QuestionType,
+  DBExam,
+  DBClass,
+  DifficultyDistribution,
+};

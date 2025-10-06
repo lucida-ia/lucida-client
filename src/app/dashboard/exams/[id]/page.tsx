@@ -53,6 +53,7 @@ export default function ExamPreviewPage() {
   const [editingExamDetails, setEditingExamDetails] = useState(false);
   const [editedExamTitle, setEditedExamTitle] = useState("");
   const [editedExamDescription, setEditedExamDescription] = useState("");
+  const [editedExamDuration, setEditedExamDuration] = useState(0);
   const [isSavingExamDetails, setIsSavingExamDetails] = useState(false);
   // Add state for new question modal
   const [isNewQuestionModalOpen, setIsNewQuestionModalOpen] = useState(false);
@@ -80,6 +81,7 @@ export default function ExamPreviewPage() {
         // Initialize edited values with current exam data
         setEditedExamTitle(response.data.exam.title);
         setEditedExamDescription(response.data.exam.description || "");
+        setEditedExamDuration(response.data.exam.duration || 0);
       } catch (error) {
         console.error("Error fetching exam:", error);
       } finally {
@@ -191,6 +193,7 @@ export default function ExamPreviewPage() {
     if (!exam) return;
     setEditedExamTitle(exam.title);
     setEditedExamDescription(exam.description || "");
+    setEditedExamDuration(exam.duration || 0);
     setEditingExamDetails(true);
   };
 
@@ -199,6 +202,7 @@ export default function ExamPreviewPage() {
     if (exam) {
       setEditedExamTitle(exam.title);
       setEditedExamDescription(exam.description || "");
+      setEditedExamDuration(exam.duration || 0);
     }
   };
 
@@ -211,6 +215,7 @@ export default function ExamPreviewPage() {
         ...exam,
         title: editedExamTitle.trim(),
         description: editedExamDescription.trim(),
+        duration: editedExamDuration,
       };
 
       await axios.put(`/api/exam/${params.id}`, updatedExam);
@@ -415,6 +420,11 @@ export default function ExamPreviewPage() {
               {exam.questions.length} questões
             </span>
             <div className="h-4 w-px bg-border"></div>
+            <span className="font-medium flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {exam.duration} min
+            </span>
+            <div className="h-4 w-px bg-border"></div>
             <span className="font-medium">
               {new Date(exam.createdAt).toLocaleDateString("pt-BR")}
             </span>
@@ -435,7 +445,11 @@ export default function ExamPreviewPage() {
                 size="default"
                 variant="tinted"
                 onClick={saveExamDetails}
-                disabled={isSavingExamDetails || !editedExamTitle.trim()}
+                disabled={
+                  isSavingExamDetails ||
+                  !editedExamTitle.trim() ||
+                  editedExamDuration <= 0
+                }
                 className="gap-2"
               >
                 <Save className="h-4 w-4" />
@@ -494,6 +508,20 @@ export default function ExamPreviewPage() {
                     onChange={(e) => setEditedExamDescription(e.target.value)}
                     placeholder="Digite a descrição da prova (opcional)"
                     className="min-h-[60px]"
+                  />
+                </div>
+                <div>
+                  <label className="text-subhead font-medium mb-2 block text-foreground">
+                    Duração (minutos):
+                  </label>
+                  <Input
+                    value={editedExamDuration}
+                    onChange={(e) =>
+                      setEditedExamDuration(parseInt(e.target.value) || 0)
+                    }
+                    placeholder="Digite a duração em minutos"
+                    min="1"
+                    className="w-32"
                   />
                 </div>
               </div>
