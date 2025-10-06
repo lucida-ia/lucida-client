@@ -1,5 +1,11 @@
 "use client";
 
+import React from "react";
+import axios from "axios";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
 import {
   Plus,
   FileText,
@@ -52,17 +57,10 @@ import {
   Copy,
   Search,
 } from "lucide-react";
-import React from "react";
-import axios from "axios";
-import { getImpersonateUserId } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { exportExamToWord } from "@/lib/word-export";
 import { exportResultsToCSV } from "@/lib/csv-export";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import Link from "next/link";
-import { useSubscription } from "@/hooks/use-subscription";
-import { isTrialUserPastOneWeek } from "@/lib/utils";
+import { getImpersonateUserId, isTrialUserPastOneWeek } from "@/lib/utils";
 import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
 
 // Types
@@ -199,7 +197,7 @@ export default function UnifiedOverviewPage() {
 
   // Copy exam modal state
   const [isCopyDialogOpen, setIsCopyDialogOpen] = React.useState(false);
-  const [exam, setExamToCopy] = React.useState<ExamData | null>(null);
+  const [examToCopy, setExamToCopy] = React.useState<ExamData | null>(null);
   const [selectedTargetClassId, setSelectedTargetClassId] = React.useState("");
   const [isCopyingExam, setIsCopyingExam] = React.useState(false);
   const [isCreatingNewClass, setIsCreatingNewClass] = React.useState(false);
@@ -592,7 +590,9 @@ export default function UnifiedOverviewPage() {
     setIsCopyDialogOpen(true);
   };
 
-  const handleCopyExamToClass = async (exam: ExamData) => {
+  const handleCopyExamToClass = async () => {
+    if (!examToCopy) return;
+
     // If creating a new class, handle that first
     if (isCreatingNewClass) {
       if (!newClassNameForCopy.trim()) {
@@ -627,10 +627,10 @@ export default function UnifiedOverviewPage() {
       // Create payload in the expected format
       const payload = {
         config: {
-          title: `${exam.title}`,
-          description: exam.description || "",
+          title: `${examToCopy.title}`,
+          description: examToCopy.description || "",
           questionStyle: "simple" as const,
-          questionCount: exam.questions.length,
+          questionCount: examToCopy.questions.length,
           class: {
             _id: selectedTargetClassId,
             name: targetClass.name,
@@ -644,7 +644,7 @@ export default function UnifiedOverviewPage() {
           difficulty: "médio",
           timeLimit: 60,
         },
-        questions: exam.questions,
+        questions: examToCopy.questions,
       };
 
       const response = await axios.post("/api/exam/copy" + qs, payload);
@@ -652,7 +652,7 @@ export default function UnifiedOverviewPage() {
       if (response.data.status === "success") {
         toast({
           title: "Prova copiada com sucesso!",
-          description: `A prova "${exam.title}" foi copiada para a turma "${targetClass.name}". Esta ação não afeta seus limites de uso.`,
+          description: `A prova "${examToCopy.title}" foi copiada para a turma "${targetClass.name}". Esta ação não afeta seus limites de uso.`,
         });
 
         // Close dialog and refresh data
@@ -678,7 +678,7 @@ export default function UnifiedOverviewPage() {
   };
 
   const handleCreateClassAndCopy = async () => {
-    if (!exam || !newClassNameForCopy.trim()) return;
+    if (!examToCopy || !newClassNameForCopy.trim()) return;
 
     try {
       setIsCopyingExam(true);
@@ -701,10 +701,10 @@ export default function UnifiedOverviewPage() {
       // Then copy the exam to the new class
       const payload = {
         config: {
-          title: `${exam.title}`,
-          description: exam.description || "",
+          title: `${examToCopy.title}`,
+          description: examToCopy.description || "",
           questionStyle: "simple" as const,
-          questionCount: exam.questions.length,
+          questionCount: examToCopy.questions.length,
           class: {
             _id: newClassId,
             name: newClassNameForCopy.trim(),
@@ -718,7 +718,7 @@ export default function UnifiedOverviewPage() {
           difficulty: "médio",
           timeLimit: 60,
         },
-        questions: exam.questions,
+        questions: examToCopy.questions,
       };
 
       const examResponse = await axios.post("/api/exam/copy" + qs, payload);
@@ -727,7 +727,7 @@ export default function UnifiedOverviewPage() {
         toast({
           title: "Turma criada e prova copiada!",
           description: `A turma "${newClassNameForCopy.trim()}" foi criada e a prova "${
-            exam.title
+            examToCopy.title
           }" foi copiada para ela. Esta ação não afeta seus limites de uso.`,
         });
 
@@ -1344,9 +1344,7 @@ export default function UnifiedOverviewPage() {
                                                   </Button>
                                                 </DialogClose>
                                                 <Button
-                                                  onClick={() => {
-                                                    handleCopyExamToClass(exam);
-                                                  }}
+                                                  onClick={handleCopyExamToClass}
                                                   disabled={
                                                     isCopyingExam ||
                                                     (!isCreatingNewClass &&
@@ -1665,11 +1663,7 @@ export default function UnifiedOverviewPage() {
                                                       </Button>
                                                     </DialogClose>
                                                     <Button
-                                                      onClick={() => {
-                                                        handleCopyExamToClass(
-                                                          exam
-                                                        );
-                                                      }}
+                                                      onClick={handleCopyExamToClass}
                                                       disabled={
                                                         isCopyingExam ||
                                                         (!isCreatingNewClass &&
@@ -1943,22 +1937,21 @@ export default function UnifiedOverviewPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="class-name">Nome da Turma</Label>
+              <Label htmlFor="edit-class-name">Nome da Turma</Label>
               <Input
-                id="class-name"
+                id="edit-class-name"
                 placeholder="Digite o nome da turma"
                 value={editFormData.name}
                 onChange={(e) =>
                   setEditFormData({ ...editFormData, name: e.target.value })
                 }
-                disabled={isUpdating}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="class-description">Descrição (opcional)</Label>
+              <Label htmlFor="edit-class-description">Descrição (Opcional)</Label>
               <Input
-                id="class-description"
-                placeholder="Digite uma descrição para a turma"
+                id="edit-class-description"
+                placeholder="Digite a descrição da turma"
                 value={editFormData.description}
                 onChange={(e) =>
                   setEditFormData({
@@ -1966,14 +1959,12 @@ export default function UnifiedOverviewPage() {
                     description: e.target.value,
                   })
                 }
-                disabled={isUpdating}
               />
             </div>
           </div>
-          <div className="flex items-center gap-2 justify-end">
+          <div className="flex justify-end gap-2 pt-4">
             <DialogClose asChild>
               <Button variant="outline" disabled={isUpdating}>
-                <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
             </DialogClose>
@@ -1995,6 +1986,122 @@ export default function UnifiedOverviewPage() {
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy Exam Modal */}
+      <Dialog open={isCopyDialogOpen} onOpenChange={setIsCopyDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Copy className="h-5 w-5" />
+              Copiar Prova
+            </DialogTitle>
+          </DialogHeader>
+          {examToCopy && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">
+                  Prova selecionada:
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {examToCopy.title}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="target-class">Turma de destino:</Label>
+                <Select
+                  value={
+                    isCreatingNewClass ? "create-new" : selectedTargetClassId
+                  }
+                  onValueChange={(value) => {
+                    if (value === "create-new") {
+                      setIsCreatingNewClass(true);
+                      setSelectedTargetClassId("");
+                    } else {
+                      setIsCreatingNewClass(false);
+                      setSelectedTargetClassId(value);
+                      setNewClassNameForCopy("");
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma turma ou crie uma nova" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="create-new">
+                      <div className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Criar nova turma
+                      </div>
+                    </SelectItem>
+                    {data?.classes
+                      .filter(
+                        (classItem) =>
+                          // Filter out the current class of the exam
+                          !classItem.exams.some((e) => e._id === examToCopy._id)
+                      )
+                      .map((classItem) => (
+                        <SelectItem key={classItem.id} value={classItem.id}>
+                          {classItem.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {isCreatingNewClass && (
+                <div className="space-y-2">
+                  <Label htmlFor="new-class-name">Nome da nova turma:</Label>
+                  <Input
+                    id="new-class-name"
+                    value={newClassNameForCopy}
+                    onChange={(e) => setNewClassNameForCopy(e.target.value)}
+                    placeholder="Digite o nome da nova turma"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !isCopyingExam) {
+                        handleCopyExamToClass();
+                      }
+                    }}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCopyDialogOpen(false);
+                    setExamToCopy(null);
+                    setSelectedTargetClassId("");
+                    setIsCreatingNewClass(false);
+                    setNewClassNameForCopy("");
+                  }}
+                  disabled={isCopyingExam}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCopyExamToClass}
+                  disabled={
+                    isCopyingExam ||
+                    (!isCreatingNewClass && !selectedTargetClassId) ||
+                    (isCreatingNewClass && !newClassNameForCopy.trim())
+                  }
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isCopyingExam
+                    ? isCreatingNewClass
+                      ? "Criando turma e copiando..."
+                      : "Copiando..."
+                    : isCreatingNewClass
+                    ? "Criar turma e copiar"
+                    : "Copiar Prova"}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

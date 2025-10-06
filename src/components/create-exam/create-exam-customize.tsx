@@ -481,14 +481,14 @@ export function CreateExamCustomize({
 
           <div className="space-y-3">
             <Label htmlFor="description" className="text-sm font-semibold">
-              Descrição
+              Descrição da prova (opcional)
             </Label>
             <Textarea
               id="description"
               name="description"
               value={config.description}
               onChange={handleInputChange}
-              placeholder="Breve descrição do conteúdo e propósito da prova"
+              placeholder="Descrição do conteúdo e propósito da prova para o aluno."
               rows={3}
               className="rounded-xl border-gray-200 dark:border-gray-800 resize-none"
             />
