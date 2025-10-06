@@ -947,8 +947,8 @@ export function CreateExamUpload({
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {uploadMetrics.totalTokensUsed.toLocaleString()} de{" "}
-                    {TOTAL_TOKEN_LIMIT.toLocaleString()} tokens utilizados
+                    ≈{Math.round(uploadMetrics.totalTokensUsed * 0.75).toLocaleString()} de{" "}
+                    {Math.round(TOTAL_TOKEN_LIMIT * 0.75).toLocaleString()} palavras utilizadas
                   </p>
                 </div>
 
