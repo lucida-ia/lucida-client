@@ -82,6 +82,7 @@ interface ExamData {
   _id: string;
   title: string;
   description?: string;
+  duration: number;
   questions: any[];
   createdAt: Date;
   updatedAt: Date;
