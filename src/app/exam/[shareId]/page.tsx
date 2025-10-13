@@ -41,6 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import LucidaLogo from "@/components/lucida-logo";
 
 interface Question {
   question: string;
@@ -584,6 +585,11 @@ export default function PublicExamPage() {
   if (!exam) {
     return (
       <div className="container mx-auto py-8 max-w-md">
+        <div className="flex justify-center mb-6">
+          <div className="w-32 h-auto">
+            <LucidaLogo />
+          </div>
+        </div>
         <Card>
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -601,6 +607,11 @@ export default function PublicExamPage() {
   if (timeExpired && !isSubmitted) {
     return (
       <div className="container mx-auto py-8 max-w-md">
+        <div className="flex justify-center mb-6">
+          <div className="w-32 h-auto">
+            <LucidaLogo />
+          </div>
+        </div>
         <Card>
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -624,6 +635,11 @@ export default function PublicExamPage() {
   if (!isStarted) {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
+        <div className="flex justify-center mb-6">
+          <div className="w-32 h-auto">
+            <LucidaLogo />
+          </div>
+        </div>
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
@@ -719,6 +735,11 @@ export default function PublicExamPage() {
   if (isSubmitted && result) {
     return (
       <div className="container mx-auto py-8 px-4 max-w-4xl">
+        <div className="flex justify-center mb-6">
+          <div className="w-32 h-auto">
+            <LucidaLogo />
+          </div>
+        </div>
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <div className="flex items-start justify-between">
@@ -967,7 +988,7 @@ export default function PublicExamPage() {
             <div>
               <h1 className="text-xl font-semibold">{exam.title}</h1>
               {hasSecurityConfig && !securityConfig.allowConsultation && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-1">
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                   <span className="text-xs text-red-600 dark:text-red-400 font-medium">
                     Modo Anti-Fraude Ativo
@@ -1216,6 +1237,13 @@ export default function PublicExamPage() {
                     )}
                   </Button>
                 )}
+              </div>
+            </div>
+
+            {/* Lucida Logo */}
+            <div className="flex justify-center mt-8 mb-4">
+              <div className="w-24 h-auto opacity-60">
+                <LucidaLogo />
               </div>
             </div>
           </div>
