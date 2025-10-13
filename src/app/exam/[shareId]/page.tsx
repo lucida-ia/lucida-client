@@ -23,6 +23,8 @@ import {
   EyeOff,
   Eye,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -164,6 +166,7 @@ export default function PublicExamPage() {
   >(null);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNavigationExpanded, setIsNavigationExpanded] = useState(false);
 
   useEffect(() => {
     // Read security configuration from URL parameters
@@ -963,9 +966,6 @@ export default function PublicExamPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-semibold">{exam.title}</h1>
-              <p className="text-sm text-muted-foreground">
-                {exam.description}
-              </p>
               {hasSecurityConfig && !securityConfig.allowConsultation && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
@@ -1022,10 +1022,28 @@ export default function PublicExamPage() {
           {/* Question Navigation */}
           <div className="lg:col-span-1">
             <Card className="lg:sticky lg:top-28">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Navegação</CardTitle>
+              <CardHeader className="pb-3 cursor-pointer lg:cursor-default" onClick={() => setIsNavigationExpanded(!isNavigationExpanded)}>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Navegação</CardTitle>
+                  <button
+                    className="lg:hidden text-muted-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsNavigationExpanded(!isNavigationExpanded);
+                    }}
+                  >
+                    {isNavigationExpanded ? (
+                      <ChevronUp className="h-5 w-5" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 lg:hidden">
+                  {getAnsweredCount()} de {exam.questions.length} respondidas
+                </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className={`${isNavigationExpanded ? 'block' : 'hidden'} lg:block`}>
                 <div className="grid grid-cols-5 lg:grid-cols-5 gap-2">
                   {exam.questions.map((_, index) => (
                     <button
