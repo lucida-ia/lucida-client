@@ -28,6 +28,19 @@ const QuestionSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  type: {
+    type: String,
+    enum: ['multipleChoice', 'trueFalse', 'shortAnswer'],
+    default: 'multipleChoice',
+  },
+  rubric: {
+    type: String,
+    default: '',
+  },
+  maxValue: {
+    type: Number,
+    default: 1,
+  },
 });
 
 const ExamSchema = new mongoose.Schema({

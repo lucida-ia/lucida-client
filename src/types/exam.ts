@@ -17,6 +17,9 @@ type Question = {
   difficulty?: "fácil" | "médio" | "difícil";
   subject?: string;
   explanation?: string;
+  type?: "multipleChoice" | "trueFalse" | "shortAnswer";
+  rubric?: string;
+  maxValue?: number;
 };
 
 type Config = {

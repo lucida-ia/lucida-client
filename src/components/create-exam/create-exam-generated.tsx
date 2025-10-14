@@ -351,22 +351,41 @@ export function CreateExamGenerated({
                                 placeholder="Matéria ou tópico da questão (opcional)"
                               />
                             </div>
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">
-                                Explicação:
-                              </label>
-                              <Textarea
-                                value={editedQuestion.explanation || ""}
-                                onChange={(e) =>
-                                  updateEditedQuestion(
-                                    "explanation",
-                                    e.target.value
-                                  )
-                                }
-                                className="min-h-[80px]"
-                                placeholder="Explicação da resposta correta (opcional)"
-                              />
-                            </div>
+                            {editedQuestion.type !== "shortAnswer" ? (
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">
+                                  Explicação:
+                                </label>
+                                <Textarea
+                                  value={editedQuestion.explanation || ""}
+                                  onChange={(e) =>
+                                    updateEditedQuestion(
+                                      "explanation",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="min-h-[80px]"
+                                  placeholder="Explicação da resposta correta (opcional)"
+                                />
+                              </div>
+                            ) : (
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">
+                                  Rubrica de Avaliação:
+                                </label>
+                                <Textarea
+                                  value={editedQuestion.rubric || ""}
+                                  onChange={(e) =>
+                                    updateEditedQuestion(
+                                      "rubric",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="min-h-[80px]"
+                                  placeholder="Critérios de avaliação para esta questão"
+                                />
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -424,7 +443,15 @@ export function CreateExamGenerated({
                   <div className="ml-4 md:ml-8 space-y-2">
                     {editingQuestion === index ? (
                       <div className="space-y-4">
-                        {editedQuestion.type === "multipleChoice" ? (
+                        {editedQuestion.type === "shortAnswer" ? (
+                          <div className="space-y-3">
+                            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                              <p className="text-sm text-purple-700 dark:text-purple-300">
+                                Questão de resposta curta - O aluno digitará sua resposta.
+                              </p>
+                            </div>
+                          </div>
+                        ) : editedQuestion.type === "multipleChoice" ? (
                           <div className="space-y-3">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <label className="text-sm font-medium">
@@ -524,7 +551,25 @@ export function CreateExamGenerated({
                       </div>
                     ) : (
                       <>
-                        {question.type === "multipleChoice" ? (
+                        {question.type === "shortAnswer" ? (
+                          <div className="space-y-3">
+                            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                              <p className="text-sm text-purple-700 dark:text-purple-300">
+                                Questão de resposta curta - O aluno digitará sua resposta.
+                              </p>
+                            </div>
+                            {question.rubric && (
+                              <div className="mt-3 md:mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                                  Rubrica de Avaliação:
+                                </h4>
+                                <p className="text-sm leading-relaxed text-blue-700 dark:text-blue-200 break-words whitespace-pre-wrap">
+                                  {question.rubric}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : question.type === "multipleChoice" ? (
                           <div className="space-y-2">
                             {question.options.map(
                               (option: string, optionIndex: number) => {
@@ -648,7 +693,7 @@ export function CreateExamGenerated({
                         )}
 
                         {/* Explanation section */}
-                        {question.explanation && (
+                        {question.explanation && question.type !== "shortAnswer" && (
                           <div className="mt-3 md:mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
                               Explicação:

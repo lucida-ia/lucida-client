@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
         difficulty: question.difficulty,
         subject: question.subject,
         explanation: question.explanation,
+        type: question.type,
+        rubric: question.rubric,
+        maxValue: question.maxValue || 1,
       })
     );
 

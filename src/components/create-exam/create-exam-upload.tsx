@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/tooltip";
 
 const TOTAL_TOKEN_LIMIT = 500000;
-const API_URL = "https://lucida-api-production.up.railway.app";
-// const API_URL = "http://localhost:8080";
+// const API_URL = "https://lucida-api-production.up.railway.app";
+const API_URL = "http://localhost:8080";
 
 // YouTube URL validation function
 const isValidYouTubeUrl = (url: string): boolean => {
