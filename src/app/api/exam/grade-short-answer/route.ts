@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
     await connectToDB();
 
     const { resultId, questionIndex, score, feedback, useAI } = await request.json();
+    
+    console.log("API received feedback:", feedback);
+    console.log("API received useAI:", useAI);
 
     // Get the result
     const result = await Result.findById(resultId);
@@ -61,6 +64,12 @@ export async function POST(request: NextRequest) {
 
     let finalScore = score;
     let finalFeedback = feedback;
+    
+    // If only feedback is being updated (score is undefined), keep the existing score
+    if (score === undefined && feedback !== undefined) {
+      finalScore = answerDetail.score;
+      console.log("Feedback-only update: keeping existing score", finalScore);
+    }
 
     if (useAI) {
       // Use AI to grade
@@ -105,11 +114,13 @@ Format your response as JSON:
     }
 
     // Update the answer detail
+    console.log("Saving feedback:", finalFeedback);
     result.answers[questionIndex] = {
       ...answerDetail.toObject ? answerDetail.toObject() : answerDetail,
       score: finalScore,
       needsReview: false,
       feedback: finalFeedback,
+      gradedByAI: useAI ? true : false, // Set to false for manual grading
     };
 
     // Check if all questions are graded

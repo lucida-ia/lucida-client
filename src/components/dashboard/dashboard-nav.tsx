@@ -257,12 +257,12 @@ export function DashboardNav() {
                         <span className="flex items-center gap-2">
                           {item.title}
                           {item.isNew && (
-                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
+                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
                               Novidade
                             </span>
                           )}
                           {item.href === "/dashboard/corrigir" && pendingCount > 0 && (
-                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-apple-red text-white text-xs font-semibold px-1.5">
+                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
                               {pendingCount}
                             </span>
                           )}

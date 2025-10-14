@@ -18,6 +18,10 @@ const AnswerDetailSchema = new mongoose.Schema({
   feedback: {
     type: String,
   },
+  gradedByAI: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const ResultScheema = new mongoose.Schema({

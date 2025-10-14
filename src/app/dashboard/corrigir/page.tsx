@@ -22,8 +22,14 @@ import {
   Sparkles,
   ArrowLeft,
   FileText,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 
 interface AnswerDetail {
   questionIndex: number;
@@ -31,6 +37,7 @@ interface AnswerDetail {
   score?: number;
   needsReview: boolean;
   feedback?: string;
+  gradedByAI?: boolean;
 }
 
 interface PendingResult {
@@ -63,6 +70,11 @@ export default function CorrigirPage() {
   const [manualScore, setManualScore] = useState("");
   const [manualFeedback, setManualFeedback] = useState("");
   const [grading, setGrading] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<{score: number, feedback: string} | null>(null);
+  const [showAiFeedback, setShowAiFeedback] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalScore, setOriginalScore] = useState<string>("");
+  const [originalFeedback, setOriginalFeedback] = useState<string>("");
 
   useEffect(() => {
     fetchPendingResults();
@@ -94,8 +106,16 @@ export default function CorrigirPage() {
       // Find the first question that needs review
       const firstNeedsReview = result.answers.findIndex(a => a.needsReview);
       setCurrentQuestionIndex(firstNeedsReview !== -1 ? firstNeedsReview : 0);
-      setManualScore("");
-      setManualFeedback("");
+      
+      // Initialize current question values
+      const currentAnswer = result.answers[firstNeedsReview !== -1 ? firstNeedsReview : 0];
+      setManualScore(currentAnswer.score?.toString() || "");
+      setManualFeedback(currentAnswer.feedback || "");
+      setOriginalScore(currentAnswer.score?.toString() || "");
+      setOriginalFeedback(currentAnswer.feedback || "");
+      setHasChanges(false);
+      setAiFeedback(null);
+      setShowAiFeedback(false);
     } catch (error) {
       toast({
         title: "Erro",
@@ -104,6 +124,7 @@ export default function CorrigirPage() {
       });
     }
   };
+
 
   const gradeQuestion = async (useAI: boolean) => {
     if (!selectedResult || !exam) return;
@@ -119,11 +140,18 @@ export default function CorrigirPage() {
 
     try {
       setGrading(true);
+      const currentAnswer = selectedResult.answers[currentQuestionIndex];
+      const feedbackToSend = useAI ? undefined : (manualFeedback || currentAnswer.feedback || "");
+      
+      console.log("Sending feedback:", feedbackToSend);
+      console.log("manualFeedback:", manualFeedback);
+      console.log("currentAnswer.feedback:", currentAnswer.feedback);
+      
       const response = await axios.post("/api/exam/grade-short-answer", {
         resultId: selectedResult._id,
         questionIndex: currentQuestionIndex,
         score: useAI ? undefined : parseFloat(manualScore),
-        feedback: useAI ? undefined : manualFeedback,
+        feedback: feedbackToSend,
         useAI,
       });
 
@@ -139,7 +167,17 @@ export default function CorrigirPage() {
       // Update results list
       setResults(prev => prev.map(r => r._id === updatedResult._id ? updatedResult : r));
 
-      // Move to next question that needs review or close
+      if (useAI) {
+        // Show AI feedback first
+        const gradedAnswer = updatedResult.answers[currentQuestionIndex];
+        setAiFeedback({
+          score: gradedAnswer.score || 0,
+          feedback: gradedAnswer.feedback || ""
+        });
+        setShowAiFeedback(true);
+      }
+      
+      // Check if all questions are graded
       if (response.data.allGraded) {
         toast({
           title: "Avaliação completa!",
@@ -148,19 +186,6 @@ export default function CorrigirPage() {
         setSelectedResult(null);
         setExam(null);
         fetchPendingResults(); // Refresh the list
-      } else {
-        const nextNeedsReview = updatedResult.answers.findIndex((a: AnswerDetail, idx: number) => 
-          idx > currentQuestionIndex && a.needsReview
-        );
-        if (nextNeedsReview !== -1) {
-          setCurrentQuestionIndex(nextNeedsReview);
-        } else {
-          // Check from the beginning
-          const firstNeedsReview = updatedResult.answers.findIndex((a: AnswerDetail) => a.needsReview);
-          if (firstNeedsReview !== -1) {
-            setCurrentQuestionIndex(firstNeedsReview);
-          }
-        }
       }
       
       setManualScore("");
@@ -173,6 +198,109 @@ export default function CorrigirPage() {
       });
     } finally {
       setGrading(false);
+    }
+  };
+
+  const navigateToQuestion = (questionIndex: number) => {
+    setCurrentQuestionIndex(questionIndex);
+    const answer = selectedResult.answers[questionIndex];
+    setManualScore(answer.score?.toString() || "");
+    setManualFeedback(answer.feedback || "");
+    setOriginalScore(answer.score?.toString() || "");
+    setOriginalFeedback(answer.feedback || "");
+    setHasChanges(false);
+    setAiFeedback(null);
+    setShowAiFeedback(false);
+  };
+
+  // Track changes in score and feedback
+  const handleScoreChange = (value: string) => {
+    setManualScore(value);
+    setHasChanges(value !== originalScore || manualFeedback !== originalFeedback);
+  };
+
+  const handleFeedbackChange = (value: string) => {
+    setManualFeedback(value);
+    setHasChanges(manualScore !== originalScore || value !== originalFeedback);
+  };
+
+  const saveChanges = async () => {
+    if (!selectedResult || !exam) return;
+
+    // Validate score if it's being changed
+    if (manualScore !== originalScore && (manualScore === "" || parseFloat(manualScore) < 0 || parseFloat(manualScore) > 1)) {
+      toast({
+        title: "Nota inválida",
+        description: "A nota deve estar entre 0 e 1",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setGrading(true);
+      const currentAnswer = selectedResult.answers[currentQuestionIndex];
+      
+      const response = await axios.post("/api/exam/grade-short-answer", {
+        resultId: selectedResult._id,
+        questionIndex: currentQuestionIndex,
+        score: manualScore !== originalScore ? parseFloat(manualScore) : undefined,
+        feedback: manualFeedback !== originalFeedback ? manualFeedback : undefined,
+        useAI: false, // Manual grading - will set gradedByAI to false
+      });
+
+      toast({
+        title: "Alterações salvas!",
+        description: "As modificações foram salvas com sucesso",
+      });
+
+      // Update local state
+      const updatedResult = response.data.result;
+      setSelectedResult(updatedResult);
+      
+      // Update results list
+      setResults(prev => prev.map(r => r._id === updatedResult._id ? updatedResult : r));
+
+      // Update original values to reflect saved state
+      const updatedAnswer = updatedResult.answers[currentQuestionIndex];
+      setOriginalScore(updatedAnswer.score?.toString() || "");
+      setOriginalFeedback(updatedAnswer.feedback || "");
+      setHasChanges(false);
+
+      // Check if all questions are graded
+      const allGraded = updatedResult.answers.every((a: AnswerDetail) => !a.needsReview);
+      if (allGraded) {
+        toast({
+          title: "Parabéns!",
+          description: "Todas as questões foram corrigidas",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as alterações",
+        variant: "destructive",
+      });
+    } finally {
+      setGrading(false);
+    }
+  };
+
+  const navigateToNextPending = () => {
+    if (!selectedResult) return;
+    
+    const nextPending = selectedResult.answers.findIndex((a: AnswerDetail, idx: number) => 
+      idx > currentQuestionIndex && a.needsReview
+    );
+    
+    if (nextPending !== -1) {
+      navigateToQuestion(nextPending);
+    } else {
+      // Check from the beginning
+      const firstPending = selectedResult.answers.findIndex((a: AnswerDetail) => a.needsReview);
+      if (firstPending !== -1) {
+        navigateToQuestion(firstPending);
+      }
     }
   };
 
@@ -208,13 +336,160 @@ export default function CorrigirPage() {
               <h1 className="text-2xl font-bold">{exam.title}</h1>
               <p className="text-muted-foreground">Aluno: {selectedResult.email}</p>
             </div>
-            <Badge variant="outline" className="text-sm">
-              {questionsNeedingReview} questões pendentes
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className="text-sm">
+                {questionsNeedingReview} questões pendentes
+              </Badge>
+              <div className="w-48">
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                  <span>Progresso</span>
+                  <span>{selectedResult.answers.length - questionsNeedingReview}/{selectedResult.answers.length}</span>
+                </div>
+                <Progress 
+                  value={((selectedResult.answers.length - questionsNeedingReview) / selectedResult.answers.length) * 100} 
+                  className="h-2"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="grid gap-6">
+          {/* Question Navigation */}
+          <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200/50 dark:border-blue-800/50">
+            <CardHeader>
+              <CardTitle className="text-lg">Navegação das Questões</CardTitle>
+              <CardDescription>
+                Clique em uma questão para navegar diretamente
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {selectedResult.answers.map((answer, index) => {
+                  const isGraded = !answer.needsReview;
+                  const isCurrent = index === currentQuestionIndex;
+                  
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => navigateToQuestion(index)}
+                      className={`
+                        relative flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all duration-300 group
+                        ${isCurrent 
+                          ? 'border-blue-500 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 scale-105' 
+                          : isGraded 
+                            ? 'border-green-500 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 text-green-700 dark:text-green-300 hover:border-green-600 hover:bg-gradient-to-br hover:from-green-100 hover:to-green-200 dark:hover:from-green-950/50 dark:hover:to-green-900/50 hover:shadow-md hover:shadow-green-500/10' 
+                            : 'border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 text-orange-700 dark:text-orange-300 hover:border-orange-600 hover:bg-gradient-to-br hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-950/50 dark:hover:to-orange-900/50 hover:shadow-md hover:shadow-orange-500/10'
+                        }
+                      `}
+                    >
+                      <span className="text-sm font-semibold">
+                        {index + 1}
+                      </span>
+                      <div className="absolute -top-1 -right-1">
+                        {isGraded ? (
+                          <div className="flex items-center justify-center w-5 h-5 bg-green-500 rounded-full shadow-sm">
+                            <CheckCircle2 className="h-3 w-3 text-white" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center w-5 h-5 bg-orange-500 rounded-full shadow-sm">
+                            <Clock className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-6 mt-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-5 h-5 bg-green-500 rounded-full shadow-sm">
+                    <CheckCircle2 className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-muted-foreground font-medium">Corrigida</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-5 h-5 bg-orange-500 rounded-full shadow-sm">
+                    <Clock className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-muted-foreground font-medium">Pendente</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm border-2 border-blue-500"></div>
+                  <span className="text-muted-foreground font-medium">Atual</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Feedback Display */}
+          {showAiFeedback && aiFeedback && (
+            <Card className="bg-gradient-to-r from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200/60 dark:border-green-800/60 animate-in slide-in-from-top-2 duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-green-600" />
+                  <CardTitle className="text-green-800 dark:text-green-200">Feedback da IA</CardTitle>
+                </div>
+                <CardDescription className="text-green-700 dark:text-green-300">
+                  A IA analisou a resposta e forneceu a seguinte avaliação:
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-green-800 dark:text-green-200">Nota:</span>
+                    <Badge variant="outline" className="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700">
+                      {aiFeedback.score.toFixed(1)} / 1.0
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-green-800 dark:text-green-200">Porcentagem:</span>
+                    <Badge variant="outline" className="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700">
+                      {(aiFeedback.score * 100).toFixed(0)}%
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-4 bg-green-50/50 dark:bg-green-900/20 rounded-lg border border-green-200/50 dark:border-green-800/50">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Feedback:</p>
+                  <p className="text-sm leading-relaxed text-green-700 dark:text-green-300">
+                    {aiFeedback.feedback}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>Questão corrigida pela IA. Revise o feedback acima.</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowAiFeedback(false);
+                        setAiFeedback(null);
+                      }}
+                      className="text-green-700 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30"
+                    >
+                      Fechar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowAiFeedback(false);
+                        setAiFeedback(null);
+                        navigateToNextPending();
+                      }}
+                      className="text-green-700 dark:text-green-300 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30"
+                    >
+                      Próxima Pendente
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Question Card */}
           <Card>
             <CardHeader>
@@ -263,13 +538,19 @@ export default function CorrigirPage() {
                 </div>
               </div>
 
-              {currentAnswer.feedback && (
+              {currentAnswer.feedback !== undefined && currentAnswer.feedback !== null && currentAnswer.gradedByAI && (
                 <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
-                    Feedback Anterior:
-                  </p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                      Feedback da IA:
+                    </p>
+                    <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Corrigida pela IA
+                    </Badge>
+                  </div>
                   <p className="text-sm leading-relaxed text-green-700 dark:text-green-200">
-                    {currentAnswer.feedback}
+                    {currentAnswer.feedback || "Sem feedback fornecido"}
                   </p>
                   <p className="text-sm font-semibold text-green-800 dark:text-green-300 mt-2">
                     Nota: {currentAnswer.score} / 1
@@ -280,14 +561,18 @@ export default function CorrigirPage() {
           </Card>
 
           {/* Grading Card */}
-          {currentAnswer.needsReview && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Corrigir Questão</CardTitle>
-                <CardDescription>
-                  Atribua uma nota de 0 a 1 e forneça feedback
-                </CardDescription>
-              </CardHeader>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {currentAnswer.needsReview ? "Corrigir Questão" : "Editar Correção"}
+              </CardTitle>
+              <CardDescription>
+                {currentAnswer.needsReview 
+                  ? "Atribua uma nota de 0 a 1 e forneça feedback"
+                  : "Esta questão já foi corrigida. Você pode editar a nota e feedback, ou atualizar apenas o feedback."
+                }
+              </CardDescription>
+            </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
@@ -300,7 +585,7 @@ export default function CorrigirPage() {
                       max="1"
                       step="0.1"
                       value={manualScore}
-                      onChange={(e) => setManualScore(e.target.value)}
+                      onChange={(e) => handleScoreChange(e.target.value)}
                       placeholder="Ex: 0.8"
                     />
                   </div>
@@ -312,17 +597,24 @@ export default function CorrigirPage() {
                   </label>
                   <Textarea
                     value={manualFeedback}
-                    onChange={(e) => setManualFeedback(e.target.value)}
+                    onChange={(e) => handleFeedbackChange(e.target.value)}
                     placeholder="Forneça feedback sobre a resposta do aluno..."
                     className="min-h-[100px]"
                   />
                 </div>
 
+                {hasChanges && (
+                  <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 dark:bg-orange-950/30 px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <Clock className="h-4 w-4" />
+                    <span>Você tem alterações não salvas</span>
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => gradeQuestion(false)}
-                    disabled={grading || !manualScore}
-                    className="flex-1"
+                    onClick={saveChanges}
+                    disabled={grading || !hasChanges}
+                    className={`flex-1 ${hasChanges ? 'ring-2 ring-orange-500/20' : ''}`}
                   >
                     {grading ? (
                       <>
@@ -332,7 +624,10 @@ export default function CorrigirPage() {
                     ) : (
                       <>
                         <CheckCircle className="h-4 w-4 mr-2" />
-                        Salvar Nota
+                        Salvar Alterações
+                        {hasChanges && (
+                          <span className="ml-2 inline-flex items-center justify-center w-2 h-2 bg-orange-500 rounded-full"></span>
+                        )}
                       </>
                     )}
                   </Button>
@@ -358,35 +653,44 @@ export default function CorrigirPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
 
           {/* Navigation */}
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <Button
               variant="outline"
-              onClick={() => {
-                if (currentQuestionIndex > 0) {
-                  setCurrentQuestionIndex(currentQuestionIndex - 1);
-                  setManualScore("");
-                  setManualFeedback("");
-                }
-              }}
+              onClick={() => navigateToQuestion(currentQuestionIndex - 1)}
               disabled={currentQuestionIndex === 0}
+              className="flex items-center gap-2"
             >
+              <ChevronLeft className="h-4 w-4" />
               Questão Anterior
             </Button>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Questão {currentQuestionIndex + 1} de {selectedResult.answers.length}</span>
+              </div>
+              {questionsNeedingReview > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={navigateToNextPending}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <Clock className="h-3 w-3" />
+                  Próxima Pendente
+                </Button>
+              )}
+            </div>
+            
             <Button
               variant="outline"
-              onClick={() => {
-                if (currentQuestionIndex < selectedResult.answers.length - 1) {
-                  setCurrentQuestionIndex(currentQuestionIndex + 1);
-                  setManualScore("");
-                  setManualFeedback("");
-                }
-              }}
+              onClick={() => navigateToQuestion(currentQuestionIndex + 1)}
               disabled={currentQuestionIndex >= selectedResult.answers.length - 1}
+              className="flex items-center gap-2"
             >
               Próxima Questão
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
