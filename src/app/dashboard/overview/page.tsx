@@ -1,6 +1,7 @@
 "use client";
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { StudentAnswersDialog } from "@/components/dashboard/student-answers-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -207,6 +208,10 @@ export default function UnifiedOverviewPage() {
 
   // Search state
   const [searchQuery, setSearchQuery] = React.useState("");
+
+  // Student answers dialog state
+  const [isStudentAnswersDialogOpen, setIsStudentAnswersDialogOpen] = React.useState(false);
+  const [selectedResultId, setSelectedResultId] = React.useState<string | null>(null);
 
   // Check if trial user is past one week and should have actions disabled
   const shouldDisableActions = userData?.user
@@ -484,6 +489,11 @@ export default function UnifiedOverviewPage() {
     } finally {
       setIsCreatingClass(false);
     }
+  };
+
+  const handleViewStudentAnswers = (resultId: string) => {
+    setSelectedResultId(resultId);
+    setIsStudentAnswersDialogOpen(true);
   };
 
   const handleDeleteExam = async (examId: string) => {
@@ -1746,7 +1756,8 @@ export default function UnifiedOverviewPage() {
                                               (result: any) => (
                                                 <div
                                                   key={result._id}
-                                                  className="flex items-center justify-between p-2 bg-apple-secondary-system-background rounded-apple border border-apple-gray-4"
+                                                  className="flex items-center justify-between p-2 bg-apple-secondary-system-background rounded-apple border border-apple-gray-4 cursor-pointer hover:bg-apple-gray-5/50 transition-colors"
+                                                  onClick={() => handleViewStudentAnswers(result._id)}
                                                 >
                                                   <div className="flex-1 min-w-0">
                                                     <p className="font-mono text-footnote text-foreground truncate">
@@ -1997,6 +2008,13 @@ export default function UnifiedOverviewPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Student Answers Dialog */}
+      <StudentAnswersDialog
+        isOpen={isStudentAnswersDialogOpen}
+        onClose={() => setIsStudentAnswersDialogOpen(false)}
+        resultId={selectedResultId}
+      />
     </>
   );
 }
