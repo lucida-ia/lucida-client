@@ -97,7 +97,7 @@ export function CreateExamCustomize({
       difícil: config.questionCount - 2 * Math.floor(config.questionCount / 3),
     });
   const { toast } = useToast();
-  const { subscription } = useSubscription();
+  const { subscription, isAdmin } = useSubscription();
 
   // Determine max questions based on subscription plan
   const maxQuestions = subscription?.plan === "trial" ? 10 : 50;
@@ -704,6 +704,31 @@ export function CreateExamCustomize({
                   <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
                 )}
               </div>
+              {isAdmin && (
+                <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
+                  <Checkbox
+                    id="shortAnswer"
+                    checked={config.questionTypes.shortAnswer}
+                    onCheckedChange={(checked) =>
+                      handleQuestionTypeChange("shortAnswer", checked as boolean)
+                    }
+                    disabled={
+                      config.questionStyle === "enem" ||
+                      config.questionStyle === "enade"
+                    }
+                    className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
+                  />
+                  <Label
+                    htmlFor="shortAnswer"
+                    className="text-sm font-medium cursor-pointer flex-1"
+                  >
+                    Resposta Curta
+                  </Label>
+                  {config.questionTypes.shortAnswer && (
+                    <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
+                  )}
+                </div>
+              )}
             </div>
             {(config.questionStyle === "enem" ||
               config.questionStyle === "enade") && (

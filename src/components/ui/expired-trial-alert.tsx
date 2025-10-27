@@ -26,7 +26,7 @@ export function ExpiredTrialAlert({
             <Button
               size="sm"
               variant="destructive"
-              className="font-semibold self-start sm:self-auto"
+              className="font-semibold self-start sm:self-auto text-white"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Ver Planos

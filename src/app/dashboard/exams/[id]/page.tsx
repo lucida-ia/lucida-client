@@ -64,6 +64,7 @@ export default function ExamPreviewPage() {
     options: ["", ""],
     correctAnswer: 0,
     explanation: "",
+    rubric: "",
     difficulty: "médio" as "fácil" | "médio" | "difícil",
     subject: "",
   });
@@ -245,6 +246,7 @@ export default function ExamPreviewPage() {
       options: ["", ""],
       correctAnswer: 0,
       explanation: "",
+      rubric: "",
       difficulty: "médio",
       subject: "",
     });
@@ -701,6 +703,22 @@ export default function ExamPreviewPage() {
                                   placeholder="Explicação da resposta correta (opcional)"
                                 />
                               </div>
+                              <div>
+                                <label className="text-subhead font-medium mb-2 block text-foreground">
+                                  Rubrica de Avaliação:
+                                </label>
+                                <Textarea
+                                  value={editedQuestion.rubric || ""}
+                                  onChange={(e) =>
+                                    updateEditedQuestion(
+                                      "rubric",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="min-h-[80px]"
+                                  placeholder="Critérios de avaliação para questões de resposta curta (opcional)"
+                                />
+                              </div>
                             </div>
                           ) : (
                             <h3
@@ -1012,6 +1030,21 @@ export default function ExamPreviewPage() {
                               </p>
                             </div>
                           )}
+
+                          {/* Rubric section for short answer questions */}
+                          {question.rubric && (
+                            <div className="mt-6 p-4 bg-apple-purple/5 dark:bg-apple-purple/10 rounded-apple border border-apple-purple/20 dark:border-apple-purple/30">
+                              <h4 className="text-subhead font-semibold text-apple-purple mb-3">
+                                Rubrica de Avaliação:
+                              </h4>
+                              <p
+                                className="text-subhead text-foreground leading-relaxed whitespace-pre-wrap"
+                                style={{ fontSize: "14px" }}
+                              >
+                                {question.rubric}
+                              </p>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
@@ -1154,6 +1187,21 @@ export default function ExamPreviewPage() {
                   updateNewQuestion("explanation", e.target.value)
                 }
                 placeholder="Explicação da resposta correta (opcional)"
+                className="min-h-[80px]"
+              />
+            </div>
+
+            {/* Rubrica */}
+            <div>
+              <label className="text-subhead font-medium mb-2 block text-foreground">
+                Rubrica de Avaliação:
+              </label>
+              <Textarea
+                value={newQuestion.rubric}
+                onChange={(e) =>
+                  updateNewQuestion("rubric", e.target.value)
+                }
+                placeholder="Critérios de avaliação para questões de resposta curta (opcional)"
                 className="min-h-[80px]"
               />
             </div>

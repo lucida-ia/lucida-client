@@ -1,5 +1,6 @@
 import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
+import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -61,6 +62,32 @@ export async function PUT(
 
     const { id } = await context.params;
     const examData = await request.json();
+
+    // Get user to check admin status
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return NextResponse.json(
+        { status: "error", message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if exam has short answer questions and user is admin
+    const hasShortAnswer = examData.questions?.some(
+      (q: any) => q.type === "shortAnswer"
+    );
+    const isAdmin = user.subscription.plan === "admin";
+
+    if (hasShortAnswer && !isAdmin) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Short answer questions are only available for admin users.",
+          code: "ADMIN_FEATURE",
+        },
+        { status: 403 }
+      );
+    }
 
     const updatedExam = await Exam.findByIdAndUpdate(
       id,

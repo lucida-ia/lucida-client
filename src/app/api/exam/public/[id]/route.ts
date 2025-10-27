@@ -35,6 +35,8 @@ export async function GET(
       difficulty: q.difficulty,
       subject: q.subject,
       explanation: q.explanation,
+      rubric: q.rubric,
+      maxValue: q.maxValue || 1,
     }));
 
     // Remove sensitive information and ensure proper structure

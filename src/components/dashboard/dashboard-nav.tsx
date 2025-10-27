@@ -21,6 +21,7 @@ import {
   HelpCircle,
   FileCheck,
   BarChart3,
+  ClipboardCheck,
 } from "lucide-react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -99,6 +100,12 @@ export function useNavItems() {
       role: ["admin", "teacher"],
     },
     {
+      title: "Corrigir Avaliações",
+      href: "/dashboard/corrigir",
+      icon: <ClipboardCheck className="h-5 w-5" />,
+      role: ["admin"],
+    },
+    {
       title: "Analytics",
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,
@@ -139,6 +146,7 @@ export function DashboardNav() {
   );
   const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
   const { user } = useUser();
+  const [pendingCount, setPendingCount] = useState<number>(0);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -147,6 +155,26 @@ export function DashboardNav() {
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  // Fetch pending grading count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const response = await fetch("/api/exam/results/pending-count");
+        if (response.ok) {
+          const data = await response.json();
+          setPendingCount(data.count || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pending count:", error);
+      }
+    };
+    
+    fetchPendingCount();
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <TooltipProvider>
@@ -229,8 +257,13 @@ export function DashboardNav() {
                         <span className="flex items-center gap-2">
                           {item.title}
                           {item.isNew && (
-                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
+                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
                               Novidade
+                            </span>
+                          )}
+                          {item.href === "/dashboard/corrigir" && pendingCount > 0 && (
+                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                              {pendingCount}
                             </span>
                           )}
                         </span>

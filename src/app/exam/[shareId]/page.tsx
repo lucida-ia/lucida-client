@@ -27,6 +27,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -48,10 +49,11 @@ interface Question {
   context?: string;
   options?: string[];
   correctAnswer: number;
-  type?: "multipleChoice" | "trueFalse";
+  type?: "multipleChoice" | "trueFalse" | "shortAnswer";
   difficulty?: "fácil" | "médio" | "difícil";
   subject?: string;
   explanation?: string;
+  rubric?: string;
 }
 
 interface Exam {
@@ -77,7 +79,7 @@ interface ExamSession {
   examId: string;
   startTime: number;
   duration: number;
-  answers: number[];
+  answers: (number | string)[];
   email: string;
 }
 
@@ -106,7 +108,7 @@ const saveExamSession = (
   examId: string,
   duration: number,
   email: string,
-  answers: number[] = []
+  answers: (number | string)[] = []
 ) => {
   const session: ExamSession = {
     examId,
@@ -128,7 +130,7 @@ const getExamSession = (): ExamSession | null => {
   }
 };
 
-const updateExamSessionAnswers = (answers: number[]) => {
+const updateExamSessionAnswers = (answers: (number | string)[]) => {
   const session = getExamSession();
   if (session) {
     session.answers = answers;
@@ -152,7 +154,7 @@ export default function PublicExamPage() {
   const [hasSecurityConfig, setHasSecurityConfig] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [answers, setAnswers] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<(number | string)[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [result, setResult] = useState<ExamResult | null>(null);
@@ -267,7 +269,11 @@ export default function PublicExamPage() {
           }
         } else {
           setTimeLeft(examData.duration * 60);
-          setAnswers(new Array(validatedQuestions.length).fill(-1));
+          // Initialize answers: -1 for MC/TF, empty string for shortAnswer
+          const initialAnswers = validatedQuestions.map((q: any) => 
+            q.type === "shortAnswer" ? "" : -1
+          );
+          setAnswers(initialAnswers);
         }
       } catch (error) {
         console.error("Error fetching exam:", error);
@@ -341,15 +347,15 @@ export default function PublicExamPage() {
     });
   };
 
-  const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
+  const handleAnswerSelect = (questionIndex: number, answer: number | string) => {
     if (isSubmitted || !isStarted || !exam || timeExpired) return;
     const newAnswers = [...answers];
-    newAnswers[questionIndex] = answerIndex;
+    newAnswers[questionIndex] = answer;
     setAnswers(newAnswers);
   };
 
   const handleSubmitExpired = async (
-    finalAnswers: number[],
+    finalAnswers: (number | string)[],
     emailAddress: string
   ) => {
     if (isSubmitted || !exam || isSubmitting) return;
@@ -552,7 +558,7 @@ export default function PublicExamPage() {
   };
 
   const getAnsweredCount = () => {
-    return answers.filter((answer) => answer !== -1).length;
+    return answers.filter((answer) => answer !== -1 && answer !== "").length;
   };
 
   const getProgressPercentage = () => {
@@ -1109,6 +1115,8 @@ export default function PublicExamPage() {
                   <Badge variant="outline" className="self-start sm:self-center">
                     {exam.questions[currentQuestion].type === "trueFalse"
                       ? "Verdadeiro/Falso"
+                      : exam.questions[currentQuestion].type === "shortAnswer"
+                      ? "Resposta Curta"
                       : "Múltipla Escolha"}
                   </Badge>
                 </div>
@@ -1124,7 +1132,22 @@ export default function PublicExamPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {exam.questions[currentQuestion].type === "trueFalse" ? (
+                  {exam.questions[currentQuestion].type === "shortAnswer" ? (
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium">
+                        Digite sua resposta:
+                      </label>
+                      <Textarea
+                        value={typeof answers[currentQuestion] === "string" ? answers[currentQuestion] : ""}
+                        onChange={(e) => handleAnswerSelect(currentQuestion, e.target.value)}
+                        placeholder="Escreva sua resposta aqui..."
+                        className="min-h-[150px] resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Esta questão será corrigida manualmente pelo professor.
+                      </p>
+                    </div>
+                  ) : exam.questions[currentQuestion].type === "trueFalse" ? (
                     <>
                       <button
                         onClick={() => handleAnswerSelect(currentQuestion, 1)}

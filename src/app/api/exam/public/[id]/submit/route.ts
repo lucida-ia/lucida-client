@@ -39,14 +39,39 @@ export async function POST(
       }, { status: 409 }); // 409 Conflict
     }
 
-    // Calculate score
+    // Process answers and calculate score
     let score = 0;
-    exam.questions.forEach((question: any, index: number) => {
-      if (answers[index] === question.correctAnswer) {
-        score++;
+    let needsGrading = false;
+    const answerDetails = exam.questions.map((question: any, index: number) => {
+      const answer = answers[index];
+      const isShortAnswer = question.type === "shortAnswer";
+      
+      if (isShortAnswer) {
+        needsGrading = true;
+        return {
+          questionIndex: index,
+          answer: answer, // text response
+          score: undefined, // will be graded later
+          needsReview: true,
+          feedback: undefined,
+        };
+      } else {
+        // MC/TF - auto-grade
+        const isCorrect = answer === question.correctAnswer;
+        if (isCorrect) {
+          score++;
+        }
+        return {
+          questionIndex: index,
+          answer: answer, // number
+          score: isCorrect ? 1 : 0,
+          needsReview: false,
+          feedback: undefined,
+        };
       }
     });
 
+    // Calculate percentage based on total questions (including ungraded)
     const percentage = (score / exam.questions.length) * 100;
 
     const result = await Result.create({
@@ -57,6 +82,8 @@ export async function POST(
       examTitle: exam.title,
       examQuestionCount: exam.questions.length,
       percentage: percentage / 100,
+      answers: answerDetails,
+      needsGrading,
       createdAt: new Date(),
     });
 
