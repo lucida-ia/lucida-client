@@ -35,6 +35,23 @@ export async function POST(request: NextRequest) {
 
     const examPayload: Exam = await request.json();
 
+    // Check if exam has short answer questions and user is admin
+    const hasShortAnswer = examPayload.questions.some(
+      (q: Question) => q.type === "shortAnswer"
+    );
+    const isAdmin = user.subscription.plan === "admin";
+
+    if (hasShortAnswer && !isAdmin) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Short answer questions are only available for admin users.",
+          code: "ADMIN_FEATURE",
+        },
+        { status: 403 }
+      );
+    }
+
     const questionsPayload: Question[] = examPayload.questions.map(
       (question: Question) => ({
         question: question.question,

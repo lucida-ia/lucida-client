@@ -97,7 +97,7 @@ export function CreateExamCustomize({
       difícil: config.questionCount - 2 * Math.floor(config.questionCount / 3),
     });
   const { toast } = useToast();
-  const { subscription } = useSubscription();
+  const { subscription, isAdmin } = useSubscription();
 
   // Determine max questions based on subscription plan
   const maxQuestions = subscription?.plan === "trial" ? 10 : 50;
@@ -713,7 +713,8 @@ export function CreateExamCustomize({
                   }
                   disabled={
                     config.questionStyle === "enem" ||
-                    config.questionStyle === "enade"
+                    config.questionStyle === "enade" ||
+                    !isAdmin
                   }
                   className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
                 />
@@ -722,6 +723,15 @@ export function CreateExamCustomize({
                   className="text-sm font-medium cursor-pointer flex-1"
                 >
                   Resposta Curta
+                  {!isAdmin && (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 ml-2"
+                    >
+                      <Star className="h-3 w-3" />
+                      Admin
+                    </Badge>
+                  )}
                 </Label>
                 {config.questionTypes.shortAnswer && (
                   <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
