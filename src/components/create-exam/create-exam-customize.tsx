@@ -40,9 +40,11 @@ import {
   Check,
   X,
   Star,
+  Brain,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ExpiredTrialAlertCompact } from "@/components/ui/expired-trial-alert-compact";
+import { useAuth, useUser } from "@clerk/nextjs";
 
 interface DifficultyDistribution {
   fácil: number;
@@ -53,7 +55,7 @@ interface DifficultyDistribution {
 interface ExamConfig {
   title: string;
   description: string;
-  questionStyle: "simple" | "enem" | "enade";
+  questionStyle: "simple" | "enem" | "enade" | "skillow";
   questionCount: number;
   class: {
     _id: string;
@@ -98,6 +100,7 @@ export function CreateExamCustomize({
     });
   const { toast } = useToast();
   const { subscription, isAdmin } = useSubscription();
+  const { user } = useUser();
 
   // Determine max questions based on subscription plan
   const maxQuestions = subscription?.plan === "trial" ? 10 : 50;
@@ -591,6 +594,25 @@ export function CreateExamCustomize({
                 </div>
               </div>
             </ToggleGroupItem>
+            {(user?.id === "user_32q3G7OZCJnX46Vpt9NKt2VIfDy" || isAdmin) && (
+              <ToggleGroupItem
+                value="skillow"
+                aria-label="Toggle skillow"
+                className="h-auto p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800 data-[state=on]:text-apple-blue data-[state=on]:border-[#007AFF] data-[state=on]:bg-blue-50 dark:data-[state=on]:bg-blue-950/30 transition-all hover:border-gray-300 dark:hover:border-gray-700"
+              >
+                <div className="text-left space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <Brain className="h-5 w-5 text-[#007AFF] dark:text-[#0A84FF]" />
+                    </div>
+                    <div className="font-semibold text-base">Skillow</div>
+                  </div>
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    Questões contextualizadas e reflexivas.
+                  </div>
+                </div>
+              </ToggleGroupItem>
+            )}
           </ToggleGroup>
         </CardContent>
       </Card>
@@ -667,7 +689,8 @@ export function CreateExamCustomize({
                   }
                   disabled={
                     config.questionStyle === "enem" ||
-                    config.questionStyle === "enade"
+                    config.questionStyle === "enade" ||
+                    config.questionStyle === "skillow"
                   }
                   className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
                 />
@@ -690,7 +713,8 @@ export function CreateExamCustomize({
                   }
                   disabled={
                     config.questionStyle === "enem" ||
-                    config.questionStyle === "enade"
+                    config.questionStyle === "enade" ||
+                    config.questionStyle === "skillow"
                   }
                   className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
                 />
@@ -710,7 +734,10 @@ export function CreateExamCustomize({
                     id="shortAnswer"
                     checked={config.questionTypes.shortAnswer}
                     onCheckedChange={(checked) =>
-                      handleQuestionTypeChange("shortAnswer", checked as boolean)
+                      handleQuestionTypeChange(
+                        "shortAnswer",
+                        checked as boolean
+                      )
                     }
                     disabled={
                       config.questionStyle === "enem" ||

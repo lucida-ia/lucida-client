@@ -414,11 +414,8 @@ export function CreateExamPreview({
                   Tipo de Prova
                 </p>
                 <p className="text-base font-semibold">
-                  {config.questionStyle === "simple"
-                    ? "Simples"
-                    : config.questionStyle === "enem"
-                    ? "Estilo ENEM"
-                    : "Estilo ENADE"}
+                  {config.questionStyle.charAt(0).toUpperCase() +
+                    config.questionStyle.slice(1)}
                 </p>
               </div>
             </div>
