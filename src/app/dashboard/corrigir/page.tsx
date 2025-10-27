@@ -202,6 +202,7 @@ export default function CorrigirPage() {
   };
 
   const navigateToQuestion = (questionIndex: number) => {
+    if (!selectedResult) return;
     setCurrentQuestionIndex(questionIndex);
     const answer = selectedResult.answers[questionIndex];
     setManualScore(answer.score?.toString() || "");
@@ -672,7 +673,7 @@ export default function CorrigirPage() {
               </div>
               {questionsNeedingReview > 0 && (
                 <Button
-                  variant="secondary"
+                  variant="tinted"
                   size="sm"
                   onClick={navigateToNextPending}
                   className="flex items-center gap-2 text-xs"
