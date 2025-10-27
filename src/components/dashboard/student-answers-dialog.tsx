@@ -262,9 +262,9 @@ export function StudentAnswersDialog({
                                 {item.score.toFixed(2)}
                               </span>
                               {item.gradedByAI ? (
-                                <Bot className="h-4 w-4 text-blue-500" title="Corrigido pela IA" />
+                                <Bot className="h-4 w-4 text-blue-500" />
                               ) : (
-                                <UserCheck className="h-4 w-4 text-green-500" title="Corrigido manualmente" />
+                                <UserCheck className="h-4 w-4 text-green-500" />
                               )}
                             </div>
                           ) : (
