@@ -21,7 +21,7 @@ export function ExpiredTrialAlertCompact({
           <Button
             size="sm"
             variant="destructive"
-            className="font-semibold text-footnote px-3 py-1.5 h-auto self-start sm:self-auto"
+            className="font-semibold text-footnote px-3 py-1.5 h-auto self-start sm:self-auto text-white"
           >
             <Sparkles className="w-3 h-3 mr-1.5" />
             Ver Planos

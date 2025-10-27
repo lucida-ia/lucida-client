@@ -704,39 +704,31 @@ export function CreateExamCustomize({
                   <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
                 )}
               </div>
-              <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
-                <Checkbox
-                  id="shortAnswer"
-                  checked={config.questionTypes.shortAnswer}
-                  onCheckedChange={(checked) =>
-                    handleQuestionTypeChange("shortAnswer", checked as boolean)
-                  }
-                  disabled={
-                    config.questionStyle === "enem" ||
-                    config.questionStyle === "enade" ||
-                    !isAdmin
-                  }
-                  className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
-                />
-                <Label
-                  htmlFor="shortAnswer"
-                  className="text-sm font-medium cursor-pointer flex-1"
-                >
-                  Resposta Curta
-                  {!isAdmin && (
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1 ml-2"
-                    >
-                      <Star className="h-3 w-3" />
-                      Admin
-                    </Badge>
+              {isAdmin && (
+                <div className="flex items-center space-x-3 p-4 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-all">
+                  <Checkbox
+                    id="shortAnswer"
+                    checked={config.questionTypes.shortAnswer}
+                    onCheckedChange={(checked) =>
+                      handleQuestionTypeChange("shortAnswer", checked as boolean)
+                    }
+                    disabled={
+                      config.questionStyle === "enem" ||
+                      config.questionStyle === "enade"
+                    }
+                    className="data-[state=checked]:bg-[#007AFF] data-[state=checked]:border-[#007AFF]"
+                  />
+                  <Label
+                    htmlFor="shortAnswer"
+                    className="text-sm font-medium cursor-pointer flex-1"
+                  >
+                    Resposta Curta
+                  </Label>
+                  {config.questionTypes.shortAnswer && (
+                    <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
                   )}
-                </Label>
-                {config.questionTypes.shortAnswer && (
-                  <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
-                )}
-              </div>
+                </div>
+              )}
             </div>
             {(config.questionStyle === "enem" ||
               config.questionStyle === "enade") && (

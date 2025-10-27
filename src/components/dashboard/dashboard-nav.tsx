@@ -103,7 +103,7 @@ export function useNavItems() {
       title: "Corrigir Avaliações",
       href: "/dashboard/corrigir",
       icon: <ClipboardCheck className="h-5 w-5" />,
-      role: ["admin", "teacher"],
+      role: ["admin"],
     },
     {
       title: "Analytics",
