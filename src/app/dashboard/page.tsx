@@ -11,6 +11,7 @@ import React, { Suspense, useCallback } from "react";
 import axios from "axios";
 import { getImpersonateUserId, isTrialUserPastOneWeek } from "@/lib/utils";
 import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
+import { useRouter } from "next/navigation";
 
 interface UserData {
   user: any;
@@ -26,6 +27,8 @@ export default function DashboardPage() {
   });
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
+
+  const router = useRouter();
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -90,6 +93,10 @@ export default function DashboardPage() {
         localStorage.removeItem("selectedPlan"); // Clean up invalid data
       }
     }
+
+    if (!selectedPlan && userData.user?.subscription?.plan === "trial") {
+      router.push("/dashboard/billing");
+    }
   }, [userData.user, toast]);
 
   // Function to handle checkout after authentication
@@ -131,19 +138,19 @@ export default function DashboardPage() {
     }
   };
 
-  // Check if user is on trial plan
-  const isTrialUser = userData.user?.subscription?.plan === "trial";
-  const shouldShowExpiredBanner = userData?.user
-    ? isTrialUserPastOneWeek(userData.user)
-    : false;
+  React.useEffect(() => {
+    if (userData.user?.subscription?.plan === "trial") {
+      router.push("/dashboard/billing");
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
       <Suspense fallback={null}>
         <URLParamsHandler />
       </Suspense>
-
-      <PromoDialog isTrialUser={isTrialUser} isLoading={loading} />
 
       <div className="flex items-center justify-between gap-4">
         <DashboardHeader
@@ -152,8 +159,6 @@ export default function DashboardPage() {
         />
         <CreateExamCTA userData={userData} />
       </div>
-
-      {shouldShowExpiredBanner && <ExpiredTrialAlert />}
 
       <div className="space-y-6 mt-4 ">
         <OverviewStats userData={userData} loading={loading} />

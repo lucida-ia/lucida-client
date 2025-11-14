@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, getImpersonateUserId } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -26,7 +26,7 @@ import {
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSubscription } from "@/hooks/use-subscription";
 
 // Custom hook for localStorage that handles SSR
@@ -66,6 +66,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import axios from "axios";
 
 type NavItem = {
   title: string;
@@ -146,15 +147,49 @@ export function DashboardNav() {
   );
   const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
   const { user } = useUser();
+  const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState<number>(0);
 
   const pathname = usePathname();
   const router = useRouter();
   const navItems = useNavItems();
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const fetchUserData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const asUser = getImpersonateUserId();
+      const response = await axios.get(
+        "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+      );
+
+      if (response.data.status === "success") {
+        const data = response.data.data;
+        setUserSubscription(data.user.subscription);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const checkSubscriptionExpiry = useCallback(async () => {
+    try {
+      const response = await axios.post("/api/subscription/check-expiry");
+      if (response.data.status === "success" && response.data.planUpdated) {
+        // If plan was updated, refetch user data to get the updated subscription
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Error checking subscription expiry:", error);
+    }
+  }, [fetchUserData]);
+
+  React.useEffect(() => {
+    fetchUserData();
+    checkSubscriptionExpiry();
+  }, [fetchUserData, checkSubscriptionExpiry]);
 
   // Fetch pending grading count
   useEffect(() => {
@@ -169,12 +204,19 @@ export function DashboardNav() {
         console.error("Failed to fetch pending count:", error);
       }
     };
-    
+
     fetchPendingCount();
     // Refresh count every 30 seconds
     const interval = setInterval(fetchPendingCount, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  React.useEffect(() => {
+    if (userSubscription?.plan === "trial") {
+      router.push("/dashboard/billing");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userSubscription?.plan]);
 
   return (
     <TooltipProvider>
@@ -197,81 +239,143 @@ export function DashboardNav() {
           </div>
           <div className="flex-1 overflow-y-auto py-2">
             <nav className="grid items-start px-3 text-callout font-medium gap-1">
-              {navItems.map((item, index) => (
-                <div key={index}>
+              {userSubscription?.plan === "trial" && (
+                <div>
                   {isCollapsed ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          disabled={item.disabled}
                           size="icon"
                           variant="plain"
                           className={cn(
                             "w-full justify-center p-2 h-11 rounded-apple",
-                            pathname === item.href &&
+                            pathname === "/dashboard/billing" &&
                               "bg-apple-blue/10 text-apple-blue"
                           )}
                           asChild
                         >
-                          <Link href={item.href} className="relative">
+                          <Link href="/dashboard/billing" className="relative">
                             <div className="relative flex items-center justify-center">
-                              {item.icon}
-                              {item.isNew && (
-                                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-apple-red" />
-                              )}
+                              <CreditCard className="h-5 w-5" />
                             </div>
                           </Link>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="right">
                         <div className="flex items-center gap-2">
-                          <p>{item.title}</p>
-                          {item.isNew && (
-                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
-                              Novidade
-                            </span>
-                          )}
+                          <p>Planos</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
                   ) : (
                     <Button
-                      disabled={item.disabled}
                       size="default"
                       variant="plain"
                       className={cn(
                         "w-full justify-start gap-3 h-11 rounded-apple",
-                        pathname === item.href &&
+                        pathname === "/dashboard/billing" &&
                           "bg-apple-blue/10 text-apple-blue"
                       )}
                       asChild
                     >
                       <Link
-                        href={item.href}
+                        href="/dashboard/billing"
                         className={cn(
-                          "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
-                          item.disabled && "opacity-50 cursor-not-allowed"
+                          "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground"
                         )}
                       >
-                        {item.icon}
-                        <span className="flex items-center gap-2">
-                          {item.title}
-                          {item.isNew && (
-                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
-                              Novidade
-                            </span>
-                          )}
-                          {item.href === "/dashboard/corrigir" && pendingCount > 0 && (
-                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
-                              {pendingCount}
-                            </span>
-                          )}
-                        </span>
+                        <CreditCard className="h-5 w-5" />
+                        <span className="flex items-center gap-2">Planos</span>
                       </Link>
                     </Button>
                   )}
                 </div>
-              ))}
+              )}
+
+              {userSubscription?.plan !== "trial" &&
+                navItems.map((item, index) => (
+                  <div key={index}>
+                    {isCollapsed ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            disabled={
+                              item.disabled ||
+                              userSubscription?.plan === "trial"
+                            }
+                            size="icon"
+                            variant="plain"
+                            className={cn(
+                              "w-full justify-center p-2 h-11 rounded-apple",
+                              pathname === item.href &&
+                                "bg-apple-blue/10 text-apple-blue"
+                            )}
+                            asChild
+                          >
+                            <Link href={item.href} className="relative">
+                              <div className="relative flex items-center justify-center">
+                                {item.icon}
+                                {item.isNew && (
+                                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-apple-red" />
+                                )}
+                              </div>
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <div className="flex items-center gap-2">
+                            <p>{item.title}</p>
+                            {item.isNew && (
+                              <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
+                                Novidade
+                              </span>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        disabled={
+                          item.disabled || userSubscription?.plan === "trial"
+                        }
+                        size="default"
+                        variant="plain"
+                        className={cn(
+                          "w-full justify-start gap-3 h-11 rounded-apple",
+                          pathname === item.href &&
+                            "bg-apple-blue/10 text-apple-blue"
+                        )}
+                        asChild
+                      >
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
+                            (item.disabled ||
+                              userSubscription?.plan === "trial") &&
+                              "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          {item.icon}
+                          <span className="flex items-center gap-2">
+                            {item.title}
+                            {item.isNew && (
+                              <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                                Novidade
+                              </span>
+                            )}
+                            {item.href === "/dashboard/corrigir" &&
+                              pendingCount > 0 && (
+                                <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                  {pendingCount}
+                                </span>
+                              )}
+                          </span>
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                ))}
             </nav>
           </div>
           <div className="mt-auto p-4">

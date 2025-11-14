@@ -1,42 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Check,
-  Clock,
-  FileText,
-  Star,
-  Crown,
-  GraduationCap,
-} from "lucide-react";
-
-// Period options
-const PERIOD_OPTIONS = [
-  { value: "mensal" as const, label: "Mensal" },
-  { value: "semestral" as const, label: "Semestral", savings: "Salve 10%" },
-  { value: "anual" as const, label: "Anual", savings: "Salve 20%" },
-];
-
-// Pricing plans
-const GRATIS_PLAN = {
-  id: "gratis",
-  name: "Gratis",
-  price: "Grátis",
-  period: "",
-  features: [
-    "Até 3 provas gratuitas",
-    "Máximo 10 questões por prova",
-    "Apenas 1 arquivo por upload",
-  ],
-  popular: false,
-  maxExams: 3,
-  examFormats: ["Simples", "ENEM"],
-  icon: Clock,
-  gradient: "from-teal-500 to-cyan-600",
-  priceId: "",
-};
+import { Check, FileText, Star, Crown } from "lucide-react";
 
 const PRO_PLANS = {
   mensal: {
@@ -113,26 +79,6 @@ const PRO_PLANS = {
   },
 };
 
-const PERSONALIZADO_PLAN = {
-  id: "personalizado",
-  name: "Personalizado",
-  price: "Sob consulta",
-  period: "",
-  features: [
-    "Provas ilimitadas",
-    "Todos os formatos de questões",
-    "Geração avançada com IA",
-    "Suporte especializado 24/7",
-    "Integração com LMS",
-  ],
-  popular: false,
-  maxExams: -1,
-  examFormats: ["simples", "enem"],
-  icon: GraduationCap,
-  gradient: "from-emerald-500 to-green-600",
-  priceId: "",
-};
-
 // Helper function to calculate monthly equivalent pricing
 const getMonthlyEquivalent = (plan: any) => {
   if (plan.id === "semi-annual") {
@@ -149,26 +95,8 @@ const getMonthlyEquivalent = (plan: any) => {
 };
 
 export function PricingSection() {
-  const [selectedPeriod, setSelectedPeriod] = useState<
-    "mensal" | "semestral" | "anual"
-  >("mensal");
-
   // Function to handle plan selection and redirect to checkout flow
   const handlePlanSelection = (plan: any) => {
-    if (plan.id === "personalizado") {
-      // For custom plan, just scroll to contact section
-      document
-        .getElementById("contact")
-        ?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-
-    if (plan.id === "gratis") {
-      // For free plan, redirect directly to sign-up
-      window.location.href = "/sign-up";
-      return;
-    }
-
     // For paid plans, store plan info and redirect to sign-in
     if (plan.priceId) {
       // Store selected plan information in localStorage
@@ -203,143 +131,63 @@ export function PricingSection() {
           </p>
         </div>
 
-        {/* Period Selector */}
-        <div className="flex flex-col items-center space-y-6 mb-12 sm:mb-16">
-          <div className="inline-flex items-center bg-slate-800/60 border border-slate-700/50 rounded-xl p-1 shadow-inner">
-            {PERIOD_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setSelectedPeriod(option.value)}
-                className={`relative px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                  selectedPeriod === option.value
-                    ? "bg-slate-700 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
-                }`}
-              >
-                {option.label}
-                {option.savings && (
-                  <span className="px-2 py-0.5 text-xs font-semibold bg-green-900/50 text-green-400 rounded-full">
-                    {option.savings}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Gratis Card */}
-          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-slate-800/30 border-slate-700/50 backdrop-blur-sm shadow-lg">
-            <CardHeader className="pb-4 pt-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg">
-                  <Clock className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-bold mb-3 text-white">
-                  Gratis
-                </CardTitle>
-                <div className="text-4xl font-bold mb-2 text-white">Grátis</div>
-                <div className="text-sm text-slate-400 font-medium">
-                  Para começar
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
-              <ul className="space-y-4 mb-8 flex-1">
-                {GRATIS_PLAN.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="p-1.5 rounded-full bg-teal-900 mt-0.5 flex-shrink-0">
-                      <Check className="w-4 h-4 text-teal-400" />
-                    </div>
-                    <span className="leading-relaxed text-slate-300 font-medium">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                onClick={() => handlePlanSelection(GRATIS_PLAN)}
-                className="w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl"
-              >
-                Começar Grátis
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Pro Card */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Pro Mensal Card */}
           {(() => {
-            const currentProPlan = PRO_PLANS[selectedPeriod];
+            const plan = PRO_PLANS.mensal;
             return (
               <Card
                 className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-slate-800/30 border-slate-700/50 backdrop-blur-sm shadow-lg ${
-                  currentProPlan.hasPromo
+                  plan.hasPromo
                     ? "ring-1 ring-red-500/20 border-red-500/30"
-                    : currentProPlan.savings && currentProPlan.id !== "monthly"
-                    ? "ring-1 ring-green-500/20 border-green-500/30"
                     : ""
                 }`}
               >
-                {currentProPlan.hasPromo && (
+                {plan.hasPromo && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                     <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
                       OFERTA ESPECIAL
                     </div>
                   </div>
                 )}
-                {currentProPlan.savings &&
-                  currentProPlan.id !== "monthly" &&
-                  !currentProPlan.hasPromo && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
-                        {currentProPlan.savings}
-                      </div>
-                    </div>
-                  )}
 
                 <CardHeader className="pb-4 pt-8">
                   <div className="text-center mb-6">
                     <div
-                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center shadow-lg`}
+                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${plan.gradient} flex items-center justify-center shadow-lg`}
                     >
-                      <currentProPlan.icon className="w-8 h-8 text-white" />
+                      <plan.icon className="w-8 h-8 text-white" />
                     </div>
                     <CardTitle className="text-2xl font-bold mb-3 text-white">
-                      {currentProPlan.name}
+                      {plan.name}
                     </CardTitle>
-                    {currentProPlan.hasPromo ? (
+                    {plan.hasPromo ? (
                       <div className="mb-2">
                         <div className="text-lg font-medium text-red-500 line-through mb-1">
-                          {currentProPlan.price}
+                          {plan.price}
                         </div>
                         <div className="text-4xl font-bold text-white mb-1">
-                          {currentProPlan.promoPrice}
+                          {plan.promoPrice}
                         </div>
                         <div className="text-sm text-slate-400 font-medium">
-                          primeiro mês, depois {currentProPlan.price}
+                          primeiro mês, depois {plan.price}
                         </div>
                       </div>
                     ) : (
                       <div className="text-4xl font-bold mb-2 text-white">
-                        {currentProPlan.price}
+                        {plan.price}
                       </div>
                     )}
-                    {/* <div className="text-sm text-slate-400 font-medium">
-                      {currentProPlan.period}
-                    </div> */}
-                    {getMonthlyEquivalent(currentProPlan) && (
-                      <div className="text-sm text-slate-400 mt-1 font-medium">
-                        {getMonthlyEquivalent(currentProPlan)}
-                      </div>
-                    )}
+                    <div className="text-sm text-slate-400 font-medium">
+                      {plan.period}
+                    </div>
                   </div>
                 </CardHeader>
 
                 <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
                   <ul className="space-y-4 mb-8 flex-1">
-                    {currentProPlan.features.map((feature, index) => (
+                    {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <div className="p-1.5 rounded-full bg-teal-900 mt-0.5 flex-shrink-0">
                           <Check className="w-4 h-4 text-teal-400" />
@@ -352,68 +200,219 @@ export function PricingSection() {
                   </ul>
 
                   <Button
-                    onClick={() => handlePlanSelection(currentProPlan)}
+                    onClick={() => handlePlanSelection(plan)}
                     className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
-                      currentProPlan.hasPromo
+                      plan.hasPromo
                         ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
-                        : currentProPlan.savings &&
-                          currentProPlan.id !== "monthly"
-                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
                         : "bg-gradient-to-r " +
-                          currentProPlan.gradient +
+                          plan.gradient +
                           " hover:shadow-lg text-white"
                     }`}
                   >
-                    {currentProPlan.hasPromo
-                      ? "Começar por R$ 1,99"
-                      : "Assinar Agora"}
+                    {plan.hasPromo ? "Começar por R$ 1,99" : "Assinar Agora"}
                   </Button>
                 </CardContent>
               </Card>
             );
           })()}
 
-          {/* Personalizado Card */}
-          <Card className="relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-slate-800/30 border-slate-700/50 backdrop-blur-sm shadow-lg">
-            <CardHeader className="pb-4 pt-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-                  <GraduationCap className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-bold mb-3 text-white">
-                  Personalizado
-                </CardTitle>
-                <div className="text-4xl font-bold mb-2 text-white">
-                  Sob consulta
-                </div>
-                <div className="text-sm text-slate-400 font-medium">
-                  Para instituições
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
-              <ul className="space-y-4 mb-8 flex-1">
-                {PERSONALIZADO_PLAN.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="p-1.5 rounded-full bg-teal-900 mt-0.5 flex-shrink-0">
-                      <Check className="w-4 h-4 text-teal-400" />
-                    </div>
-                    <span className="leading-relaxed text-slate-300 font-medium">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                onClick={() => handlePlanSelection(PERSONALIZADO_PLAN)}
-                className="w-full h-12 font-semibold transition-all duration-300 mt-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl rounded-xl"
+          {/* Pro Semestral Card */}
+          {(() => {
+            const plan = PRO_PLANS.semestral;
+            return (
+              <Card
+                className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-slate-800/30 border-slate-700/50 backdrop-blur-sm shadow-lg ${
+                  plan.hasPromo
+                    ? "ring-1 ring-red-500/20 border-red-500/30"
+                    : plan.savings
+                    ? "ring-1 ring-green-500/20 border-green-500/30"
+                    : ""
+                }`}
               >
-                Entre em contato!
-              </Button>
-            </CardContent>
-          </Card>
+                {plan.hasPromo && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
+                      OFERTA ESPECIAL
+                    </div>
+                  </div>
+                )}
+                {plan.savings && !plan.hasPromo && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
+                      {plan.savings}
+                    </div>
+                  </div>
+                )}
+
+                <CardHeader className="pb-4 pt-8">
+                  <div className="text-center mb-6">
+                    <div
+                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${plan.gradient} flex items-center justify-center shadow-lg`}
+                    >
+                      <plan.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold mb-3 text-white">
+                      {plan.name}
+                    </CardTitle>
+                    {plan.hasPromo ? (
+                      <div className="mb-2">
+                        <div className="text-lg font-medium text-red-500 line-through mb-1">
+                          {plan.price}
+                        </div>
+                        <div className="text-4xl font-bold text-white mb-1">
+                          {plan.promoPrice}
+                        </div>
+                        <div className="text-sm text-slate-400 font-medium">
+                          primeiro mês, depois {plan.price}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-4xl font-bold mb-2 text-white">
+                        {plan.price}
+                      </div>
+                    )}
+                    <div className="text-sm text-slate-400 font-medium">
+                      {plan.period}
+                    </div>
+                    {getMonthlyEquivalent(plan) && (
+                      <div className="text-sm text-slate-400 mt-1 font-medium">
+                        {getMonthlyEquivalent(plan)}
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="p-1.5 rounded-full bg-teal-900 mt-0.5 flex-shrink-0">
+                          <Check className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <span className="leading-relaxed text-slate-300 font-medium">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    onClick={() => handlePlanSelection(plan)}
+                    className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
+                      plan.hasPromo
+                        ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
+                        : plan.savings
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
+                        : "bg-gradient-to-r " +
+                          plan.gradient +
+                          " hover:shadow-lg text-white"
+                    }`}
+                  >
+                    {plan.hasPromo ? "Começar por R$ 1,99" : "Assinar Agora"}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Pro Anual Card */}
+          {(() => {
+            const plan = PRO_PLANS.anual;
+            return (
+              <Card
+                className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border rounded-2xl h-full flex flex-col bg-slate-800/30 border-slate-700/50 backdrop-blur-sm shadow-lg ${
+                  plan.hasPromo
+                    ? "ring-1 ring-red-500/20 border-red-500/30"
+                    : plan.savings
+                    ? "ring-1 ring-green-500/20 border-green-500/30"
+                    : ""
+                }`}
+              >
+                {plan.hasPromo && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
+                      OFERTA ESPECIAL
+                    </div>
+                  </div>
+                )}
+                {plan.savings && !plan.hasPromo && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold card-elevation-2">
+                      {plan.savings}
+                    </div>
+                  </div>
+                )}
+
+                <CardHeader className="pb-4 pt-8">
+                  <div className="text-center mb-6">
+                    <div
+                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${plan.gradient} flex items-center justify-center shadow-lg`}
+                    >
+                      <plan.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold mb-3 text-white">
+                      {plan.name}
+                    </CardTitle>
+                    {plan.hasPromo ? (
+                      <div className="mb-2">
+                        <div className="text-lg font-medium text-red-500 line-through mb-1">
+                          {plan.price}
+                        </div>
+                        <div className="text-4xl font-bold text-white mb-1">
+                          {plan.promoPrice}
+                        </div>
+                        <div className="text-sm text-slate-400 font-medium">
+                          primeiro mês, depois {plan.price}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-4xl font-bold mb-2 text-white">
+                        {plan.price}
+                      </div>
+                    )}
+                    <div className="text-sm text-slate-400 font-medium">
+                      {plan.period}
+                    </div>
+                    {getMonthlyEquivalent(plan) && (
+                      <div className="text-sm text-slate-400 mt-1 font-medium">
+                        {getMonthlyEquivalent(plan)}
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0 flex flex-col flex-1 px-8 pb-8">
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="p-1.5 rounded-full bg-teal-900 mt-0.5 flex-shrink-0">
+                          <Check className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <span className="leading-relaxed text-slate-300 font-medium">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    onClick={() => handlePlanSelection(plan)}
+                    className={`w-full h-12 font-semibold transition-all duration-300 mt-auto rounded-xl ${
+                      plan.hasPromo
+                        ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
+                        : plan.savings
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
+                        : "bg-gradient-to-r " +
+                          plan.gradient +
+                          " hover:shadow-lg text-white"
+                    }`}
+                  >
+                    {plan.hasPromo ? "Começar por R$ 1,99" : "Assinar Agora"}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
       </div>
     </section>

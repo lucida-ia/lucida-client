@@ -262,7 +262,6 @@ export default function BillingPage() {
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [isTrialDowngrade, setIsTrialDowngrade] = useState(false);
   const [redirectingToPortal, setRedirectingToPortal] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("mensal");
   const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
@@ -302,6 +301,9 @@ export default function BillingPage() {
     setProcessingPlan(plan.id);
 
     try {
+      // Get current plan for comparison
+      const currentPlanForCheck = getCurrentPlan();
+
       // Handle trial plan - cancel current subscription if user has one
       if (plan.id === "gratis") {
         if (
@@ -325,6 +327,13 @@ export default function BillingPage() {
       }
 
       if (plan.priceId && plan.id !== "personalizado") {
+        // Check if user is already on this plan
+        if (currentPlanForCheck.id === plan.id) {
+          setError("Você já está neste plano.");
+          setProcessingPlan(null);
+          return;
+        }
+
         // Create dynamic checkout session
         const response = await fetch("/api/create-checkout-session", {
           method: "POST",
@@ -338,7 +347,9 @@ export default function BillingPage() {
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(
-            errorData.details || "Failed to create checkout session"
+            errorData.details ||
+              errorData.error ||
+              "Failed to create checkout session"
           );
         }
 
@@ -352,6 +363,7 @@ export default function BillingPage() {
       } else {
         // Handle custom plan - show contact modal
         setShowContactModal(true);
+        setProcessingPlan(null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -434,7 +446,8 @@ export default function BillingPage() {
   const getCurrentPlan = () => {
     if (!subscription) return GRATIS_PLAN; // Default to trial plan
 
-    console.log(subscription.plan);
+    // Map "trial" to "gratis" for plan matching
+    const planId = subscription.plan === "trial" ? "gratis" : subscription.plan;
 
     return (
       [
@@ -444,7 +457,7 @@ export default function BillingPage() {
         PRO_PLANS.anual,
         PERSONALIZADO_PLAN,
         ADMIN_PLAN,
-      ].find((plan) => plan.id === subscription.plan) || GRATIS_PLAN
+      ].find((plan) => plan.id === planId) || GRATIS_PLAN
     );
   };
 
@@ -478,16 +491,17 @@ export default function BillingPage() {
 
   const currentPlan = getCurrentPlan();
   const usagePercentage = getUsagePercentage();
-  const currentProPlan = PRO_PLANS[selectedPeriod];
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <DashboardHeader
-          heading="Gerenciar Assinatura"
-          text="Gerencie sua assinatura e acesse recursos premium"
-        />
-      </div>
+      {currentPlan !== GRATIS_PLAN && (
+        <div className="flex items-center justify-between">
+          <DashboardHeader
+            heading="Gerenciar Assinatura"
+            text="Gerencie sua assinatura e acesse recursos premium"
+          />
+        </div>
+      )}
 
       <div className="grid gap-4 md:gap-8">
         {error && (
@@ -655,125 +669,35 @@ export default function BillingPage() {
         )}
         {/* Current Subscription Status */}
 
-        {subscription?.plan == "trial" && (
-          <>
-            <div className="flex flex-col items-center space-y-5">
-              <div className="text-center space-y-2">
-                <h2 className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
-                  Escolha seu Plano
-                </h2>
-                <p className="text-body text-[rgb(var(--apple-secondary-label))]">
-                  Selecione o período que melhor se adapta às suas necessidades
-                </p>
-              </div>
+        <div className="flex flex-col items-center space-y-5">
+          <div className="text-center space-y-2">
+            <h2 className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
+              {subscription?.plan === "trial"
+                ? "Escolha seu Plano"
+                : "Alterar Plano"}
+            </h2>
+            <p className="text-body text-[rgb(var(--apple-secondary-label))]">
+              {subscription?.plan === "trial"
+                ? "Selecione o período que melhor se adapta às suas necessidades"
+                : "Escolha um novo plano para alterar sua assinatura"}
+            </p>
+          </div>
+        </div>
 
-              <div className="inline-flex items-center bg-[rgb(var(--apple-gray-6))] dark:bg-[rgb(var(--apple-gray-5))] rounded-xl p-1 apple-shadow-sm">
-                {PERIOD_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSelectedPeriod(option.value)}
-                    className={`relative px-4 py-2 rounded-lg text-subhead font-medium apple-transition-fast flex items-center gap-2 ${
-                      selectedPeriod === option.value
-                        ? "bg-[rgb(var(--apple-secondary-grouped-background))] text-[rgb(var(--apple-label))] apple-shadow-sm"
-                        : "text-[rgb(var(--apple-secondary-label))] hover:text-[rgb(var(--apple-label))] hover:bg-[rgb(var(--apple-gray-5)/0.5)] dark:hover:bg-[rgb(var(--apple-gray-4)/0.5)]"
-                    }`}
-                  >
-                    {option.label}
-                    {option.savings && (
-                      <span className="px-2 py-0.5 text-caption-2 font-semibold bg-[rgb(var(--apple-green)/0.15)] text-[rgb(var(--apple-green))] rounded-full">
-                        {option.savings}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Pricing Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
-              {/* Gratis Card */}
-              <Card className="relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow">
-                <CardHeader className="pb-3 pt-6">
-                  <div className="text-center space-y-3">
-                    <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center apple-shadow">
-                      <Clock className="w-7 h-7 text-white" />
-                    </div>
-                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
-                      Gratis
-                    </CardTitle>
-                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                      Grátis
-                    </div>
-                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
-                      Para começar
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {GRATIS_PLAN.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2.5">
-                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
-                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
-                        </div>
-                        <span className="text-subhead text-[rgb(var(--apple-label))]">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
-                      currentPlan.id === "gratis"
-                        ? "bg-[rgb(var(--apple-teal)/0.1)] text-[rgb(var(--apple-teal))] hover:bg-[rgb(var(--apple-teal)/0.15)] border border-[rgb(var(--apple-teal)/0.3)]"
-                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
-                    }`}
-                    onClick={() => handleSubscribe(GRATIS_PLAN)}
-                    disabled={
-                      currentPlan.id === "gratis" || processingPlan === "gratis"
-                    }
-                  >
-                    {processingPlan === "gratis" ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Processando...
-                      </div>
-                    ) : currentPlan.id === "gratis" ? (
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Plano Atual
-                      </div>
-                    ) : (
-                      "Começar Grátis"
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Pro Card */}
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
+          {/* Mensal Card */}
+          {(() => {
+            const mensalPlan = PRO_PLANS.mensal;
+            return (
               <Card
                 className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
-                  currentProPlan.savings && currentProPlan.id !== "pro-mensal"
-                    ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
-                    : ""
-                } ${
-                  currentPlan.id === currentProPlan.id
+                  currentPlan.id === mensalPlan.id
                     ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
                     : ""
                 }`}
               >
-                {currentProPlan.savings &&
-                  currentProPlan.id !== "pro-mensal" && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                      <div className="bg-[rgb(var(--apple-green))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
-                        {currentProPlan.savings}
-                      </div>
-                    </div>
-                  )}
-
-                {currentPlan.id === currentProPlan.id && (
+                {currentPlan.id === mensalPlan.id && (
                   <div className="absolute -top-2.5 right-4 z-20">
                     <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
                       <Check className="w-3.5 h-3.5 mr-1" />
@@ -784,31 +708,21 @@ export default function BillingPage() {
 
                 <CardHeader className="pb-3 pt-6">
                   <div className="text-center space-y-3">
-                    <div
-                      className={`w-14 h-14 mx-auto rounded-2xl bg-gradient-to-r ${currentProPlan.gradient} flex items-center justify-center apple-shadow`}
-                    >
-                      <currentProPlan.icon className="w-7 h-7 text-white" />
-                    </div>
                     <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
-                      {currentProPlan.name}
+                      Mensal
                     </CardTitle>
                     <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                      {currentProPlan.price}
+                      {mensalPlan.price}
                     </div>
                     <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
-                      {currentProPlan.period}
+                      {mensalPlan.period}
                     </div>
-                    {getMonthlyEquivalent(currentProPlan) && (
-                      <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
-                        {getMonthlyEquivalent(currentProPlan)}
-                      </div>
-                    )}
                   </div>
                 </CardHeader>
 
                 <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
                   <ul className="space-y-3 mb-6 flex-1">
-                    {currentProPlan.features.map((feature, index) => (
+                    {mensalPlan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-2.5">
                         <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
                           <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
@@ -822,25 +736,22 @@ export default function BillingPage() {
 
                   <Button
                     className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
-                      currentPlan.id === currentProPlan.id
+                      currentPlan.id === mensalPlan.id
                         ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
-                        : currentProPlan.savings &&
-                          currentProPlan.id !== "pro-mensal"
-                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white apple-shadow"
                         : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
                     }`}
-                    onClick={() => handleSubscribe(currentProPlan)}
+                    onClick={() => handleSubscribe(mensalPlan)}
                     disabled={
-                      currentPlan.id === currentProPlan.id ||
-                      processingPlan === currentProPlan.id
+                      currentPlan.id === mensalPlan.id ||
+                      processingPlan === mensalPlan.id
                     }
                   >
-                    {processingPlan === currentProPlan.id ? (
+                    {processingPlan === mensalPlan.id ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         Processando...
                       </div>
-                    ) : currentPlan.id === currentProPlan.id ? (
+                    ) : currentPlan.id === mensalPlan.id ? (
                       <div className="flex items-center gap-2">
                         <Check className="w-4 h-4" />
                         Plano Atual
@@ -851,29 +762,63 @@ export default function BillingPage() {
                   </Button>
                 </CardContent>
               </Card>
+            );
+          })()}
 
-              {/* Personalizado Card */}
-              <Card className="relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow">
+          {/* Semestral Card */}
+          {(() => {
+            const semestralPlan = PRO_PLANS.semestral;
+            return (
+              <Card
+                className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
+                  semestralPlan.savings
+                    ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
+                    : ""
+                } ${
+                  currentPlan.id === semestralPlan.id
+                    ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
+                    : ""
+                }`}
+              >
+                {semestralPlan.savings && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-[rgb(var(--apple-blue))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
+                      {semestralPlan.savings}
+                    </div>
+                  </div>
+                )}
+
+                {currentPlan.id === semestralPlan.id && (
+                  <div className="absolute -top-2.5 right-4 z-20">
+                    <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
+                      <Check className="w-3.5 h-3.5 mr-1" />
+                      Atual
+                    </Badge>
+                  </div>
+                )}
+
                 <CardHeader className="pb-3 pt-6">
                   <div className="text-center space-y-3">
-                    <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center apple-shadow">
-                      <GraduationCap className="w-7 h-7 text-white" />
-                    </div>
-                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
-                      Personalizado
+                    <CardTitle className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
+                      Semestral
                     </CardTitle>
                     <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                      Sob consulta
+                      {semestralPlan.price}
                     </div>
                     <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
-                      Para instituições
+                      {semestralPlan.period}
                     </div>
+                    {getMonthlyEquivalent(semestralPlan) && (
+                      <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
+                        {getMonthlyEquivalent(semestralPlan)}
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
 
                 <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
                   <ul className="space-y-3 mb-6 flex-1">
-                    {PERSONALIZADO_PLAN.features.map((feature, index) => (
+                    {semestralPlan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-2.5">
                         <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
                           <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
@@ -886,24 +831,132 @@ export default function BillingPage() {
                   </ul>
 
                   <Button
-                    className="w-full h-11 font-semibold apple-transition mt-auto bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow rounded-xl text-subhead"
-                    onClick={() => handleSubscribe(PERSONALIZADO_PLAN)}
-                    disabled={processingPlan === "personalizado"}
+                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+                      currentPlan.id === semestralPlan.id
+                        ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
+                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                    }`}
+                    onClick={() => handleSubscribe(semestralPlan)}
+                    disabled={
+                      currentPlan.id === semestralPlan.id ||
+                      processingPlan === semestralPlan.id
+                    }
                   >
-                    {processingPlan === "personalizado" ? (
+                    {processingPlan === semestralPlan.id ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         Processando...
                       </div>
+                    ) : currentPlan.id === semestralPlan.id ? (
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4" />
+                        Plano Atual
+                      </div>
                     ) : (
-                      "Entre em contato!"
+                      "Assinar Agora"
                     )}
                   </Button>
                 </CardContent>
               </Card>
-            </div>
-          </>
-        )}
+            );
+          })()}
+
+          {/* Anual Card */}
+          {(() => {
+            const anualPlan = PRO_PLANS.anual;
+            return (
+              <Card
+                className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
+                  anualPlan.savings
+                    ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
+                    : ""
+                } ${
+                  currentPlan.id === anualPlan.id
+                    ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
+                    : ""
+                }`}
+              >
+                {anualPlan.savings && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-[rgb(var(--apple-blue))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
+                      {anualPlan.savings}
+                    </div>
+                  </div>
+                )}
+
+                {currentPlan.id === anualPlan.id && (
+                  <div className="absolute -top-2.5 right-4 z-20">
+                    <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
+                      <Check className="w-3.5 h-3.5 mr-1" />
+                      Atual
+                    </Badge>
+                  </div>
+                )}
+
+                <CardHeader className="pb-3 pt-6">
+                  <div className="text-center space-y-3">
+                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
+                      Anual
+                    </CardTitle>
+                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
+                      {anualPlan.price}
+                    </div>
+                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
+                      {anualPlan.period}
+                    </div>
+                    {getMonthlyEquivalent(anualPlan) && (
+                      <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
+                        {getMonthlyEquivalent(anualPlan)}
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                  <ul className="space-y-3 mb-6 flex-1">
+                    {anualPlan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2.5">
+                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
+                        </div>
+                        <span className="text-subhead text-[rgb(var(--apple-label))]">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+                      currentPlan.id === anualPlan.id
+                        ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
+                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                    }`}
+                    onClick={() => handleSubscribe(anualPlan)}
+                    disabled={
+                      currentPlan.id === anualPlan.id ||
+                      processingPlan === anualPlan.id
+                    }
+                  >
+                    {processingPlan === anualPlan.id ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Processando...
+                      </div>
+                    ) : currentPlan.id === anualPlan.id ? (
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4" />
+                        Plano Atual
+                      </div>
+                    ) : (
+                      "Assinar Agora"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })()}
+        </div>
         {/* Period Selector */}
 
         {/* Subscription Management */}
