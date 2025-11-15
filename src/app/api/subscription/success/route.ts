@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       // Redirect to dashboard after successful subscription
       const dashboardUrl = `${
         process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-      }/dashboard?subscription=success`;
+      }/thank-you`;
       return NextResponse.redirect(dashboardUrl);
     } catch (stripeError) {
       console.error("Error retrieving checkout session:", stripeError);
