@@ -66,6 +66,7 @@ interface PricingPlan {
   name: string;
   description?: string;
   price: string;
+  promoPrice?: string;
   priceId: string;
   period: string;
   features: string[];
@@ -151,6 +152,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     id: "monthly",
     name: "Pro",
     price: "R$ 35,00",
+    promoPrice: "R$ 1,99",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL || "",
     period: "por mês",
     features: [
@@ -173,6 +175,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     id: "semi-annual",
     name: "Pro Semestral",
     price: "R$ 189,90",
+    promoPrice: "R$ 1,99",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
     period: "por 6 meses",
     features: [
@@ -196,6 +199,7 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     id: "annual",
     name: "Pro Anual",
     price: "R$ 334,80",
+    promoPrice: "R$ 1,99",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
     period: "por ano",
     features: [
@@ -540,6 +544,7 @@ export default function BillingPage() {
                     <span className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
                       {currentPlan.price}
                     </span>
+
                     <span className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                       {currentPlan.period}
                     </span>
@@ -669,294 +674,334 @@ export default function BillingPage() {
         )}
         {/* Current Subscription Status */}
 
-        <div className="flex flex-col items-center space-y-5">
-          <div className="text-center space-y-2">
-            <h2 className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
-              {subscription?.plan === "trial"
-                ? "Escolha seu Plano"
-                : "Alterar Plano"}
-            </h2>
-            <p className="text-body text-[rgb(var(--apple-secondary-label))]">
-              {subscription?.plan === "trial"
-                ? "Selecione o período que melhor se adapta às suas necessidades"
-                : "Escolha um novo plano para alterar sua assinatura"}
-            </p>
-          </div>
-        </div>
+        {(subscription?.plan === "trial" || subscription?.plan === "admin") && (
+          <>
+            <div className="flex flex-col items-center space-y-5">
+              <div className="text-center space-y-2">
+                <h2 className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
+                  {subscription?.plan === "trial"
+                    ? "Escolha seu Plano"
+                    : "Alterar Plano"}
+                </h2>
+                <p className="text-body text-[rgb(var(--apple-secondary-label))]">
+                  {subscription?.plan === "trial"
+                    ? "Selecione o período que melhor se adapta às suas necessidades"
+                    : "Escolha um novo plano para alterar sua assinatura"}
+                </p>
+              </div>
+            </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
-          {/* Mensal Card */}
-          {(() => {
-            const mensalPlan = PRO_PLANS.mensal;
-            return (
-              <Card
-                className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
-                  currentPlan.id === mensalPlan.id
-                    ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
-                    : ""
-                }`}
-              >
-                {currentPlan.id === mensalPlan.id && (
-                  <div className="absolute -top-2.5 right-4 z-20">
-                    <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
-                      <Check className="w-3.5 h-3.5 mr-1" />
-                      Atual
-                    </Badge>
-                  </div>
-                )}
-
-                <CardHeader className="pb-3 pt-6">
-                  <div className="text-center space-y-3">
-                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
-                      Mensal
-                    </CardTitle>
-                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                      {mensalPlan.price}
-                    </div>
-                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
-                      {mensalPlan.period}
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {mensalPlan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2.5">
-                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
-                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
-                        </div>
-                        <span className="text-subhead text-[rgb(var(--apple-label))]">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+            {/* Pricing Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
+              {/* Mensal Card */}
+              {(() => {
+                const mensalPlan = PRO_PLANS.mensal;
+                return (
+                  <Card
+                    className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
                       currentPlan.id === mensalPlan.id
-                        ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
-                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                        ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
+                        : ""
                     }`}
-                    onClick={() => handleSubscribe(mensalPlan)}
-                    disabled={
-                      currentPlan.id === mensalPlan.id ||
-                      processingPlan === mensalPlan.id
-                    }
                   >
-                    {processingPlan === mensalPlan.id ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Processando...
-                      </div>
-                    ) : currentPlan.id === mensalPlan.id ? (
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Plano Atual
-                      </div>
-                    ) : (
-                      "Assinar Agora"
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })()}
-
-          {/* Semestral Card */}
-          {(() => {
-            const semestralPlan = PRO_PLANS.semestral;
-            return (
-              <Card
-                className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
-                  semestralPlan.savings
-                    ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
-                    : ""
-                } ${
-                  currentPlan.id === semestralPlan.id
-                    ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
-                    : ""
-                }`}
-              >
-                {semestralPlan.savings && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-[rgb(var(--apple-blue))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
-                      {semestralPlan.savings}
-                    </div>
-                  </div>
-                )}
-
-                {currentPlan.id === semestralPlan.id && (
-                  <div className="absolute -top-2.5 right-4 z-20">
-                    <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
-                      <Check className="w-3.5 h-3.5 mr-1" />
-                      Atual
-                    </Badge>
-                  </div>
-                )}
-
-                <CardHeader className="pb-3 pt-6">
-                  <div className="text-center space-y-3">
-                    <CardTitle className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
-                      Semestral
-                    </CardTitle>
-                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                      {semestralPlan.price}
-                    </div>
-                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
-                      {semestralPlan.period}
-                    </div>
-                    {getMonthlyEquivalent(semestralPlan) && (
-                      <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
-                        {getMonthlyEquivalent(semestralPlan)}
+                    {currentPlan.id === mensalPlan.id && (
+                      <div className="absolute -top-2.5 right-4 z-20">
+                        <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
+                          <Check className="w-3.5 h-3.5 mr-1" />
+                          Atual
+                        </Badge>
                       </div>
                     )}
-                  </div>
-                </CardHeader>
 
-                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {semestralPlan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2.5">
-                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
-                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
+                    <CardHeader className="pb-3 pt-6">
+                      <div className="text-center space-y-3">
+                        <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
+                          Mensal
+                        </CardTitle>
+                        <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
+                          {mensalPlan.promoPrice
+                            ? mensalPlan.promoPrice
+                            : mensalPlan.price}
                         </div>
-                        <span className="text-subhead text-[rgb(var(--apple-label))]">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                        {mensalPlan.promoPrice && (
+                          <>
+                            <span className="text-subhead text-[rgb(var(--apple-secondary-label))] line-through">
+                              {mensalPlan.price}
+                            </span>
+                            <div className="text-footnote text-[rgb(var(--apple-orange))] font-medium">
+                              Promoção válida apenas no primeiro mês
+                            </div>
+                          </>
+                        )}
+                        <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
+                          {mensalPlan.period}
+                        </div>
+                      </div>
+                    </CardHeader>
 
-                  <Button
-                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+                    <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                      <ul className="space-y-3 mb-6 flex-1">
+                        {mensalPlan.features.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-2.5">
+                            <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                              <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
+                            </div>
+                            <span className="text-subhead text-[rgb(var(--apple-label))]">
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+                          currentPlan.id === mensalPlan.id
+                            ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
+                            : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                        }`}
+                        onClick={() => handleSubscribe(mensalPlan)}
+                        disabled={
+                          currentPlan.id === mensalPlan.id ||
+                          processingPlan === mensalPlan.id
+                        }
+                      >
+                        {processingPlan === mensalPlan.id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Processando...
+                          </div>
+                        ) : currentPlan.id === mensalPlan.id ? (
+                          <div className="flex items-center gap-2">
+                            <Check className="w-4 h-4" />
+                            Plano Atual
+                          </div>
+                        ) : (
+                          "Assinar Agora"
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
+              {/* Semestral Card */}
+              {(() => {
+                const semestralPlan = PRO_PLANS.semestral;
+                return (
+                  <Card
+                    className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
+                      semestralPlan.savings
+                        ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
+                        : ""
+                    } ${
                       currentPlan.id === semestralPlan.id
-                        ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
-                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                        ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
+                        : ""
                     }`}
-                    onClick={() => handleSubscribe(semestralPlan)}
-                    disabled={
-                      currentPlan.id === semestralPlan.id ||
-                      processingPlan === semestralPlan.id
-                    }
                   >
-                    {processingPlan === semestralPlan.id ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Processando...
-                      </div>
-                    ) : currentPlan.id === semestralPlan.id ? (
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Plano Atual
-                      </div>
-                    ) : (
-                      "Assinar Agora"
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })()}
-
-          {/* Anual Card */}
-          {(() => {
-            const anualPlan = PRO_PLANS.anual;
-            return (
-              <Card
-                className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
-                  anualPlan.savings
-                    ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
-                    : ""
-                } ${
-                  currentPlan.id === anualPlan.id
-                    ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
-                    : ""
-                }`}
-              >
-                {anualPlan.savings && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-[rgb(var(--apple-blue))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
-                      {anualPlan.savings}
-                    </div>
-                  </div>
-                )}
-
-                {currentPlan.id === anualPlan.id && (
-                  <div className="absolute -top-2.5 right-4 z-20">
-                    <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
-                      <Check className="w-3.5 h-3.5 mr-1" />
-                      Atual
-                    </Badge>
-                  </div>
-                )}
-
-                <CardHeader className="pb-3 pt-6">
-                  <div className="text-center space-y-3">
-                    <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
-                      Anual
-                    </CardTitle>
-                    <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                      {anualPlan.price}
-                    </div>
-                    <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
-                      {anualPlan.period}
-                    </div>
-                    {getMonthlyEquivalent(anualPlan) && (
-                      <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
-                        {getMonthlyEquivalent(anualPlan)}
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {anualPlan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2.5">
-                        <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
-                          <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
+                    {semestralPlan.savings && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                        <div className="bg-[rgb(var(--apple-blue))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
+                          {semestralPlan.savings}
                         </div>
-                        <span className="text-subhead text-[rgb(var(--apple-label))]">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
-                      currentPlan.id === anualPlan.id
-                        ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
-                        : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
-                    }`}
-                    onClick={() => handleSubscribe(anualPlan)}
-                    disabled={
-                      currentPlan.id === anualPlan.id ||
-                      processingPlan === anualPlan.id
-                    }
-                  >
-                    {processingPlan === anualPlan.id ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Processando...
                       </div>
-                    ) : currentPlan.id === anualPlan.id ? (
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Plano Atual
-                      </div>
-                    ) : (
-                      "Assinar Agora"
                     )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })()}
-        </div>
+
+                    {currentPlan.id === semestralPlan.id && (
+                      <div className="absolute -top-2.5 right-4 z-20">
+                        <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
+                          <Check className="w-3.5 h-3.5 mr-1" />
+                          Atual
+                        </Badge>
+                      </div>
+                    )}
+
+                    <CardHeader className="pb-3 pt-6">
+                      <div className="text-center space-y-3">
+                        <CardTitle className="text-title-1 font-semibold text-[rgb(var(--apple-label))]">
+                          Semestral
+                        </CardTitle>
+                        <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
+                          {semestralPlan.promoPrice
+                            ? semestralPlan.promoPrice
+                            : semestralPlan.price}
+                        </div>
+                        {semestralPlan.promoPrice && (
+                          <>
+                            <span className="text-subhead text-[rgb(var(--apple-secondary-label))] line-through">
+                              {semestralPlan.price}
+                            </span>
+                            <div className="text-footnote text-[rgb(var(--apple-orange))] font-medium">
+                              Promoção válida apenas no primeiro mês
+                            </div>
+                          </>
+                        )}
+                        <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
+                          {semestralPlan.period}
+                        </div>
+                        {getMonthlyEquivalent(semestralPlan) && (
+                          <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
+                            {getMonthlyEquivalent(semestralPlan)}
+                          </div>
+                        )}
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                      <ul className="space-y-3 mb-6 flex-1">
+                        {semestralPlan.features.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-2.5">
+                            <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                              <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
+                            </div>
+                            <span className="text-subhead text-[rgb(var(--apple-label))]">
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+                          currentPlan.id === semestralPlan.id
+                            ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
+                            : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                        }`}
+                        onClick={() => handleSubscribe(semestralPlan)}
+                        disabled={
+                          currentPlan.id === semestralPlan.id ||
+                          processingPlan === semestralPlan.id
+                        }
+                      >
+                        {processingPlan === semestralPlan.id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Processando...
+                          </div>
+                        ) : currentPlan.id === semestralPlan.id ? (
+                          <div className="flex items-center gap-2">
+                            <Check className="w-4 h-4" />
+                            Plano Atual
+                          </div>
+                        ) : (
+                          "Assinar Agora"
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
+              {/* Anual Card */}
+              {(() => {
+                const anualPlan = PRO_PLANS.anual;
+                return (
+                  <Card
+                    className={`relative apple-transition hover:apple-shadow-lg border-[rgb(var(--apple-gray-4))] rounded-2xl h-full flex flex-col bg-[rgb(var(--apple-secondary-grouped-background))] dark:border-[rgb(var(--apple-gray-4))] dark:bg-[rgb(var(--apple-secondary-grouped-background))] apple-shadow ${
+                      anualPlan.savings
+                        ? "ring-2 ring-[rgb(var(--apple-green)/0.4)] border-[rgb(var(--apple-green)/0.5)]"
+                        : ""
+                    } ${
+                      currentPlan.id === anualPlan.id
+                        ? "ring-2 ring-[rgb(var(--apple-blue)/0.4)] border-[rgb(var(--apple-blue)/0.5)]"
+                        : ""
+                    }`}
+                  >
+                    {anualPlan.savings && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                        <div className="bg-[rgb(var(--apple-blue))] text-white px-3 py-1.5 rounded-full text-caption-1 font-bold card-elevation-2 whitespace-nowrap">
+                          {anualPlan.savings}
+                        </div>
+                      </div>
+                    )}
+
+                    {currentPlan.id === anualPlan.id && (
+                      <div className="absolute -top-2.5 right-4 z-20">
+                        <Badge className="bg-[rgb(var(--apple-blue))] text-white border-0 card-elevation-2 text-caption-1">
+                          <Check className="w-3.5 h-3.5 mr-1" />
+                          Atual
+                        </Badge>
+                      </div>
+                    )}
+
+                    <CardHeader className="pb-3 pt-6">
+                      <div className="text-center space-y-3">
+                        <CardTitle className="text-title-2 font-semibold text-[rgb(var(--apple-label))]">
+                          Anual
+                        </CardTitle>
+                        <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
+                          {anualPlan.promoPrice
+                            ? anualPlan.promoPrice
+                            : anualPlan.price}
+                        </div>
+                        {anualPlan.promoPrice && (
+                          <>
+                            <span className="text-subhead text-[rgb(var(--apple-secondary-label))] line-through">
+                              {anualPlan.price}
+                            </span>
+                            <div className="text-footnote text-[rgb(var(--apple-orange))] font-medium">
+                              Promoção válida apenas no primeiro mês
+                            </div>
+                          </>
+                        )}
+                        <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
+                          {anualPlan.period}
+                        </div>
+                        {getMonthlyEquivalent(anualPlan) && (
+                          <div className="text-footnote text-[rgb(var(--apple-tertiary-label))]">
+                            {getMonthlyEquivalent(anualPlan)}
+                          </div>
+                        )}
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="pt-0 flex flex-col flex-1 px-6 pb-6">
+                      <ul className="space-y-3 mb-6 flex-1">
+                        {anualPlan.features.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-2.5">
+                            <div className="p-1 rounded-full bg-[rgb(var(--apple-blue)/0.15)] mt-0.5 flex-shrink-0">
+                              <Check className="w-3.5 h-3.5 text-[rgb(var(--apple-blue))]" />
+                            </div>
+                            <span className="text-subhead text-[rgb(var(--apple-label))]">
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        className={`w-full h-11 font-semibold apple-transition mt-auto rounded-xl text-subhead ${
+                          currentPlan.id === anualPlan.id
+                            ? "bg-[rgb(var(--apple-blue)/0.1)] text-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.15)] border border-[rgb(var(--apple-blue)/0.3)]"
+                            : "bg-[rgb(var(--apple-blue))] hover:bg-[rgb(var(--apple-blue)/0.9)] text-white apple-shadow"
+                        }`}
+                        onClick={() => handleSubscribe(anualPlan)}
+                        disabled={
+                          currentPlan.id === anualPlan.id ||
+                          processingPlan === anualPlan.id
+                        }
+                      >
+                        {processingPlan === anualPlan.id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Processando...
+                          </div>
+                        ) : currentPlan.id === anualPlan.id ? (
+                          <div className="flex items-center gap-2">
+                            <Check className="w-4 h-4" />
+                            Plano Atual
+                          </div>
+                        ) : (
+                          "Assinar Agora"
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+            </div>
+          </>
+        )}
         {/* Period Selector */}
 
         {/* Subscription Management */}

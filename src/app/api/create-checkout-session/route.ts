@@ -1,3 +1,4 @@
+import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -19,6 +20,23 @@ export async function POST(request: NextRequest) {
     if (!priceId || !planId) {
       return NextResponse.json(
         { error: "Price ID and Plan ID are required" },
+        { status: 400 }
+      );
+    }
+
+    const user = await User.findOne({ id: userId });
+
+    const userIsCustomer = !!user?.subscription.stripeCustomerId;
+    const hasPassedCurrentPeriodEnd =
+      user?.subscription.currentPeriodEnd &&
+      user?.subscription.currentPeriodEnd < new Date();
+
+    if (userIsCustomer && !hasPassedCurrentPeriodEnd) {
+      return NextResponse.json(
+        {
+          error:
+            "User is already a customer. Try managing your subscription in the dashboard.",
+        },
         { status: 400 }
       );
     }

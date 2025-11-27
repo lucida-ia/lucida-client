@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.deleted":
         await handleSubscriptionDeleted(event.data.object);
         break;
-      case "invoice.payment_succeeded":
+      case "invoice.paid":
         await handlePaymentSucceeded(event.data.object);
         break;
       case "invoice.payment_failed":
@@ -367,6 +367,12 @@ async function handlePaymentSucceeded(invoice: any) {
     // Reset usage count on successful payment
     user.usage.examsThisPeriod = 0;
     user.usage.examsThisPeriodResetDate = new Date();
+
+    user.subscription.status = "active";
+    user.subscription.currentPeriodStart = new Date(
+      invoice.period_start * 1000
+    );
+    user.subscription.currentPeriodEnd = new Date(invoice.period_end * 1000);
 
     await user.save();
   } catch (error) {
