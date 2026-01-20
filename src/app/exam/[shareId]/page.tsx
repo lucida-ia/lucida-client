@@ -42,7 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import LucidaLogo from "@/components/lucida-logo";
+// import LucidaLogo from "@/components/lucida-logo";
 
 interface Question {
   question: string;
@@ -88,7 +88,7 @@ const EXAM_SESSION_COOKIE = "examSession";
 
 const setCookie = (name: string, value: string, days: number = 1) => {
   const expires = new Date(
-    Date.now() + days * 24 * 60 * 60 * 1000
+    Date.now() + days * 24 * 60 * 60 * 1000,
   ).toUTCString();
   document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Strict`;
 };
@@ -108,7 +108,7 @@ const saveExamSession = (
   examId: string,
   duration: number,
   email: string,
-  answers: (number | string)[] = []
+  answers: (number | string)[] = [],
 ) => {
   const session: ExamSession = {
     examId,
@@ -235,7 +235,7 @@ export default function PublicExamPage() {
           } else {
             // Resume existing session
             const elapsed = Math.floor(
-              (Date.now() - existingSession.startTime) / 1000
+              (Date.now() - existingSession.startTime) / 1000,
             );
             const totalDuration = existingSession.duration * 60;
             const remainingTime = totalDuration - elapsed;
@@ -252,7 +252,7 @@ export default function PublicExamPage() {
               setTimeout(() => {
                 handleSubmitExpired(
                   existingSession.answers,
-                  existingSession.email
+                  existingSession.email,
                 );
               }, 100);
             } else {
@@ -270,8 +270,8 @@ export default function PublicExamPage() {
         } else {
           setTimeLeft(examData.duration * 60);
           // Initialize answers: -1 for MC/TF, empty string for shortAnswer
-          const initialAnswers = validatedQuestions.map((q: any) => 
-            q.type === "shortAnswer" ? "" : -1
+          const initialAnswers = validatedQuestions.map((q: any) =>
+            q.type === "shortAnswer" ? "" : -1,
           );
           setAnswers(initialAnswers);
         }
@@ -347,7 +347,10 @@ export default function PublicExamPage() {
     });
   };
 
-  const handleAnswerSelect = (questionIndex: number, answer: number | string) => {
+  const handleAnswerSelect = (
+    questionIndex: number,
+    answer: number | string,
+  ) => {
     if (isSubmitted || !isStarted || !exam || timeExpired) return;
     const newAnswers = [...answers];
     newAnswers[questionIndex] = answer;
@@ -356,7 +359,7 @@ export default function PublicExamPage() {
 
   const handleSubmitExpired = async (
     finalAnswers: (number | string)[],
-    emailAddress: string
+    emailAddress: string,
   ) => {
     if (isSubmitted || !exam || isSubmitting) return;
 
@@ -380,11 +383,15 @@ export default function PublicExamPage() {
       });
     } catch (error: any) {
       // Check if it's a duplicate submission error
-      if (error.response?.status === 409 && error.response?.data?.code === "DUPLICATE_SUBMISSION") {
+      if (
+        error.response?.status === 409 &&
+        error.response?.data?.code === "DUPLICATE_SUBMISSION"
+      ) {
         toast({
           variant: "destructive",
           title: "Prova já enviada",
-          description: "Esta prova já foi enviada anteriormente por este e-mail.",
+          description:
+            "Esta prova já foi enviada anteriormente por este e-mail.",
         });
         setIsSubmitted(true); // Mark as submitted to prevent further attempts
       } else {
@@ -446,11 +453,15 @@ export default function PublicExamPage() {
       }
     } catch (error: any) {
       // Check if it's a duplicate submission error
-      if (error.response?.status === 409 && error.response?.data?.code === "DUPLICATE_SUBMISSION") {
+      if (
+        error.response?.status === 409 &&
+        error.response?.data?.code === "DUPLICATE_SUBMISSION"
+      ) {
         toast({
           variant: "destructive",
           title: "Prova já enviada",
-          description: "Esta prova já foi enviada anteriormente por este e-mail.",
+          description:
+            "Esta prova já foi enviada anteriormente por este e-mail.",
         });
         setIsSubmitted(true); // Mark as submitted to prevent further attempts
       } else {
@@ -591,11 +602,11 @@ export default function PublicExamPage() {
   if (!exam) {
     return (
       <div className="container mx-auto py-8 max-w-md">
-        <div className="flex justify-center mb-6">
+        {/* <div className="flex justify-center mb-6">
           <div className="w-32 h-auto">
             <LucidaLogo />
           </div>
-        </div>
+        </div> */}
         <Card>
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -613,11 +624,11 @@ export default function PublicExamPage() {
   if (timeExpired && !isSubmitted) {
     return (
       <div className="container mx-auto py-8 max-w-md">
-        <div className="flex justify-center mb-6">
+        {/* <div className="flex justify-center mb-6">
           <div className="w-32 h-auto">
             <LucidaLogo />
           </div>
-        </div>
+        </div> */}
         <Card>
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -641,11 +652,11 @@ export default function PublicExamPage() {
   if (!isStarted) {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
-        <div className="flex justify-center mb-6">
+        {/* <div className="flex justify-center mb-6">
           <div className="w-32 h-auto">
             <LucidaLogo />
           </div>
-        </div>
+        </div> */}
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
@@ -741,11 +752,11 @@ export default function PublicExamPage() {
   if (isSubmitted && result) {
     return (
       <div className="container mx-auto py-8 px-4 max-w-4xl">
-        <div className="flex justify-center mb-6">
+        {/* <div className="flex justify-center mb-6">
           <div className="w-32 h-auto">
             <LucidaLogo />
           </div>
-        </div>
+        </div> */}
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <div className="flex items-start justify-between">
@@ -769,8 +780,8 @@ export default function PublicExamPage() {
                   examEndReason === "manual"
                     ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
                     : examEndReason === "time"
-                    ? "bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800"
-                    : "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"
+                      ? "bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800"
+                      : "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -787,8 +798,8 @@ export default function PublicExamPage() {
                         examEndReason === "manual"
                           ? "text-green-800 dark:text-green-200"
                           : examEndReason === "time"
-                          ? "text-orange-800 dark:text-orange-200"
-                          : "text-red-800 dark:text-red-200"
+                            ? "text-orange-800 dark:text-orange-200"
+                            : "text-red-800 dark:text-red-200"
                       }`}
                     >
                       {examEndReason === "manual" &&
@@ -803,8 +814,8 @@ export default function PublicExamPage() {
                         examEndReason === "manual"
                           ? "text-green-600 dark:text-green-400"
                           : examEndReason === "time"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : "text-red-600 dark:text-red-400"
+                            ? "text-orange-600 dark:text-orange-400"
+                            : "text-red-600 dark:text-red-400"
                       }`}
                     >
                       {examEndReason === "manual" &&
@@ -863,8 +874,8 @@ export default function PublicExamPage() {
                                     1 === question.correctAnswer
                                       ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                       : answers[index] === 1
-                                      ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
-                                      : "bg-muted"
+                                        ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
+                                        : "bg-muted"
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
@@ -874,7 +885,9 @@ export default function PublicExamPage() {
                                       disabled
                                       className="h-4 w-4"
                                     />
-                                    <span className="text-sm sm:text-base">Verdadeiro</span>
+                                    <span className="text-sm sm:text-base">
+                                      Verdadeiro
+                                    </span>
                                     {1 === question.correctAnswer && (
                                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                     )}
@@ -885,8 +898,8 @@ export default function PublicExamPage() {
                                     0 === question.correctAnswer
                                       ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                       : answers[index] === 0
-                                      ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
-                                      : "bg-muted"
+                                        ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
+                                        : "bg-muted"
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
@@ -896,7 +909,9 @@ export default function PublicExamPage() {
                                       disabled
                                       className="h-4 w-4"
                                     />
-                                    <span className="text-sm sm:text-base">Falso</span>
+                                    <span className="text-sm sm:text-base">
+                                      Falso
+                                    </span>
                                     {0 === question.correctAnswer && (
                                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                     )}
@@ -911,8 +926,8 @@ export default function PublicExamPage() {
                                     optionIndex === question.correctAnswer
                                       ? "bg-green-100 text-green-800 dark:bg-green-500/30 dark:text-white"
                                       : answers[index] === optionIndex
-                                      ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
-                                      : "bg-muted"
+                                        ? "bg-red-100 text-red-800 dark:bg-red-500/30 dark:text-white"
+                                        : "bg-muted"
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
@@ -922,7 +937,9 @@ export default function PublicExamPage() {
                                       disabled
                                       className="h-4 w-4"
                                     />
-                                    <span className="text-sm sm:text-base break-words">{option}</span>
+                                    <span className="text-sm sm:text-base break-words">
+                                      {option}
+                                    </span>
                                     {optionIndex === question.correctAnswer && (
                                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-white" />
                                     )}
@@ -947,7 +964,10 @@ export default function PublicExamPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Confirmation Dialog */}
-      <AlertDialog open={showSubmitConfirmation} onOpenChange={setShowSubmitConfirmation}>
+      <AlertDialog
+        open={showSubmitConfirmation}
+        onOpenChange={setShowSubmitConfirmation}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -955,19 +975,22 @@ export default function PublicExamPage() {
               Confirmar Envio da Prova
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja finalizar e enviar sua prova? Esta ação não pode ser desfeita.
+              Tem certeza que deseja finalizar e enviar sua prova? Esta ação não
+              pode ser desfeita.
               <br />
               <br />
-              <strong>Questões respondidas:</strong> {getAnsweredCount()} de {exam?.questions.length}
+              <strong>Questões respondidas:</strong> {getAnsweredCount()} de{" "}
+              {exam?.questions.length}
               <br />
-              <strong>Tempo restante:</strong> {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+              <strong>Tempo restante:</strong> {Math.floor(timeLeft / 60)}:
+              {(timeLeft % 60).toString().padStart(2, "0")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmSubmit}
               disabled={isSubmitting}
               className="bg-primary hover:bg-primary/90"
@@ -1049,7 +1072,10 @@ export default function PublicExamPage() {
           {/* Question Navigation */}
           <div className="lg:col-span-1">
             <Card className="lg:sticky lg:top-28">
-              <CardHeader className="pb-3 cursor-pointer lg:cursor-default" onClick={() => setIsNavigationExpanded(!isNavigationExpanded)}>
+              <CardHeader
+                className="pb-3 cursor-pointer lg:cursor-default"
+                onClick={() => setIsNavigationExpanded(!isNavigationExpanded)}
+              >
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Navegação</CardTitle>
                   <button
@@ -1070,7 +1096,9 @@ export default function PublicExamPage() {
                   {getAnsweredCount()} de {exam.questions.length} respondidas
                 </p>
               </CardHeader>
-              <CardContent className={`${isNavigationExpanded ? 'block' : 'hidden'} lg:block`}>
+              <CardContent
+                className={`${isNavigationExpanded ? "block" : "hidden"} lg:block`}
+              >
                 <div className="grid grid-cols-5 lg:grid-cols-5 gap-2">
                   {exam.questions.map((_, index) => (
                     <button
@@ -1080,8 +1108,8 @@ export default function PublicExamPage() {
                         currentQuestion === index
                           ? "bg-primary text-primary-foreground border-primary"
                           : answers[index] !== -1
-                          ? "dark:bg-blue-500/60 bg-blue-500/60 text-white dark:text-white border-muted hover:bg-muted/80"
-                          : "bg-background border-border hover:bg-muted/50"
+                            ? "dark:bg-blue-500/60 bg-blue-500/60 text-white dark:text-white border-muted hover:bg-muted/80"
+                            : "bg-background border-border hover:bg-muted/50"
                       }`}
                     >
                       {index + 1}
@@ -1101,23 +1129,32 @@ export default function PublicExamPage() {
                     <CardTitle className="text-lg">
                       Questão {currentQuestion + 1}
                     </CardTitle>
-                    {(exam.questions[currentQuestion].difficulty || exam.questions[currentQuestion].subject) && (
+                    {(exam.questions[currentQuestion].difficulty ||
+                      exam.questions[currentQuestion].subject) && (
                       <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                         {exam.questions[currentQuestion].difficulty && (
-                          <span>Dificuldade: {exam.questions[currentQuestion].difficulty}</span>
+                          <span>
+                            Dificuldade:{" "}
+                            {exam.questions[currentQuestion].difficulty}
+                          </span>
                         )}
                         {exam.questions[currentQuestion].subject && (
-                          <span>• {exam.questions[currentQuestion].subject}</span>
+                          <span>
+                            • {exam.questions[currentQuestion].subject}
+                          </span>
                         )}
                       </div>
                     )}
                   </div>
-                  <Badge variant="outline" className="self-start sm:self-center">
+                  <Badge
+                    variant="outline"
+                    className="self-start sm:self-center"
+                  >
                     {exam.questions[currentQuestion].type === "trueFalse"
                       ? "Verdadeiro/Falso"
                       : exam.questions[currentQuestion].type === "shortAnswer"
-                      ? "Resposta Curta"
-                      : "Múltipla Escolha"}
+                        ? "Resposta Curta"
+                        : "Múltipla Escolha"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -1138,8 +1175,14 @@ export default function PublicExamPage() {
                         Digite sua resposta:
                       </label>
                       <Textarea
-                        value={typeof answers[currentQuestion] === "string" ? answers[currentQuestion] : ""}
-                        onChange={(e) => handleAnswerSelect(currentQuestion, e.target.value)}
+                        value={
+                          typeof answers[currentQuestion] === "string"
+                            ? answers[currentQuestion]
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleAnswerSelect(currentQuestion, e.target.value)
+                        }
                         placeholder="Escreva sua resposta aqui..."
                         className="min-h-[150px] resize-none"
                       />
@@ -1213,10 +1256,12 @@ export default function PublicExamPage() {
                               }
                               className="h-4 w-4"
                             />
-                            <span className="text-sm break-words">{option}</span>
+                            <span className="text-sm break-words">
+                              {option}
+                            </span>
                           </div>
                         </button>
-                      )
+                      ),
                     )
                   )}
                 </div>
@@ -1264,11 +1309,11 @@ export default function PublicExamPage() {
             </div>
 
             {/* Lucida Logo */}
-            <div className="flex justify-center mt-8 mb-4">
+            {/* <div className="flex justify-center mt-8 mb-4">
               <div className="w-24 h-auto opacity-60">
                 <LucidaLogo />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
