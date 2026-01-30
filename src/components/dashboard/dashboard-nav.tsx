@@ -22,6 +22,7 @@ import {
   FileCheck,
   BarChart3,
   ClipboardCheck,
+  ScanLine,
 } from "lucide-react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -105,6 +106,13 @@ export function useNavItems() {
       href: "/dashboard/corrigir",
       icon: <ClipboardCheck className="h-5 w-5" />,
       role: ["admin"],
+    },
+    {
+      title: "Scanner OMR",
+      href: "/dashboard/scan",
+      icon: <ScanLine className="h-5 w-5" />,
+      role: ["admin", "teacher"],
+      isNew: true,
     },
     {
       title: "Analytics",
