@@ -125,6 +125,17 @@ export async function POST(request: NextRequest) {
 
     const omrResult = await omrResponse.json();
 
+    // Only consider questions within this exam's range (1..examTotal); OMR may return q1-q100 from template
+    const examTotal = exam.questions.length;
+    const inExamRange = (q: string) => {
+      const m = String(q).match(/^q(\d+)$/i);
+      if (!m) return false;
+      const n = parseInt(m[1], 10);
+      return n >= 1 && n <= examTotal;
+    };
+    const multiMarkedInRange = (omrResult.result?.multi_marked_questions ?? []).filter(inExamRange);
+    const unmarkedInRange = (omrResult.result?.unmarked_questions ?? []).filter(inExamRange);
+
     // Debug logging
     console.log("[SCAN_OMR_RESULT]", {
       success: omrResult.success,
@@ -162,18 +173,17 @@ export async function POST(request: NextRequest) {
       studentId: (() => {
         // Handle different studentId formats from different services
         const studentIdData = omrResult.result.studentId;
+        const studentCodeValid = omrResult.result.studentCodeValid !== false;
         let value: string | null = null;
-        let isValid = false;
         
         if (studentIdData) {
           if (typeof studentIdData === 'string') {
             value = studentIdData;
-            isValid = true;
           } else if (typeof studentIdData === 'object' && studentIdData !== null) {
             value = studentIdData.value || null;
-            isValid = studentIdData.isValid === true && value !== null;
           }
         }
+        const isValid = studentCodeValid && value != null;
         
         return {
           value,
@@ -203,6 +213,9 @@ export async function POST(request: NextRequest) {
       processingTimeMs: omrResult.result.processingTimeMs || 0,
       requiresReview: omrResult.result.requiresReview || false,
       reviewReasons: omrResult.result.reviewReasons || [],
+      multi_marked_questions: multiMarkedInRange,
+      unmarked_questions: unmarkedInRange,
+      responses: omrResult.result.responses && typeof omrResult.result.responses === 'object' ? omrResult.result.responses : null,
       reviewStatus: omrResult.result.requiresReview ? 'pending' : 'approved',
       scannedAt: omrResult.result.scannedAt || new Date(),
     };
@@ -220,7 +233,7 @@ export async function POST(request: NextRequest) {
           if (!studentIdData) return null;
           if (typeof studentIdData === 'string') return studentIdData;
           if (typeof studentIdData === 'object' && studentIdData !== null) {
-            return studentIdData.value || null;
+            return studentIdData.value ?? null;
           }
           return null;
         })(),
@@ -233,7 +246,13 @@ export async function POST(request: NextRequest) {
         imageQuality: omrResult.result.imageQuality,
         requiresReview: omrResult.result.requiresReview,
         reviewReasons: omrResult.result.reviewReasons,
+        multiMarked: multiMarkedInRange.length,
+        multi_marked_questions: multiMarkedInRange,
+        unmarked_questions: unmarkedInRange,
+        responses: omrResult.result.responses ?? {},
         processingTimeMs: omrResult.result.processingTimeMs,
+        studentCodeValid: omrResult.result.studentCodeValid,
+        studentCodeInvalidReason: omrResult.result.studentCodeInvalidReason ?? undefined,
       },
       debug: omrResult.debug,
     });

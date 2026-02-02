@@ -39,7 +39,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   History,
-  Eye,
   Trash2,
   AlertTriangle,
   CheckCircle,
@@ -345,11 +344,6 @@ export default function ScanHistoryPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon-sm" asChild>
-                            <Link href={`/dashboard/scan/${scan.scanId}`}>
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button

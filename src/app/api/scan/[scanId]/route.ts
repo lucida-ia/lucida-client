@@ -48,11 +48,94 @@ export async function GET(
       .select("title questions")
       .lean();
 
+    const scanData = scan as any;
+    const grading = scanData.grading || {};
+    let questionResults = grading.questionResults;
+
+    // Populate questionResults from answers + exam answer key when missing (e.g. scans saved with questionResults: [])
+    if ((!questionResults || questionResults.length === 0) && exam?.questions?.length && scanData.answers?.length) {
+      const answerKey = buildAnswerKey((exam as any).questions);
+      const totalQuestions = (exam as any).questions.length;
+      questionResults = [];
+      for (let qNum = 1; qNum <= totalQuestions; qNum++) {
+        const answer = scanData.answers.find((a: any) => a.questionNumber === qNum);
+        const studentAnswer = answer?.selectedOption ?? null;
+        const correctAnswer = answerKey[qNum] ?? null;
+        const isCorrect = correctAnswer != null && studentAnswer === correctAnswer;
+        questionResults.push({
+          questionNumber: qNum,
+          studentAnswer,
+          correctAnswer,
+          isCorrect,
+          pointsEarned: isCorrect ? 1 : 0,
+          pointsPossible: 1,
+        });
+      }
+    }
+
+    // Normalize and derive multi_marked_questions and unmarked_questions
+    const normalizeToQIds = (raw: unknown): string[] => {
+      if (Array.isArray(raw)) {
+        return raw.map((q) => {
+          if (typeof q === "number") return `q${q}`;
+          const s = String(q).trim();
+          if (/^\d+$/.test(s)) return `q${s}`;
+          return s;
+        }).filter((s) => /^q\d+$/i.test(s));
+      }
+      if (typeof raw === "string" && raw) {
+        return raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean).map((s) => (/^\d+$/.test(s) ? `q${s}` : s)).filter((s) => /^q\d+$/i.test(s));
+      }
+      return [];
+    };
+
+    let multi_marked_questions = normalizeToQIds(scanData.multi_marked_questions);
+    let unmarked_questions = normalizeToQIds(scanData.unmarked_questions);
+    const responses = scanData.responses && typeof scanData.responses === "object" ? scanData.responses : null;
+
+    if (responses && (multi_marked_questions.length === 0 || unmarked_questions.length === 0)) {
+      const questionKey = /^q(\d+)$/i;
+      if (multi_marked_questions.length === 0) {
+        multi_marked_questions = Object.keys(responses).filter(
+          (k) => questionKey.test(k) && responses[k] != null && String(responses[k]).trim().length > 1
+        );
+      }
+      if (unmarked_questions.length === 0) {
+        unmarked_questions = Object.keys(responses).filter(
+          (k) =>
+            questionKey.test(k) &&
+            (responses[k] == null || responses[k] === "" || String(responses[k]).trim() === "")
+        );
+      }
+    }
+
+    const multiSet = new Set(multi_marked_questions.map((q) => String(q).toLowerCase()));
+    const unmarkedSet = new Set(unmarked_questions.map((q) => String(q).toLowerCase()));
+
+    const questionResultsWithFlags = (questionResults || []).map((r: any) => {
+      const qNum = r.questionNumber != null ? Number(r.questionNumber) : null;
+      const qKey = qNum != null ? `q${qNum}` : null;
+      const isMultiMarked = qKey != null && multiSet.has(qKey.toLowerCase());
+      const isUnmarked = qKey != null && unmarkedSet.has(qKey.toLowerCase());
+      return {
+        ...r,
+        questionNumber: qNum ?? r.questionNumber,
+        isMultiMarked,
+        isUnmarked,
+      };
+    });
+
     return NextResponse.json({
       status: "success",
       scan: {
-        ...(scan as any),
+        ...scanData,
         examTitle: exam ? (exam as any).title : "Prova não encontrada",
+        multi_marked_questions,
+        unmarked_questions,
+        grading: {
+          ...grading,
+          questionResults: questionResultsWithFlags,
+        },
       },
     });
   } catch (error) {
@@ -118,9 +201,12 @@ export async function PUT(
         if (answerIndex >= 0) {
           const originalAnswer = scan.answers[answerIndex].selectedOption;
 
-          // Update the answer
-          scan.answers[answerIndex].selectedOption =
-            correctedAnswer === "null" ? null : correctedAnswer;
+          // Update the answer (blank = null)
+          const blank =
+            correctedAnswer == null ||
+            correctedAnswer === "null" ||
+            String(correctedAnswer).trim() === "";
+          scan.answers[answerIndex].selectedOption = blank ? null : correctedAnswer;
           scan.answers[answerIndex].isValid = true;
           scan.answers[answerIndex].multipleSelections = null;
 

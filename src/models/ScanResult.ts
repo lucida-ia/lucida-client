@@ -192,6 +192,24 @@ const ScanResultSchema = new mongoose.Schema({
     default: [],
   },
 
+  // Question IDs with more than one option marked (e.g. ["q2", "q3"])
+  multi_marked_questions: {
+    type: [String],
+    default: [],
+  },
+
+  // Question IDs with no option marked (e.g. ["q10", "q15"])
+  unmarked_questions: {
+    type: [String],
+    default: [],
+  },
+
+  // Raw OMR response per question (e.g. { q1: "B", q2: "BC", StudentCode: "123" }) — used to derive multi_marked_questions / unmarked_questions when missing
+  responses: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
+
   // Review status
   reviewStatus: {
     type: String,

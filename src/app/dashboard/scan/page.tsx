@@ -35,12 +35,18 @@ interface Exam {
 interface ScanResult {
   scanId: string;
   studentId: string | null | { value: string | null; isValid?: boolean };
+  studentCodeValid?: boolean;
+  studentCodeInvalidReason?: string | null;
   score: number;
   percentage: number;
   totalQuestions: number;
   correctAnswers: number;
   incorrectAnswers: number;
   unanswered: number;
+  multiMarked?: number;
+  multi_marked_questions?: string[];
+  unmarked_questions?: string[];
+  responses?: Record<string, string>;
   imageQuality: string;
   requiresReview: boolean;
   reviewReasons: string[];
@@ -135,12 +141,6 @@ export default function ScanPage() {
   const handleDeleteScan = useCallback((scanId: string) => {
     setScanResults((prev) => prev.filter((s) => s.scanId !== scanId));
     toast.success("Resultado removido");
-  }, []);
-
-  // View scan details
-  const handleViewScan = useCallback((scanId: string) => {
-    // TODO: Implement detail view modal
-    toast.info("Detalhes em breve...");
   }, []);
 
   // Confirm and save all results
@@ -335,7 +335,6 @@ export default function ScanPage() {
               <ScanResultCard
                 key={scan.scanId}
                 scan={scan}
-                onView={handleViewScan}
                 onDelete={handleDeleteScan}
               />
             ))}
