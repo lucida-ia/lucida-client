@@ -70,6 +70,12 @@ interface ExamConfig {
   difficulty: string;
   difficultyDistribution?: DifficultyDistribution;
   timeLimit: number;
+  integratExamId?: number;
+  integratExamName?: string;
+  integratModuleId?: number;
+  integratModuleName?: string;
+  integratModuleSequence?: number;
+  integratClassId?: number;
 }
 
 interface CreateExamCustomizeProps {
@@ -78,6 +84,10 @@ interface CreateExamCustomizeProps {
   onConfigured: (config: ExamConfig) => void;
   onBack: () => void;
   shouldDisableActions?: boolean;
+  user?: {
+    integrationId?: string | null;
+    integratPartnerToken?: string | null;
+  } | null;
 }
 
 export function CreateExamCustomize({
@@ -86,12 +96,26 @@ export function CreateExamCustomize({
   onConfigured,
   onBack,
   shouldDisableActions = false,
+  user: apiUser,
 }: CreateExamCustomizeProps) {
   const [config, setConfig] = useState<ExamConfig>(initialConfig);
   const [classes, setClasses] = React.useState<any[]>([]);
+  const [isLoadingClasses, setIsLoadingClasses] = React.useState(false);
   const [isCreatingClass, setIsCreatingClass] = React.useState(false);
   const [newClassName, setNewClassName] = React.useState("");
   const [showCreateClass, setShowCreateClass] = React.useState(false);
+  const [integratClasses, setIntegratClasses] = React.useState<any[]>([]);
+  const [integratSelectedTurmaId, setIntegratSelectedTurmaId] =
+    React.useState<string>("");
+  const [integratSelectedExamId, setIntegratSelectedExamId] =
+    React.useState<string>("");
+  const [isLoadingIntegratClasses, setIsLoadingIntegratClasses] =
+    React.useState(false);
+  const [isSyncingIntegratTurma, setIsSyncingIntegratTurma] =
+    React.useState(false);
+  const [integratClassesError, setIntegratClassesError] = React.useState<
+    string | null
+  >(null);
   const [difficultyDistribution, setDifficultyDistribution] =
     useState<DifficultyDistribution>({
       fácil: Math.floor(config.questionCount / 3),
@@ -101,6 +125,38 @@ export function CreateExamCustomize({
   const { toast } = useToast();
   const { subscription, isAdmin } = useSubscription();
   const { user } = useUser();
+
+  const envIntegrationId =
+    process.env.NEXT_PUBLIC_INTEGRAT_INTEGRATION_ID ||
+    process.env.EXT_PUBLIC_INTEGRAT_INTEGRATION_ID;
+
+  const isIntegratUser = Boolean(
+    envIntegrationId &&
+    apiUser?.integrationId &&
+    apiUser.integrationId === envIntegrationId,
+  );
+
+  const integratTurmas = React.useMemo(() => {
+    const map = new Map<string, { integratId: string; integratName: string }>();
+
+    for (const item of integratClasses) {
+      const integratId = String(item?.integratId ?? "").trim();
+      const integratName = String(item?.integratName ?? "").trim();
+      if (!integratId || !integratName) continue;
+      if (!map.has(integratId)) map.set(integratId, { integratId, integratName });
+    }
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.integratName.localeCompare(b.integratName),
+    );
+  }, [integratClasses]);
+
+  const integratExamsForSelectedTurma = React.useMemo(() => {
+    if (!integratSelectedTurmaId) return [];
+    return integratClasses.filter(
+      (item) => String(item?.integratId) === integratSelectedTurmaId,
+    );
+  }, [integratClasses, integratSelectedTurmaId]);
 
   // Determine max questions based on subscription plan
   const maxQuestions = subscription?.plan === "trial" ? 10 : 50;
@@ -120,7 +176,7 @@ export function CreateExamCustomize({
   }, [config.questionStyle]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setConfig((prev) => ({ ...prev, [name]: value }));
@@ -166,7 +222,7 @@ export function CreateExamCustomize({
 
   const handleQuestionTypeChange = (
     type: keyof typeof config.questionTypes,
-    checked: boolean
+    checked: boolean,
   ) => {
     setConfig((prev) => ({
       ...prev,
@@ -188,7 +244,7 @@ export function CreateExamCustomize({
 
   const handleDifficultyDistributionChange = (
     difficulty: keyof DifficultyDistribution,
-    value: number
+    value: number,
   ) => {
     const newDistribution = { ...difficultyDistribution, [difficulty]: value };
     setDifficultyDistribution(newDistribution);
@@ -301,7 +357,7 @@ export function CreateExamCustomize({
     }
 
     const hasQuestionType = Object.values(config.questionTypes).some(
-      (value) => value
+      (value) => value,
     );
     if (!hasQuestionType) {
       toast({
@@ -367,11 +423,84 @@ export function CreateExamCustomize({
 
   React.useEffect(() => {
     const fetchClasses = async () => {
-      const response = await axios.get("/api/class");
-      setClasses(response.data.data);
+      try {
+        setIsLoadingClasses(true);
+        const response = await axios.get("/api/class");
+        setClasses(response.data.data);
+      } finally {
+        setIsLoadingClasses(false);
+      }
     };
     fetchClasses();
   }, []);
+
+  const ensureLucidaClassForTurmaName = async (turmaName: string) => {
+    const normalize = (s: string) => s.trim().toLowerCase();
+    const target = normalize(turmaName);
+
+    const existing = classes.find(
+      (c) => normalize(String(c?.name ?? "")) === target,
+    );
+    if (existing) {
+      const existingId = existing.id || existing._id;
+      return { id: existingId, name: existing.name };
+    }
+
+    setIsSyncingIntegratTurma(true);
+    try {
+      const response = await axios.post("/api/class", { name: turmaName });
+      const newClass = response.data.data;
+      const newId = newClass.id || newClass._id;
+
+      setClasses((prev) => [
+        ...prev,
+        {
+          ...newClass,
+          id: newId,
+        },
+      ]);
+
+      return { id: newId, name: newClass.name };
+    } finally {
+      setIsSyncingIntegratTurma(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const fetchIntegratClasses = async () => {
+      if (!isIntegratUser) return;
+
+      const empresa = apiUser?.integratPartnerToken;
+      if (!empresa) {
+        setIntegratClassesError(
+          "Token da Integrat não encontrado para este usuário.",
+        );
+        return;
+      }
+
+      try {
+        setIsLoadingIntegratClasses(true);
+        setIntegratClassesError(null);
+
+        const response = await axios.get("/api/integrat/classes", {
+          params: { empresa },
+        });
+
+        const payload = response.data?.data;
+        const list = Array.isArray(payload?.classes) ? payload.classes : [];
+        setIntegratClasses(list);
+      } catch (error) {
+        console.error("[INTEGRAT_CLASSES_ERROR]", error);
+        setIntegratClassesError(
+          "Não foi possível carregar as provas da Integrat. Tente novamente.",
+        );
+      } finally {
+        setIsLoadingIntegratClasses(false);
+      }
+    };
+
+    fetchIntegratClasses();
+  }, [apiUser?.integratPartnerToken, isIntegratUser]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -394,6 +523,139 @@ export function CreateExamCustomize({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
+            {isIntegratUser && (
+              <div className="space-y-3 md:col-span-2">
+                <Label className="text-sm font-semibold">
+                  Turma (Integrat) <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={integratSelectedTurmaId}
+                  onValueChange={async (value) => {
+                    setIntegratSelectedTurmaId(value);
+                    setIntegratSelectedExamId("");
+
+                    // reset selection-dependent fields for integrat flow
+                    setConfig((prev) => ({
+                      ...prev,
+                      title: "",
+                      integratExamId: undefined,
+                      integratExamName: undefined,
+                      integratModuleId: undefined,
+                      integratModuleName: undefined,
+                      integratModuleSequence: undefined,
+                      integratClassId: undefined,
+                      class: { _id: "", name: "" },
+                    }));
+
+                    const turma = integratTurmas.find(
+                      (t) => t.integratId === value,
+                    );
+                    if (!turma) return;
+
+                    const ensured = await ensureLucidaClassForTurmaName(
+                      turma.integratName,
+                    );
+
+                    setConfig((prev) => ({
+                      ...prev,
+                      class: {
+                        _id: ensured.id,
+                        name: ensured.name,
+                      },
+                      integratClassId: Number(turma.integratId),
+                    }));
+                  }}
+                  disabled={isLoadingIntegratClasses || isLoadingClasses || isSyncingIntegratTurma}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-gray-200 dark:border-gray-800">
+                    <SelectValue
+                      placeholder={
+                        isLoadingIntegratClasses
+                          ? "Carregando turmas..."
+                          : isLoadingClasses
+                            ? "Carregando turmas do Lucida..."
+                            : isSyncingIntegratTurma
+                              ? "Sincronizando turma..."
+                              : "Selecione a turma (Integrat)"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {integratTurmas.map((turma) => (
+                      <SelectItem
+                        key={turma.integratId}
+                        value={turma.integratId}
+                      >
+                        {turma.integratName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="mt-3 space-y-3">
+                  <Label className="text-sm font-semibold">
+                    Vincular Prova (Integrat){" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={integratSelectedExamId}
+                    onValueChange={(value) => {
+                      setIntegratSelectedExamId(value);
+
+                      const selected = integratExamsForSelectedTurma.find(
+                        (c) => String(c.integratExamId) === value,
+                      );
+
+                      if (selected?.integratExamName) {
+                        setConfig((prev) => ({
+                          ...prev,
+                          title: selected.integratExamName,
+                          integratExamId: selected.integratExamId,
+                          integratExamName: selected.integratExamName,
+                          integratModuleId: selected.integratModuleId,
+                          integratModuleName: selected.integratModuleName,
+                          integratModuleSequence: selected.integratModuleSequence,
+                          integratClassId: selected.integratId,
+                        }));
+                      }
+                    }}
+                    disabled={
+                      isLoadingIntegratClasses ||
+                      !integratSelectedTurmaId ||
+                      isSyncingIntegratTurma
+                    }
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-gray-200 dark:border-gray-800">
+                      <SelectValue
+                        placeholder={
+                          !integratSelectedTurmaId
+                            ? "Selecione uma turma (Integrat) primeiro"
+                            : isLoadingIntegratClasses
+                              ? "Carregando provas..."
+                              : "Selecione a prova (Integrat)"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {integratExamsForSelectedTurma.map((item) => (
+                        <SelectItem
+                          key={`${item.integratExamId}-${item.integratModuleId}`}
+                          value={String(item.integratExamId)}
+                        >
+                          {item.integratExamName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {integratClassesError && (
+                  <p className="text-xs text-red-600 dark:text-red-400">
+                    {integratClassesError}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-3">
               <Label htmlFor="title" className="text-sm font-semibold">
                 Título da Prova <span className="text-red-500">*</span>
@@ -403,83 +665,94 @@ export function CreateExamCustomize({
                 name="title"
                 value={config.title}
                 onChange={handleInputChange}
-                placeholder="ex., Prova de Biologia"
-                className="h-11 rounded-xl border-gray-200 dark:border-gray-800"
+                placeholder={
+                  isIntegratUser
+                    ? "Selecione a prova (Integrat) acima"
+                    : "ex., Prova de Biologia"
+                }
+                readOnly={isIntegratUser}
+                className={`h-11 rounded-xl border-gray-200 dark:border-gray-800 ${
+                  isIntegratUser
+                    ? "bg-gray-50 dark:bg-gray-900/30 cursor-not-allowed opacity-90"
+                    : ""
+                }`}
               />
             </div>
 
-            <div className="space-y-3">
-              <Label
-                htmlFor="class"
-                className="text-sm font-semibold flex items-center gap-2"
-              >
-                <Users className="h-4 w-4" />
-                Turma <span className="text-red-500">*</span>
-              </Label>
-              {!showCreateClass ? (
-                <Select
-                  key={`class-select-${classes.length}`}
-                  value={config.class._id || ""}
-                  onValueChange={handleClassChange}
+            {!isIntegratUser && (
+              <div className="space-y-3">
+                <Label
+                  htmlFor="class"
+                  className="text-sm font-semibold flex items-center gap-2"
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200 dark:border-gray-800">
-                    <SelectValue placeholder="Selecione a turma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classes.map((classItem) => {
-                      const classId = classItem.id || classItem._id;
-                      return (
-                        <SelectItem key={classId} value={classId}>
-                          {classItem.name}
-                        </SelectItem>
-                      );
-                    })}
-                    <SelectItem value="create-new">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Plus className="h-4 w-4" />
-                        Criar Nova Turma
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nome da nova turma"
-                    value={newClassName}
-                    onChange={(e) => setNewClassName(e.target.value)}
-                    className="h-11 rounded-xl border-gray-200 dark:border-gray-800"
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        handleCreateClass();
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    onClick={handleCreateClass}
-                    disabled={isCreatingClass || !newClassName.trim()}
-                    className="h-11 w-11 rounded-xl"
+                  <Users className="h-4 w-4" />
+                  Turma <span className="text-red-500">*</span>
+                </Label>
+                {!showCreateClass ? (
+                  <Select
+                    key={`class-select-${classes.length}`}
+                    value={config.class._id || ""}
+                    onValueChange={handleClassChange}
                   >
-                    {isCreatingClass ? (
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    ) : (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setShowCreateClass(false)}
-                    className="h-11 w-11 rounded-xl"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
+                    <SelectTrigger className="h-11 rounded-xl border-gray-200 dark:border-gray-800">
+                      <SelectValue placeholder="Selecione a turma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((classItem) => {
+                        const classId = classItem.id || classItem._id;
+                        return (
+                          <SelectItem key={classId} value={classId}>
+                            {classItem.name}
+                          </SelectItem>
+                        );
+                      })}
+                      <SelectItem value="create-new">
+                        <div className="flex items-center gap-2 text-primary">
+                          <Plus className="h-4 w-4" />
+                          Criar Nova Turma
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Nome da nova turma"
+                      value={newClassName}
+                      onChange={(e) => setNewClassName(e.target.value)}
+                      className="h-11 rounded-xl border-gray-200 dark:border-gray-800"
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          handleCreateClass();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={handleCreateClass}
+                      disabled={isCreatingClass || !newClassName.trim()}
+                      className="h-11 w-11 rounded-xl"
+                    >
+                      {isCreatingClass ? (
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowCreateClass(false)}
+                      className="h-11 w-11 rounded-xl"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -684,7 +957,7 @@ export function CreateExamCustomize({
                   onCheckedChange={(checked) =>
                     handleQuestionTypeChange(
                       "multipleChoice",
-                      checked as boolean
+                      checked as boolean,
                     )
                   }
                   disabled={
@@ -736,7 +1009,7 @@ export function CreateExamCustomize({
                     onCheckedChange={(checked) =>
                       handleQuestionTypeChange(
                         "shortAnswer",
-                        checked as boolean
+                        checked as boolean,
                       )
                     }
                     disabled={
@@ -835,7 +1108,7 @@ export function CreateExamCustomize({
                     onChange={(e) =>
                       handleDifficultyDistributionChange(
                         "fácil",
-                        parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || 0,
                       )
                     }
                     className="h-12 rounded-xl text-center text-lg font-semibold border-2 border-green-200 dark:border-green-800/50 focus:border-[#34C759] dark:focus:border-[#32D74B] bg-white dark:bg-gray-900"
@@ -855,7 +1128,7 @@ export function CreateExamCustomize({
                     onChange={(e) =>
                       handleDifficultyDistributionChange(
                         "médio",
-                        parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || 0,
                       )
                     }
                     className="h-12 rounded-xl text-center text-lg font-semibold border-2 border-orange-200 dark:border-orange-800/50 focus:border-[#FF9500] dark:focus:border-[#FF9F0A] bg-white dark:bg-gray-900"
@@ -875,7 +1148,7 @@ export function CreateExamCustomize({
                     onChange={(e) =>
                       handleDifficultyDistributionChange(
                         "difícil",
-                        parseInt(e.target.value) || 0
+                        parseInt(e.target.value) || 0,
                       )
                     }
                     className="h-12 rounded-xl text-center text-lg font-semibold border-2 border-red-200 dark:border-red-800/50 focus:border-[#FF3B30] dark:focus:border-[#FF453A] bg-white dark:bg-gray-900"

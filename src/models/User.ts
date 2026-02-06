@@ -14,11 +14,21 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  // Optional integration link
+  integrationId: {
+    type: String,
+    default: null,
+  },
+  // Integrat things
+  integratPartnerToken: {
+    type: String,
+    default: null,
+  },
   // Subscription information
   subscription: {
     plan: {
       type: String,
-      enum: ["trial", "monthly", "semi-annual", "annual", "custom", "admin"],
+      enum: ["trial", "monthly", "semi-annual", "annual", "admin", "custom"],
       default: "trial",
     },
     status: {

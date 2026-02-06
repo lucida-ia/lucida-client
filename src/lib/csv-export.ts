@@ -8,6 +8,13 @@ export interface ExamResult {
   examQuestionCount: number;
   percentage: number;
   createdAt: Date;
+  integratId?: number | string;
+  integratName?: string;
+  integratModuleId?: number;
+  integratModuleName?: string;
+  integratModuleSequence?: number;
+  integratExamId?: number;
+  integratExamName?: string;
 }
 
 export const exportResultsToCSV = (
@@ -15,6 +22,14 @@ export const exportResultsToCSV = (
   filename: string = "resultados_prova"
 ) => {
   try {
+    const hasIntegratFields = results.some(
+      (r) =>
+        r.integratExamId !== undefined ||
+        r.integratExamName !== undefined ||
+        r.integratModuleId !== undefined ||
+        r.integratName !== undefined
+    );
+
     // Define CSV headers
     const headers = [
       "Email do Aluno",
@@ -25,15 +40,45 @@ export const exportResultsToCSV = (
       "Data da Prova"
     ];
 
+    if (hasIntegratFields) {
+      headers.push(
+        "integratId",
+        "integratName",
+        "integratModuleId",
+        "integratModuleName",
+        "integratModuleSequence",
+        "integratExamId",
+        "integratExamName"
+      );
+    }
+
     // Convert results to CSV rows
-    const csvRows = results.map(result => [
-      result.email,
-      result.examTitle,
-      result.score.toString(),
-      result.examQuestionCount.toString(),
-      (result.percentage * 100).toFixed(2),
-      new Date(result.createdAt).toLocaleDateString('pt-BR')
-    ]);
+    const csvRows = results.map((result) => {
+      const row = [
+        result.email,
+        result.examTitle,
+        result.score.toString(),
+        result.examQuestionCount.toString(),
+        (result.percentage * 100).toFixed(2),
+        new Date(result.createdAt).toLocaleDateString("pt-BR"),
+      ];
+
+      if (hasIntegratFields) {
+        row.push(
+          result.integratId !== undefined ? String(result.integratId) : "",
+          result.integratName ?? "",
+          result.integratModuleId !== undefined ? String(result.integratModuleId) : "",
+          result.integratModuleName ?? "",
+          result.integratModuleSequence !== undefined
+            ? String(result.integratModuleSequence)
+            : "",
+          result.integratExamId !== undefined ? String(result.integratExamId) : "",
+          result.integratExamName ?? ""
+        );
+      }
+
+      return row;
+    });
 
     // Combine headers and data
     const allRows = [headers, ...csvRows];

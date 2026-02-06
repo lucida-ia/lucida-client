@@ -126,6 +126,8 @@ export async function GET(request: NextRequest) {
           id: user.id,
           username: user.username,
           email: user.email,
+          integrationId: user.integrationId,
+          integratPartnerToken: user.integratPartnerToken,
           subscription: user.subscription,
           usage: user.usage,
           createdAt: user.createdAt,
@@ -192,6 +194,8 @@ export async function PUT(request: NextRequest) {
       data: {
         user: {
           id: user.id,
+          integrationId: user.integrationId,
+          integratPartnerToken: user.integratPartnerToken,
           subscription: user.subscription,
           usage: user.usage,
           createdAt: user.createdAt,
@@ -259,6 +263,8 @@ export async function PATCH(request: NextRequest) {
       data: {
         user: {
           id: user.id,
+          integrationId: user.integrationId,
+          integratPartnerToken: user.integratPartnerToken,
           subscription: user.subscription,
           usage: user.usage,
           createdAt: user.createdAt,

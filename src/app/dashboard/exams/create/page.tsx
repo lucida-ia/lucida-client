@@ -43,6 +43,7 @@ export default function CreateExamPage() {
   const [userData, setUserData] = useState<any>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const stopLoadingRef = useRef<(() => void) | null>(null);
+  const hasLoggedIntegratTrueRef = useRef(false);
 
   const { toast } = useToast();
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function CreateExamPage() {
         setIsLoadingUser(true);
         const asUser = getImpersonateUserId();
         const response = await axios.get(
-          "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+          "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""),
         );
         setUserData(response.data.data);
       } catch (error) {
@@ -67,6 +68,24 @@ export default function CreateExamPage() {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    const envIntegrationId = process.env.NEXT_PUBLIC_INTEGRAT_INTEGRATION_ID;
+
+    const userIntegrationId = userData?.user?.integrationId;
+
+    console.log("[INTEGRAT] envIntegrationId", envIntegrationId);
+    console.log("[INTEGRAT] userIntegrationId", userIntegrationId);
+
+    if (
+      !hasLoggedIntegratTrueRef.current &&
+      envIntegrationId &&
+      userIntegrationId &&
+      userIntegrationId === envIntegrationId
+    ) {
+      hasLoggedIntegratTrueRef.current = true;
+    }
+  }, [userData]);
+
   // Scroll to top when tab changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -75,7 +94,7 @@ export default function CreateExamPage() {
   const handleFilesUploaded = (
     files: File[],
     youtubeUrls?: string[],
-    youtubeVideoData?: Record<string, { title?: string; videoId?: string }>
+    youtubeVideoData?: Record<string, { title?: string; videoId?: string }>,
   ) => {
     setUploadedFiles(files);
     setYoutubeUrls(youtubeUrls || []);
@@ -240,6 +259,7 @@ export default function CreateExamPage() {
             onConfigured={handleExamConfigured}
             onBack={handleBackToUpload}
             shouldDisableActions={shouldDisableActions}
+            user={userData?.user}
           />
         </TabsContent>
 

@@ -540,7 +540,16 @@ export default function UnifiedOverviewPage() {
     }
   };
 
-  const handleExportClassResults = (classItem: ClassData) => {
+  const envIntegrationId =
+    process.env.NEXT_PUBLIC_INTEGRAT_INTEGRATION_ID ||
+    process.env.EXT_PUBLIC_INTEGRAT_INTEGRATION_ID;
+  const isIntegratUser = Boolean(
+    envIntegrationId &&
+      userData?.user?.integrationId &&
+      userData.user.integrationId === envIntegrationId
+  );
+
+  const handleExportClassResults = async (classItem: ClassData) => {
     try {
       const allResults = classItem.exams.flatMap((exam) => exam.results);
 
@@ -554,7 +563,59 @@ export default function UnifiedOverviewPage() {
         return;
       }
 
-      exportResultsToCSV(allResults, `${classItem.name}_todos_resultados`);
+      let resultsToExport = allResults;
+
+      if (isIntegratUser) {
+        const empresa = userData?.user?.integratPartnerToken;
+
+        if (empresa) {
+          try {
+            const response = await axios.get("/api/integrat/classes", {
+              params: { empresa },
+            });
+
+            const payload = response.data?.data;
+            const integratList = Array.isArray(payload?.classes)
+              ? payload.classes
+              : [];
+
+            const normalize = (s: string) => s.trim().toLowerCase();
+            const metaByExamName = new Map<string, any>();
+            for (const item of integratList) {
+              const name = String(item?.integratExamName ?? "").trim();
+              if (!name) continue;
+              const key = normalize(name);
+              if (!metaByExamName.has(key)) metaByExamName.set(key, item);
+            }
+
+            resultsToExport = allResults.map((r) => {
+              const meta = metaByExamName.get(normalize(String(r.examTitle)));
+              if (!meta) return r;
+
+              return {
+                ...r,
+                integratId: meta.integratId,
+                integratName: meta.integratName,
+                integratModuleId: meta.integratModuleId,
+                integratModuleName: meta.integratModuleName,
+                integratModuleSequence: meta.integratModuleSequence,
+                integratExamId: meta.integratExamId,
+                integratExamName: meta.integratExamName,
+              };
+            });
+          } catch (error) {
+            console.error("[INTEGRAT_CSV_EXPORT_ERROR]", error);
+            toast({
+              title: "Aviso",
+              description:
+                "Não foi possível carregar dados da Integrat. Exportando CSV padrão.",
+              variant: "default",
+            });
+          }
+        }
+      }
+
+      exportResultsToCSV(resultsToExport, `${classItem.name}_todos_resultados`);
       toast({
         title: "CSV exportado com sucesso!",
         description: "Os resultados foram salvos no seu dispositivo.",
