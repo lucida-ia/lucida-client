@@ -72,6 +72,7 @@ interface Result {
   examId: string;
   classId: string;
   email: string;
+  studentName?: string | null;
   score: number;
   percentage: number;
   examTitle: string;
@@ -352,6 +353,21 @@ export default function UnifiedOverviewPage() {
     if (percentage >= 80) return "text-green-600 dark:text-green-400";
     if (percentage >= 60) return "text-yellow-600 dark:text-yellow-400";
     return "text-red-600 dark:text-red-400";
+  };
+
+  const getDisplayPercentage = (result: Result) => {
+    const p = result.percentage;
+    return p > 1 ? p : p * 100;
+  };
+
+  const getResultStudentLabel = (result: Result) => {
+    if (result.studentName) {
+      const code =
+        result.email?.endsWith("@student.local") ?
+          result.email.replace("@student.local", "") : null;
+      return code ? `${result.studentName} (${code})` : result.studentName;
+    }
+    return result.email;
   };
 
   // Action handlers
@@ -1822,7 +1838,7 @@ export default function UnifiedOverviewPage() {
                                                 >
                                                   <div className="flex-1 min-w-0">
                                                     <p className="font-mono text-footnote text-foreground truncate">
-                                                      {result.email}
+                                                      {getResultStudentLabel(result)}
                                                     </p>
                                                     <p className="text-caption-2 text-muted-foreground">
                                                       {formatDate(
@@ -1837,11 +1853,11 @@ export default function UnifiedOverviewPage() {
                                                     </span>
                                                     <span
                                                       className={`text-footnote font-bold ${getPercentageColor(
-                                                        result.percentage
+                                                        getDisplayPercentage(result)
                                                       )}`}
                                                     >
-                                                      {(
-                                                        result.percentage * 100
+                                                      {getDisplayPercentage(
+                                                        result
                                                       ).toFixed(1)}
                                                       %
                                                     </span>

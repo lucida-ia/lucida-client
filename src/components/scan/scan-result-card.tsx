@@ -27,6 +27,7 @@ interface ScanResultCardProps {
   scan: {
     scanId: string;
     studentId: string | null | { value: string | null; isValid?: boolean };
+    studentName?: string | null;
     studentCodeValid?: boolean;
     studentCodeInvalidReason?: string | null;
     score: number;
@@ -71,13 +72,20 @@ export function ScanResultCard({
 
   const qualityBadge = getQualityBadge(scan.imageQuality);
 
-  // Extract studentId value (handle both string and object formats)
+  // Extract student display: name (code) or code or "ID não detectado"
   const getStudentIdDisplay = () => {
-    if (!scan.studentId) return "ID não detectado";
-    if (typeof scan.studentId === "string") return scan.studentId;
-    if (typeof scan.studentId === "object" && scan.studentId !== null) {
-      return scan.studentId.value || "ID não detectado";
+    const code =
+      !scan.studentId
+        ? null
+        : typeof scan.studentId === "string"
+        ? scan.studentId
+        : typeof scan.studentId === "object" && scan.studentId !== null
+        ? scan.studentId.value ?? null
+        : null;
+    if (scan.studentName) {
+      return code ? `${scan.studentName} (${code})` : scan.studentName;
     }
+    if (code) return `Código ${code}`;
     return "ID não detectado";
   };
 

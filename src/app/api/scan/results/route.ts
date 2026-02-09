@@ -2,6 +2,7 @@ import { connectToDB } from "@/lib/mongodb";
 import { Exam } from "@/models/Exam";
 import { ScanResult } from "@/models/ScanResult";
 import { Result } from "@/models/Result";
+import { Student } from "@/models/Student";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -79,17 +80,35 @@ export async function POST(request: NextRequest) {
 
         // Create official result if requested
         if (createResults) {
-          // Create student email from student ID if available
-          const studentEmail = (scan as any).studentId?.value
-            ? `${(scan as any).studentId.value}@student.local`
+          const studentCode = (scan as any).studentId?.value ?? null;
+          const studentEmail = studentCode
+            ? `${studentCode}@student.local`
             : `scan-${(scan as any).scanId}@student.local`;
+
+          let studentName: string | null = (scan as any).studentRef
+            ? (await Student.findById((scan as any).studentRef).select("name").lean())?.name ?? null
+            : null;
+          if (!studentName && studentCode && (scan as any).classId) {
+            const student = await Student.findOne({
+              userId,
+              classId: (scan as any).classId,
+              code: String(studentCode).trim(),
+            })
+              .select("name")
+              .lean();
+            studentName = student?.name ?? null;
+          }
+
+          const rawPercentage = (scan as any).grading?.percentage ?? 0;
+          const percentage = rawPercentage > 1 ? rawPercentage / 100 : rawPercentage;
 
           const newResult = new Result({
             examId: (scan as any).examId,
             classId: (scan as any).classId,
             email: studentEmail,
+            studentName: studentName ?? undefined,
             score: (scan as any).grading?.score || 0,
-            percentage: (scan as any).grading?.percentage || 0,
+            percentage,
             examTitle: (exam as any).title,
             examQuestionCount: (exam as any).questionCount,
             createdAt: new Date(),

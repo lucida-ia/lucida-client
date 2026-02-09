@@ -3,6 +3,8 @@ import { Exam } from "@/models/Exam";
 import { ScanResult } from "@/models/ScanResult";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { resolveStudentsByCodeBatch } from "@/lib/student-resolve";
+import { Student } from "@/models/Student";
 
 // Increase body size limit for image uploads
 export const config = {
@@ -136,10 +138,37 @@ export async function POST(request: NextRequest) {
     const multiMarkedInRange = (omrResult.result?.multi_marked_questions ?? []).filter(inExamRange);
     const unmarkedInRange = (omrResult.result?.unmarked_questions ?? []).filter(inExamRange);
 
-    // Debug logging
+    // Derive requiresReview and reviewReasons only from in-range questions (OMR may return full template e.g. q95 for a 5-question exam)
+    const qToNum = (q: string) => {
+      const m = String(q).match(/^q?(\d+)$/i);
+      return m ? m[1] : q;
+    };
+    const reviewReasonsFromRange: string[] = [];
+    if (multiMarkedInRange.length > 0) {
+      reviewReasonsFromRange.push(
+        "Questões com mais de uma marca: " + multiMarkedInRange.map(qToNum).join(", ")
+      );
+    }
+    if (unmarkedInRange.length > 0) {
+      reviewReasonsFromRange.push(
+        "Questões não marcadas: " + unmarkedInRange.map(qToNum).join(", ")
+      );
+    }
+    const otherReasons = (omrResult.result?.reviewReasons ?? []).filter(
+      (r: string) =>
+        !/Questões com mais de uma marca/i.test(r) &&
+        !/Questões não marcadas/i.test(r) &&
+        !/não marcadas/i.test(r)
+    );
+    const reviewReasonsFiltered = [...reviewReasonsFromRange, ...otherReasons];
+    const requiresReviewFiltered =
+      reviewReasonsFiltered.length > 0;
+
+    // Debug logging (filtered by exam range)
     console.log("[SCAN_OMR_RESULT]", {
       success: omrResult.success,
       hasResult: !!omrResult.result,
+      examTotal,
       studentId: omrResult.result?.studentId?.value,
       grading: omrResult.result?.grading ? {
         score: omrResult.result.grading.score,
@@ -148,8 +177,8 @@ export async function POST(request: NextRequest) {
         unanswered: omrResult.result.grading.unanswered,
       } : null,
       imageQuality: omrResult.result?.imageQuality,
-      requiresReview: omrResult.result?.requiresReview,
-      reviewReasons: omrResult.result?.reviewReasons,
+      requiresReview: requiresReviewFiltered,
+      reviewReasons: reviewReasonsFiltered,
     });
 
     if (!omrResult.success || !omrResult.result) {
@@ -211,17 +240,36 @@ export async function POST(request: NextRequest) {
       imageQuality: omrResult.result.imageQuality || 'good',
       alignmentSuccess: true,
       processingTimeMs: omrResult.result.processingTimeMs || 0,
-      requiresReview: omrResult.result.requiresReview || false,
-      reviewReasons: omrResult.result.reviewReasons || [],
+      requiresReview: requiresReviewFiltered,
+      reviewReasons: reviewReasonsFiltered,
       multi_marked_questions: multiMarkedInRange,
       unmarked_questions: unmarkedInRange,
       responses: omrResult.result.responses && typeof omrResult.result.responses === 'object' ? omrResult.result.responses : null,
-      reviewStatus: omrResult.result.requiresReview ? 'pending' : 'approved',
+      reviewStatus: requiresReviewFiltered ? 'pending' : 'approved',
       scannedAt: omrResult.result.scannedAt || new Date(),
     };
 
+    const studentCodeValue = (scanData as any).studentId?.value;
+    if (studentCodeValue && /^[0-9]{7}$/.test(String(studentCodeValue))) {
+      const student = await Student.findOne({
+        userId,
+        classId: exam.classId,
+        code: String(studentCodeValue).trim(),
+      })
+        .select("_id email")
+        .lean();
+      if (student) {
+        (scanData as any).studentEmail = student.email ?? null;
+        (scanData as any).studentRef = student._id;
+      }
+    }
+
     const savedScan = new ScanResult(scanData);
     await savedScan.save();
+
+    const resolvedName = (savedScan as any).studentRef
+      ? (await Student.findById((savedScan as any).studentRef).select("name").lean())?.name ?? null
+      : null;
 
     return NextResponse.json({
       status: "success",
@@ -244,8 +292,8 @@ export async function POST(request: NextRequest) {
         incorrectAnswers: omrResult.result.grading?.incorrect || omrResult.result.grading?.incorrectAnswers || 0,
         unanswered: omrResult.result.grading?.unanswered || 0,
         imageQuality: omrResult.result.imageQuality,
-        requiresReview: omrResult.result.requiresReview,
-        reviewReasons: omrResult.result.reviewReasons,
+        requiresReview: requiresReviewFiltered,
+        reviewReasons: reviewReasonsFiltered,
         multiMarked: multiMarkedInRange.length,
         multi_marked_questions: multiMarkedInRange,
         unmarked_questions: unmarkedInRange,
@@ -253,6 +301,8 @@ export async function POST(request: NextRequest) {
         processingTimeMs: omrResult.result.processingTimeMs,
         studentCodeValid: omrResult.result.studentCodeValid,
         studentCodeInvalidReason: omrResult.result.studentCodeInvalidReason ?? undefined,
+        studentName: resolvedName ?? undefined,
+        studentEmail: (savedScan as any).studentEmail ?? undefined,
       },
       debug: omrResult.debug,
     });
@@ -316,21 +366,34 @@ export async function GET(request: NextRequest) {
       .lean();
     const examMap = new Map(exams.map((e: any) => [e._id.toString(), e.title]));
 
+    // Resolve student names from (classId, code)
+    const pairs = scans
+      .filter((s: any) => s.classId && s.studentId?.value)
+      .map((s: any) => ({ classId: String(s.classId), code: String(s.studentId.value) }));
+    const studentMap = await resolveStudentsByCodeBatch(userId, pairs);
+
     // Format response
-    const formattedScans = scans.map((scan: any) => ({
-      scanId: scan.scanId,
-      examId: scan.examId,
-      examTitle: examMap.get(scan.examId) || "Prova não encontrada",
-      studentId: scan.studentId?.value,
-      score: scan.grading?.score || 0,
-      percentage: scan.grading?.percentage || 0,
-      totalQuestions: scan.grading?.totalQuestions || 0,
-      scannedAt: scan.scannedAt,
-      imageQuality: scan.imageQuality,
-      requiresReview: scan.requiresReview,
-      reviewReasons: scan.reviewReasons,
-      reviewStatus: scan.reviewStatus,
-    }));
+    const formattedScans = scans.map((scan: any) => {
+      const code = scan.studentId?.value;
+      const key = code && scan.classId ? `${scan.classId}:${code}` : "";
+      const resolved = key ? studentMap.get(key) : null;
+      return {
+        scanId: scan.scanId,
+        examId: scan.examId,
+        examTitle: examMap.get(scan.examId) || "Prova não encontrada",
+        studentId: code,
+        studentName: resolved?.name ?? null,
+        studentEmail: resolved?.email ?? null,
+        score: scan.grading?.score || 0,
+        percentage: scan.grading?.percentage || 0,
+        totalQuestions: scan.grading?.totalQuestions || 0,
+        scannedAt: scan.scannedAt,
+        imageQuality: scan.imageQuality,
+        requiresReview: scan.requiresReview,
+        reviewReasons: scan.reviewReasons,
+        reviewStatus: scan.reviewStatus,
+      };
+    });
 
     return NextResponse.json({
       status: "success",

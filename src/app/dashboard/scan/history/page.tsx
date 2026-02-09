@@ -59,6 +59,8 @@ interface ScanSummary {
   examId: string;
   examTitle: string;
   studentId: string | null;
+  studentName: string | null;
+  studentEmail: string | null;
   score: number;
   percentage: number;
   totalQuestions: number;
@@ -301,7 +303,20 @@ export default function ScanHistoryPage() {
                   return (
                     <TableRow key={scan.scanId}>
                       <TableCell className="font-medium">
-                        {scan.studentId || (
+                        {scan.studentName ? (
+                          <>
+                            <span>{scan.studentName}</span>
+                            {scan.studentId && (
+                              <span className="text-muted-foreground font-normal ml-1">
+                                ({scan.studentId})
+                              </span>
+                            )}
+                          </>
+                        ) : scan.studentId ? (
+                          <span className="text-muted-foreground">
+                            Código {scan.studentId}
+                          </span>
+                        ) : (
                           <span className="text-muted-foreground italic">
                             Não detectado
                           </span>

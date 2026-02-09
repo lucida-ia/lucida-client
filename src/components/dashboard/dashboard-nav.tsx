@@ -115,6 +115,12 @@ export function useNavItems() {
       isNew: true,
     },
     {
+      title: "Alunos",
+      href: "/dashboard/students",
+      icon: <UsersRound className="h-5 w-5" />,
+      role: ["admin", "teacher"],
+    },
+    {
       title: "Analytics",
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,

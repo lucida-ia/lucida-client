@@ -3,6 +3,7 @@ import { Exam } from "@/models/Exam";
 import { ScanResult } from "@/models/ScanResult";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { resolveStudentByCode } from "@/lib/student-resolve";
 
 /**
  * GET /api/scan/[scanId]
@@ -125,11 +126,19 @@ export async function GET(
       };
     });
 
+    const resolvedStudent = await resolveStudentByCode(
+      userId,
+      scanData.classId,
+      scanData.studentId?.value
+    );
+
     return NextResponse.json({
       status: "success",
       scan: {
         ...scanData,
         examTitle: exam ? (exam as any).title : "Prova não encontrada",
+        studentName: resolvedStudent?.name ?? null,
+        studentEmail: resolvedStudent?.email ?? null,
         multi_marked_questions,
         unmarked_questions,
         grading: {

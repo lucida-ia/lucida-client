@@ -35,6 +35,7 @@ interface Exam {
 interface ScanResult {
   scanId: string;
   studentId: string | null | { value: string | null; isValid?: boolean };
+  studentName?: string | null;
   studentCodeValid?: boolean;
   studentCodeInvalidReason?: string | null;
   score: number;

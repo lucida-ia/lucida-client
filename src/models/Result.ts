@@ -37,6 +37,10 @@ const ResultScheema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  studentName: {
+    type: String,
+    default: null,
+  },
   score: {
     type: Number,
     required: true,

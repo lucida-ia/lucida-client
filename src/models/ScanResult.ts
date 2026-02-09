@@ -154,6 +154,13 @@ const ScanResultSchema = new mongoose.Schema({
     default: null,
   },
 
+  // Reference to Student document when matched by (classId, code)
+  studentRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Student",
+    default: null,
+  },
+
   // All detected answers
   answers: [DetectedAnswerSchema],
 
