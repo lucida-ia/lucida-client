@@ -257,8 +257,8 @@ export async function POST(request: NextRequest) {
         code: String(studentCodeValue).trim(),
       })
         .select("_id email")
-        .lean();
-      if (student) {
+        .lean() as { _id: unknown; email?: string | null } | null;
+      if (student && !Array.isArray(student)) {
         (scanData as any).studentEmail = student.email ?? null;
         (scanData as any).studentRef = student._id;
       }
@@ -267,9 +267,10 @@ export async function POST(request: NextRequest) {
     const savedScan = new ScanResult(scanData);
     await savedScan.save();
 
-    const resolvedName = (savedScan as any).studentRef
-      ? (await Student.findById((savedScan as any).studentRef).select("name").lean())?.name ?? null
+    const studentDoc = (savedScan as any).studentRef
+      ? (await Student.findById((savedScan as any).studentRef).select("name").lean() as { name: string } | null | undefined)
       : null;
+    const resolvedName = studentDoc && !Array.isArray(studentDoc) ? studentDoc.name ?? null : null;
 
     return NextResponse.json({
       status: "success",
@@ -360,7 +361,7 @@ export async function GET(request: NextRequest) {
       .lean();
 
     // Get exam titles for display
-    const examIds = [...new Set(scans.map((s: any) => s.examId))];
+    const examIds = Array.from(new Set(scans.map((s: any) => s.examId)));
     const exams = await Exam.find({ _id: { $in: examIds } })
       .select("title")
       .lean();

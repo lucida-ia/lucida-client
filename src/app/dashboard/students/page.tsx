@@ -301,6 +301,7 @@ export default function StudentsPage() {
           title: "Importação concluída",
           description: parts.join(", "),
         });
+        await fetchClasses();
         fetchStudents();
       } else {
         toast({ title: res.data.message ?? "Erro na importação", variant: "destructive" });
