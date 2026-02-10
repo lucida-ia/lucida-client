@@ -66,7 +66,6 @@ interface PricingPlan {
   name: string;
   description?: string;
   price: string;
-  promoPrice?: string;
   priceId: string;
   period: string;
   features: string[];
@@ -152,7 +151,6 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     id: "monthly",
     name: "Pro",
     price: "R$ 35,00",
-    promoPrice: "R$ 1,99",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL || "",
     period: "por mês",
     features: [
@@ -175,7 +173,6 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     id: "semi-annual",
     name: "Pro Semestral",
     price: "R$ 189,90",
-    promoPrice: "R$ 1,99",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
     period: "por 6 meses",
     features: [
@@ -199,7 +196,6 @@ const PRO_PLANS: Record<PeriodType, PricingPlan> = {
     id: "annual",
     name: "Pro Anual",
     price: "R$ 334,80",
-    promoPrice: "R$ 1,99",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
     period: "por ano",
     features: [
@@ -719,20 +715,8 @@ export default function BillingPage() {
                           Mensal
                         </CardTitle>
                         <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                          {mensalPlan.promoPrice
-                            ? mensalPlan.promoPrice
-                            : mensalPlan.price}
+                          {mensalPlan.price}
                         </div>
-                        {mensalPlan.promoPrice && (
-                          <>
-                            <span className="text-subhead text-[rgb(var(--apple-secondary-label))] line-through">
-                              {mensalPlan.price}
-                            </span>
-                            <div className="text-footnote text-[rgb(var(--apple-orange))] font-medium">
-                              Promoção válida apenas no primeiro mês
-                            </div>
-                          </>
-                        )}
                         <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                           {mensalPlan.period}
                         </div>
@@ -822,20 +806,8 @@ export default function BillingPage() {
                           Semestral
                         </CardTitle>
                         <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                          {semestralPlan.promoPrice
-                            ? semestralPlan.promoPrice
-                            : semestralPlan.price}
+                          {semestralPlan.price}
                         </div>
-                        {semestralPlan.promoPrice && (
-                          <>
-                            <span className="text-subhead text-[rgb(var(--apple-secondary-label))] line-through">
-                              {semestralPlan.price}
-                            </span>
-                            <div className="text-footnote text-[rgb(var(--apple-orange))] font-medium">
-                              Promoção válida apenas no primeiro mês
-                            </div>
-                          </>
-                        )}
                         <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                           {semestralPlan.period}
                         </div>
@@ -930,20 +902,8 @@ export default function BillingPage() {
                           Anual
                         </CardTitle>
                         <div className="text-title-1 font-bold text-[rgb(var(--apple-label))]">
-                          {anualPlan.promoPrice
-                            ? anualPlan.promoPrice
-                            : anualPlan.price}
+                          {anualPlan.price}
                         </div>
-                        {anualPlan.promoPrice && (
-                          <>
-                            <span className="text-subhead text-[rgb(var(--apple-secondary-label))] line-through">
-                              {anualPlan.price}
-                            </span>
-                            <div className="text-footnote text-[rgb(var(--apple-orange))] font-medium">
-                              Promoção válida apenas no primeiro mês
-                            </div>
-                          </>
-                        )}
                         <div className="text-subhead text-[rgb(var(--apple-secondary-label))]">
                           {anualPlan.period}
                         </div>

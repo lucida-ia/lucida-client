@@ -27,7 +27,7 @@ const PRO_PLANS = {
     gradient: "from-blue-500 to-indigo-600",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_MENSAL || "",
     savings: undefined as string | undefined,
-    hasPromo: true,
+    hasPromo: false,
   },
   semestral: {
     id: "semi-annual",
@@ -51,7 +51,7 @@ const PRO_PLANS = {
     gradient: "from-indigo-500 to-purple-600",
     savings: "Salve 10%",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_SEMESTRAL || "",
-    hasPromo: true,
+    hasPromo: false,
   },
   anual: {
     id: "annual",
@@ -75,7 +75,7 @@ const PRO_PLANS = {
     gradient: "from-rose-500 to-pink-600",
     savings: "Salve 20%",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_ANUAL || "",
-    hasPromo: true,
+    hasPromo: false,
   },
 };
 
@@ -108,7 +108,7 @@ export function PricingSection() {
           planName: plan.name,
           price: plan.price,
           period: plan.period,
-        })
+        }),
       );
 
       // Redirect to sign-in page
@@ -225,8 +225,8 @@ export function PricingSection() {
                   plan.hasPromo
                     ? "ring-1 ring-red-500/20 border-red-500/30"
                     : plan.savings
-                    ? "ring-1 ring-green-500/20 border-green-500/30"
-                    : ""
+                      ? "ring-1 ring-green-500/20 border-green-500/30"
+                      : ""
                 }`}
               >
                 {plan.hasPromo && (
@@ -302,10 +302,10 @@ export function PricingSection() {
                       plan.hasPromo
                         ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
                         : plan.savings
-                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
-                        : "bg-gradient-to-r " +
-                          plan.gradient +
-                          " hover:shadow-lg text-white"
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
+                          : "bg-gradient-to-r " +
+                            plan.gradient +
+                            " hover:shadow-lg text-white"
                     }`}
                   >
                     {plan.hasPromo ? "Começar por R$ 1,99" : "Assinar Agora"}
@@ -324,8 +324,8 @@ export function PricingSection() {
                   plan.hasPromo
                     ? "ring-1 ring-red-500/20 border-red-500/30"
                     : plan.savings
-                    ? "ring-1 ring-green-500/20 border-green-500/30"
-                    : ""
+                      ? "ring-1 ring-green-500/20 border-green-500/30"
+                      : ""
                 }`}
               >
                 {plan.hasPromo && (
@@ -401,10 +401,10 @@ export function PricingSection() {
                       plan.hasPromo
                         ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl"
                         : plan.savings
-                        ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
-                        : "bg-gradient-to-r " +
-                          plan.gradient +
-                          " hover:shadow-lg text-white"
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl"
+                          : "bg-gradient-to-r " +
+                            plan.gradient +
+                            " hover:shadow-lg text-white"
                     }`}
                   >
                     {plan.hasPromo ? "Começar por R$ 1,99" : "Assinar Agora"}

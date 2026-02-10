@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (!priceId || !planId) {
       return NextResponse.json(
         { error: "Price ID and Plan ID are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           error:
             "User is already a customer. Try managing your subscription in the dashboard.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -65,11 +65,6 @@ export async function POST(request: NextRequest) {
       phone_number_collection: {
         enabled: true,
       },
-      discounts: [
-        {
-          coupon: process.env.STRIPE_CUPOM_EXPLORA || "",
-        },
-      ],
 
       // Note: customer_creation is not needed for subscription mode
       // Stripe will automatically create a customer for subscriptions
@@ -86,7 +81,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to create checkout session",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
