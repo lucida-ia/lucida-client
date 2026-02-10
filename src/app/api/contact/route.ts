@@ -1,100 +1,151 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+type ContactPayload = {
+  name: string;
+  email: string;
+  whatsapp: string;
+  subject: string;
+  message: string;
+};
+
+function getEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing env var: ${name}`);
+  return value;
+}
+
+function createTransporter() {
+  const host = getEnv("MAIL_HOST");
+  const port = Number(getEnv("MAIL_PORT"));
+  const secure = getEnv("MAIL_SECURE") === "true";
+  const user = getEnv("MAIL_USER");
+  const pass = getEnv("MAIL_PASS");
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure, // true para 465, false para 587
+    auth: { user, pass },
+  });
+}
+
+function validatePayload(body: Partial<ContactPayload>) {
+  const required: (keyof ContactPayload)[] = [
+    "name",
+    "email",
+    "whatsapp",
+    "subject",
+    "message",
+  ];
+
+  const missing = required.filter(
+    (k) => !body[k] || String(body[k]).trim() === "",
+  );
+  return missing;
+}
+
+function escapeHtml(input: string) {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, whatsapp, subject, message } = await request.json();
+    const body = (await request.json()) as Partial<ContactPayload>;
+    const missing = validatePayload(body);
 
-    // Validate required fields
-    if (!name || !email || !message || !whatsapp || !subject) {
+    if (missing.length) {
       return NextResponse.json(
-        { error: "Todos os campos são obrigatórios" },
-        { status: 400 }
+        { error: "Todos os campos são obrigatórios", missing },
+        { status: 400 },
       );
     }
 
-    // Check if environment variables are set
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-      return NextResponse.json(
-        {
-          error:
-            "Configuração de email não encontrada. Contate o administrador.",
-        },
-        { status: 500 }
-      );
-    }
+    const { name, email, whatsapp, subject, message } = body as ContactPayload;
 
-    // Create transporter using Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER, // lucida.contato@gmail.com
-        pass: process.env.GMAIL_APP_PASSWORD, // App password from Gmail
-      },
-    });
+    const mailTo = process.env.MAIL_TO || process.env.MAIL_USER;
+    if (!mailTo) throw new Error("Missing env var: MAIL_TO (or MAIL_USER)");
 
-    // Email content
-    const emailContent = `
-Nova mensagem de contato do site Lucida:
+    const fromName = process.env.MAIL_FROM_NAME || "Lucida";
+    const mailUser = getEnv("MAIL_USER");
 
-Nome: ${name}
-Email: ${email}
-WhatsApp: ${whatsapp}
-Assunto: ${subject}
+    const safe = {
+      name: escapeHtml(name),
+      email: escapeHtml(email),
+      whatsapp: escapeHtml(whatsapp),
+      subject: escapeHtml(subject),
+      message: escapeHtml(message),
+    };
 
-Mensagem:
-${message}
+    const text = [
+      "Nova mensagem de contato do site Lucida:",
+      "",
+      `Nome: ${name}`,
+      `Email: ${email}`,
+      `WhatsApp: ${whatsapp}`,
+      `Assunto: ${subject}`,
+      "",
+      "Mensagem:",
+      message,
+      "",
+      "---",
+      "Esta mensagem foi enviada através do formulário de contato do site Lucida.",
+    ].join("\n");
 
----
-Esta mensagem foi enviada através do formulário de contato do site Lucida.
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+        <h2>Nova mensagem de contato do site Lucida</h2>
+        <p><strong>Nome:</strong> ${safe.name}</p>
+        <p><strong>Email:</strong> ${safe.email}</p>
+        <p><strong>WhatsApp:</strong> ${safe.whatsapp}</p>
+        <p><strong>Assunto:</strong> ${safe.subject}</p>
+        <hr />
+        <p><strong>Mensagem:</strong></p>
+        <pre style="white-space: pre-wrap; font-family: Arial, sans-serif;">${safe.message}</pre>
+        <hr />
+        <p style="color:#666; font-size: 12px;">
+          Esta mensagem foi enviada através do formulário de contato do site Lucida.
+        </p>
+      </div>
     `.trim();
 
-    // Send email
+    const transporter = createTransporter();
+
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
-      to: process.env.GMAIL_USER, // Send to same email
+      from: `"${name} via Lucida" <${mailUser}>`, // mailUser = seu email do domínio
+      to: mailTo,
       subject: `[Lucida] ${subject}`,
-      text: emailContent,
-      replyTo: email, // Allow replying directly to the user
+      text,
+      html,
+      replyTo: email, // quando você clicar "Responder", vai pro usuário
+      sender: mailUser, // opcional, mas ajuda
     });
 
-    return NextResponse.json(
-      { message: "Mensagem enviada com sucesso!" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error sending email:", error);
+    return NextResponse.json({ message: "Mensagem enviada com sucesso!" });
+  } catch (err) {
+    console.error("Error sending email:", err);
 
-    // More detailed error for debugging
-    let errorMessage = "Erro ao enviar mensagem. Tente novamente.";
-
-    if (error instanceof Error) {
-      console.error("Error details:", error.message);
-      // Include more specific error info for debugging
-      if (error.message.includes("auth")) {
-        errorMessage =
-          "Erro de autenticação do email. Verifique as configurações.";
-      } else if (
-        error.message.includes("ENOTFOUND") ||
-        error.message.includes("network")
-      ) {
-        errorMessage = "Erro de conexão. Verifique sua internet.";
-      } else if (error.message.includes("Invalid login")) {
-        errorMessage = "Login inválido. Verifique email e senha do Gmail.";
-      }
-    }
+    const message =
+      err instanceof Error && err.message.includes("Missing env var")
+        ? "Configuração de email não encontrada. Contate o administrador."
+        : "Erro ao enviar mensagem. Tente novamente.";
 
     return NextResponse.json(
       {
-        error: errorMessage,
+        error: message,
         details:
           process.env.NODE_ENV === "development"
-            ? error instanceof Error
-              ? error.message
-              : String(error)
+            ? err instanceof Error
+              ? err.message
+              : String(err)
             : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
