@@ -111,6 +111,8 @@ export function CreateExamCustomize({
     React.useState<string>("");
   const [isLoadingIntegratClasses, setIsLoadingIntegratClasses] =
     React.useState(false);
+  const [hasFetchedIntegratClasses, setHasFetchedIntegratClasses] =
+    React.useState(false);
   const [isSyncingIntegratTurma, setIsSyncingIntegratTurma] =
     React.useState(false);
   const [integratClassesError, setIntegratClassesError] = React.useState<
@@ -467,20 +469,39 @@ export function CreateExamCustomize({
   };
 
   React.useEffect(() => {
+    let cancelled = false;
+
     const fetchIntegratClasses = async () => {
-      if (!isIntegratUser) return;
+      // Not an Integrat user: don't block UI.
+      if (!isIntegratUser) {
+        if (!cancelled) {
+          setIntegratClasses([]);
+          setIntegratClassesError(null);
+          setIsLoadingIntegratClasses(false);
+          setHasFetchedIntegratClasses(true);
+        }
+        return;
+      }
+
+      // Integrat user: block UI until we finish this bootstrap request.
+      if (!cancelled) setHasFetchedIntegratClasses(false);
 
       const empresa = apiUser?.integratPartnerToken;
       if (!empresa) {
-        setIntegratClassesError(
-          "Token da Integrat não encontrado para este usuário.",
-        );
+        if (!cancelled) {
+          setIntegratClassesError(
+            "Token da Integrat não encontrado para este usuário.",
+          );
+          setHasFetchedIntegratClasses(true);
+        }
         return;
       }
 
       try {
-        setIsLoadingIntegratClasses(true);
-        setIntegratClassesError(null);
+        if (!cancelled) {
+          setIsLoadingIntegratClasses(true);
+          setIntegratClassesError(null);
+        }
 
         const response = await axios.get("/api/integrat/classes", {
           params: { empresa },
@@ -488,19 +509,51 @@ export function CreateExamCustomize({
 
         const payload = response.data?.data;
         const list = Array.isArray(payload?.classes) ? payload.classes : [];
-        setIntegratClasses(list);
+        if (!cancelled) setIntegratClasses(list);
       } catch (error) {
         console.error("[INTEGRAT_CLASSES_ERROR]", error);
-        setIntegratClassesError(
-          "Não foi possível carregar as provas da Integrat. Tente novamente.",
-        );
+        if (!cancelled) {
+          setIntegratClassesError(
+            "Não foi possível carregar as provas da Integrat. Tente novamente.",
+          );
+        }
       } finally {
-        setIsLoadingIntegratClasses(false);
+        if (!cancelled) {
+          setIsLoadingIntegratClasses(false);
+          setHasFetchedIntegratClasses(true);
+        }
       }
     };
 
     fetchIntegratClasses();
+    return () => {
+      cancelled = true;
+    };
   }, [apiUser?.integratPartnerToken, isIntegratUser]);
+
+  if (isIntegratUser && !hasFetchedIntegratClasses) {
+    return (
+      <div className="w-full">
+        <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+          <CardHeader className="pb-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+                <div className="animate-spin h-6 w-6 border-2 border-[#007AFF] dark:border-[#0A84FF] border-t-transparent rounded-full" />
+              </div>
+              <div>
+                <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                  Carregando integração
+                </CardTitle>
+                <CardDescription className="text-sm mt-1">
+                  Buscando turmas e provas da Integrat...
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
