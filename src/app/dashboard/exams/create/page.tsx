@@ -12,6 +12,12 @@ import { CreateExamPreview } from "@/components/create-exam/create-exam-preview"
 import { useToast } from "@/hooks/use-toast";
 import { isTrialUserPastOneWeek, getImpersonateUserId } from "@/lib/utils";
 import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Upload, Settings, Eye } from "lucide-react";
 
 export default function CreateExamPage() {
@@ -253,14 +259,36 @@ export default function CreateExamPage() {
         </TabsContent>
 
         <TabsContent value="customize" className="mt-8">
-          <CreateExamCustomize
-            files={uploadedFiles}
-            initialConfig={examConfig}
-            onConfigured={handleExamConfigured}
-            onBack={handleBackToUpload}
-            shouldDisableActions={shouldDisableActions}
-            user={userData?.user}
-          />
+          {isLoadingUser ? (
+            <div className="w-full">
+              <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
+                <CardHeader className="pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+                      <div className="animate-spin h-6 w-6 border-2 border-[#007AFF] dark:border-[#0A84FF] border-t-transparent rounded-full" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg md:text-xl font-semibold tracking-tight">
+                        Carregando sua conta
+                      </CardTitle>
+                      <CardDescription className="text-sm mt-1">
+                        Buscando informações para personalização...
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            </div>
+          ) : (
+            <CreateExamCustomize
+              files={uploadedFiles}
+              initialConfig={examConfig}
+              onConfigured={handleExamConfigured}
+              onBack={handleBackToUpload}
+              shouldDisableActions={shouldDisableActions}
+              user={userData?.user}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="preview" className="mt-8">
