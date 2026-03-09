@@ -20,6 +20,71 @@ export const maxDuration = 60; // 60 seconds timeout
 
 // API URL for the OMR service (lucida-api)
 const OMR_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// Optional: call Python OMR service directly (e.g. https://lucida-omr-production.up.railway.app)
+const OMR_DIRECT_URL = process.env.NEXT_PUBLIC_OMR_DIRECT_URL;
+
+/**
+ * Map Python /process response to the shape expected by this route (lucida-api /omr/scan format).
+ */
+function mapDirectOmrToResult(
+  direct: {
+    success: boolean;
+    studentId?: string | null;
+    studentCodeValid?: boolean;
+    studentCodeInvalidReason?: string | null;
+    answers?: Record<number, string | null>;
+    score?: number;
+    percentage?: number;
+    correct?: number;
+    incorrect?: number;
+    unanswered?: number;
+    processingTimeMs?: number;
+    requiresReview?: boolean;
+    reviewReasons?: string[];
+    multi_marked_questions?: string[];
+    unmarked_questions?: string[];
+    responses?: Record<string, string>;
+  },
+  examId: string,
+  totalQuestions: number
+): { success: boolean; result: any } {
+  const answersMap = direct.answers ?? {};
+  const answersArray = Object.entries(answersMap).map(([num, opt]) => ({
+    questionNumber: parseInt(num, 10),
+    selectedOption: opt ?? "",
+    confidence: 0.9,
+    isValid: opt != null && opt !== "",
+  }));
+
+  return {
+    success: direct.success,
+    result: {
+      scanId: `scan_${Date.now()}`,
+      examId,
+      studentId: direct.studentId ?? null,
+      studentCodeValid: direct.studentCodeValid !== false,
+      studentCodeInvalidReason: direct.studentCodeInvalidReason ?? undefined,
+      grading: {
+        totalQuestions,
+        correct: direct.correct ?? 0,
+        correctAnswers: direct.correct ?? 0,
+        incorrect: direct.incorrect ?? 0,
+        incorrectAnswers: direct.incorrect ?? 0,
+        unanswered: direct.unanswered ?? 0,
+        score: direct.score ?? 0,
+        percentage: direct.percentage ?? 0,
+      },
+      answers: answersArray,
+      imageQuality: "good",
+      processingTimeMs: direct.processingTimeMs ?? 0,
+      multi_marked_questions: direct.multi_marked_questions ?? [],
+      unmarked_questions: direct.unmarked_questions ?? [],
+      reviewReasons: direct.reviewReasons ?? [],
+      responses: direct.responses ?? {},
+      scannedAt: new Date(),
+    },
+  };
+}
 
 /**
  * Build answer key from exam questions
@@ -96,36 +161,67 @@ export async function POST(request: NextRequest) {
 
     // Build answer key from exam questions
     const answerKey = buildAnswerKey(exam.questions);
-    
-    // Call OMR processing API (always uses ENEM service)
-    const omrResponse = await fetch(`${OMR_API_URL}/omr/scan`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        examId,
-        imageBase64,
-        userId,
-        answerKey,
-        totalQuestions: exam.questions.length,
-      }),
-    });
+    const totalQuestions = exam.questions.length;
 
-    if (!omrResponse.ok) {
-      const errorData = await omrResponse.json().catch(() => ({}));
-      console.error("[SCAN_OMR_ERROR]", errorData);
-      return NextResponse.json(
-        {
-          status: "error",
-          message: "Falha ao processar a folha de respostas",
-          details: errorData,
-        },
-        { status: 500 }
-      );
+    let omrResult: { success: boolean; result?: any; error?: string; debug?: any };
+
+    if (OMR_DIRECT_URL) {
+      // Call Python OMR service directly (e.g. Railway deployment)
+      const directResponse = await fetch(`${OMR_DIRECT_URL}/process`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64,
+          examId,
+          answerKey,
+          totalQuestions,
+        }),
+      });
+
+      if (!directResponse.ok) {
+        const errorData = await directResponse.json().catch(() => ({}));
+        console.error("[SCAN_OMR_DIRECT_ERROR]", errorData);
+        return NextResponse.json(
+          {
+            status: "error",
+            message: "Falha ao processar a folha de respostas (OMR direto)",
+            details: errorData,
+          },
+          { status: 500 }
+        );
+      }
+
+      const directData = await directResponse.json();
+      omrResult = mapDirectOmrToResult(directData, examId, totalQuestions);
+    } else {
+      // Call OMR via lucida-api (default)
+      const omrResponse = await fetch(`${OMR_API_URL}/omr/scan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          examId,
+          imageBase64,
+          userId,
+          answerKey,
+          totalQuestions,
+        }),
+      });
+
+      if (!omrResponse.ok) {
+        const errorData = await omrResponse.json().catch(() => ({}));
+        console.error("[SCAN_OMR_ERROR]", errorData);
+        return NextResponse.json(
+          {
+            status: "error",
+            message: "Falha ao processar a folha de respostas",
+            details: errorData,
+          },
+          { status: 500 }
+        );
+      }
+
+      omrResult = await omrResponse.json();
     }
-
-    const omrResult = await omrResponse.json();
 
     // Only consider questions within this exam's range (1..examTotal); OMR may return q1-q100 from template
     const examTotal = exam.questions.length;
