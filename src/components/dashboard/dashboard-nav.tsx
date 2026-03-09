@@ -117,7 +117,7 @@ export function flattenNavItems(items: NavItem[], role: string): NavLink[] {
 
 // Filter tree by role (groups with no visible children removed)
 function filterNavItemsByRole(items: NavItem[], role: string): NavItem[] {
-  return items.flatMap((item) => {
+  return items.flatMap((item): NavItem[] => {
     if (isNavGroup(item)) {
       const groupVisible = !item.role || item.role.includes(role);
       if (!groupVisible) return [];

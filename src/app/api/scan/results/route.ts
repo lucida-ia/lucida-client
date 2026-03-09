@@ -69,8 +69,9 @@ export async function POST(request: NextRequest) {
         const exam = await Exam.findById((scan as any).examId)
           .select("title questionCount")
           .lean();
+        const examDoc = exam && !Array.isArray(exam) ? exam : null;
 
-        if (!exam) {
+        if (!examDoc) {
           errors.push({
             scanId: (scan as any).scanId,
             error: "Prova não encontrada",
@@ -85,9 +86,12 @@ export async function POST(request: NextRequest) {
             ? `${studentCode}@student.local`
             : `scan-${(scan as any).scanId}@student.local`;
 
-          let studentName: string | null = (scan as any).studentRef
-            ? (await Student.findById((scan as any).studentRef).select("name").lean())?.name ?? null
-            : null;
+          let studentName: string | null = null;
+          if ((scan as any).studentRef) {
+            const ref = await Student.findById((scan as any).studentRef).select("name").lean();
+            const refDoc = ref && !Array.isArray(ref) ? ref : null;
+            studentName = refDoc?.name ?? null;
+          }
           if (!studentName && studentCode && (scan as any).classId) {
             const student = await Student.findOne({
               userId,
@@ -96,7 +100,8 @@ export async function POST(request: NextRequest) {
             })
               .select("name")
               .lean();
-            studentName = student?.name ?? null;
+            const studentDoc = student && !Array.isArray(student) ? student : null;
+            studentName = studentDoc?.name ?? null;
           }
 
           const rawPercentage = (scan as any).grading?.percentage ?? 0;
@@ -109,8 +114,8 @@ export async function POST(request: NextRequest) {
             studentName: studentName ?? undefined,
             score: (scan as any).grading?.score || 0,
             percentage,
-            examTitle: (exam as any).title,
-            examQuestionCount: (exam as any).questionCount,
+            examTitle: (examDoc as any).title,
+            examQuestionCount: (examDoc as any).questionCount,
             createdAt: new Date(),
           });
 
@@ -194,8 +199,9 @@ export async function GET(request: NextRequest) {
 
     // Verify exam ownership
     const exam = await Exam.findById(examId).lean();
+    const examDoc = exam && !Array.isArray(exam) ? exam : null;
 
-    if (!exam || (exam as any).userId !== userId) {
+    if (!examDoc || (examDoc as any).userId !== userId) {
       return NextResponse.json(
         { status: "error", message: "Prova não encontrada ou acesso não autorizado" },
         { status: 404 }

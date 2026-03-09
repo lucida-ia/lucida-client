@@ -213,7 +213,7 @@ export function ScanResultCard({
                         key={q}
                         className="inline-flex items-center rounded-md bg-apple-orange/15 px-2 py-1 text-xs font-medium text-apple-orange border border-apple-orange/30"
                       >
-                        {qNum(q)}: {scan.responses[q] ?? "—"}
+                        {qNum(q)}: {scan.responses?.[q] ?? "—"}
                       </span>
                     ))}
                   </div>

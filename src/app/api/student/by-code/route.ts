@@ -51,7 +51,8 @@ export async function GET(request: NextRequest) {
       userId,
     }).lean();
 
-    if (!student) {
+    const studentDoc = student && !Array.isArray(student) ? student : null;
+    if (!studentDoc) {
       return NextResponse.json({
         status: "success",
         data: { student: null },
@@ -62,11 +63,11 @@ export async function GET(request: NextRequest) {
       status: "success",
       data: {
         student: {
-          _id: student._id,
-          code: student.code,
-          name: student.name,
-          email: student.email,
-          classId: student.classId,
+          _id: studentDoc._id,
+          code: studentDoc.code,
+          name: studentDoc.name,
+          email: studentDoc.email,
+          classId: studentDoc.classId,
         },
       },
     });

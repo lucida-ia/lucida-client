@@ -23,10 +23,11 @@ export async function resolveStudentByCode(
   })
     .select("name email")
     .lean();
-  if (!student) return null;
+  const studentDoc = student && !Array.isArray(student) ? student : null;
+  if (!studentDoc) return null;
   return {
-    name: student.name,
-    email: student.email ?? null,
+    name: studentDoc.name,
+    email: studentDoc.email ?? null,
   };
 }
 

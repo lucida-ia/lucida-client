@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const classByName: Record<string, { _id: mongoose.Types.ObjectId; name: string }> = {};
     for (const c of userClasses) {
       const key = c.name.trim().toLowerCase();
-      if (!classByName[key]) classByName[key] = { _id: c._id, name: c.name };
+      if (!classByName[key]) classByName[key] = { _id: c._id as mongoose.Types.ObjectId, name: c.name };
     }
 
     const dataRows = rows.slice(1);

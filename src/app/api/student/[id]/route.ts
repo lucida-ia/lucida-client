@@ -22,18 +22,20 @@ export async function GET(
     const { id } = await context.params;
 
     const student = await Student.findById(id).lean();
-    if (!student || student.userId !== userId) {
+    const studentDoc = student && !Array.isArray(student) ? student : null;
+    if (!studentDoc || studentDoc.userId !== userId) {
       return NextResponse.json(
         { status: "error", message: "Aluno não encontrado" },
         { status: 404 }
       );
     }
 
-    const classDoc = await Class.findById(student.classId).lean();
+    const classRaw = await Class.findById(studentDoc.classId).lean();
+    const classDoc = classRaw && !Array.isArray(classRaw) ? classRaw : null;
     return NextResponse.json({
       status: "success",
       data: {
-        ...student,
+        ...studentDoc,
         className: classDoc?.name ?? null,
       },
     });
@@ -105,13 +107,17 @@ export async function PUT(
     if (metadata !== undefined && typeof metadata === "object") update.metadata = metadata;
 
     const updated = await Student.findByIdAndUpdate(id, update, { new: true }).lean();
-    const classDoc = await Class.findById(updated!.classId).lean();
+    const updatedDoc = updated && !Array.isArray(updated) ? updated : null;
+    const classRaw = updatedDoc
+      ? await Class.findById(updatedDoc.classId).lean()
+      : null;
+    const classDoc = classRaw && !Array.isArray(classRaw) ? classRaw : null;
 
     return NextResponse.json({
       status: "success",
       message: "Aluno atualizado com sucesso",
       data: {
-        ...updated,
+        ...updatedDoc,
         className: classDoc?.name ?? null,
       },
     });

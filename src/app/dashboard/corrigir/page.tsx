@@ -45,6 +45,7 @@ interface PendingResult {
   examId: string;
   examTitle: string;
   email: string;
+  studentName?: string | null;
   score: number;
   percentage: number;
   examQuestionCount: number;

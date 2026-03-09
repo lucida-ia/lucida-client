@@ -53,9 +53,9 @@ export async function GET(request: NextRequest) {
       Student.countDocuments(filter),
     ]);
 
-    const classIds = [...new Set(students.map((s) => s.classId?.toString()).filter(Boolean))];
+    const classIds = Array.from(new Set(students.map((s) => s.classId?.toString()).filter(Boolean)));
     const classes = await Class.find({ _id: { $in: classIds } }).lean();
-    const classMap = Object.fromEntries(classes.map((c) => [c._id.toString(), c]));
+    const classMap = Object.fromEntries(classes.map((c) => [(c as { _id: { toString(): string } })._id.toString(), c]));
 
     const payload = students.map((s) => ({
       _id: s._id,
