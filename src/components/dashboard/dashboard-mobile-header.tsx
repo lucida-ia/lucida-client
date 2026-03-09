@@ -16,8 +16,7 @@ import { SignOutButton, UserButton } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import LucidaLogo from "../lucida-logo";
-import { useNavItems } from "./dashboard-nav";
-import { Badge } from "@/components/ui/badge";
+import { useNavItems, isNavGroup } from "./dashboard-nav";
 
 export function DashboardMobileHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -111,36 +110,87 @@ export function DashboardMobileHeader() {
                 <SheetTitle className="text-left">Menu</SheetTitle>
               </SheetHeader>
 
-              <nav className="flex flex-col gap-2 mt-6">
-                {navItems.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-apple px-3 py-3 text-muted-foreground apple-transition hover:text-foreground hover:bg-apple-blue/5 touch-manipulation",
-                      pathname === item.href &&
-                        "bg-apple-blue/10 text-apple-blue font-medium dark:bg-apple-blue/20",
-                      item.disabled &&
-                        "opacity-50 cursor-not-allowed pointer-events-none"
-                    )}
-                  >
-                    {item.icon}
-                    <span className="text-sm flex items-center gap-2">
-                      {item.title}
-                      {item.isNew && (
-                        <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
-                          Novidade
-                        </span>
+              <nav className="flex flex-col gap-1 mt-6">
+                {navItems.map((item, index) => {
+                  if (isNavGroup(item)) {
+                    return (
+                      <div key={index} className="flex flex-col gap-0.5">
+                        <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {item.title}
+                        </div>
+                        {item.children.map((child, childIndex) => {
+                          const isActive =
+                            pathname === child.href ||
+                            pathname.startsWith(child.href + "/");
+                          return (
+                            <Link
+                              key={childIndex}
+                              href={child.href}
+                              onClick={() => setIsOpen(false)}
+                              className={cn(
+                                "flex items-center gap-3 rounded-apple px-3 py-2.5 pl-6 text-muted-foreground apple-transition hover:text-foreground hover:bg-apple-blue/5 touch-manipulation",
+                                isActive &&
+                                  "bg-apple-blue/10 text-apple-blue font-medium dark:bg-apple-blue/20",
+                                child.disabled &&
+                                  "opacity-50 cursor-not-allowed pointer-events-none"
+                              )}
+                            >
+                              {child.icon}
+                              <span className="text-sm flex items-center gap-2">
+                                {child.title}
+                                {child.isNew && (
+                                  <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                                    Novidade
+                                  </span>
+                                )}
+                                {child.href === "/dashboard/corrigir" &&
+                                  pendingCount > 0 && (
+                                    <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                      {pendingCount}
+                                    </span>
+                                  )}
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
+                  const link = item;
+                  const isActive =
+                    pathname === link.href ||
+                    pathname.startsWith(link.href + "/");
+                  return (
+                    <Link
+                      key={index}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-apple px-3 py-3 text-muted-foreground apple-transition hover:text-foreground hover:bg-apple-blue/5 touch-manipulation",
+                        isActive &&
+                          "bg-apple-blue/10 text-apple-blue font-medium dark:bg-apple-blue/20",
+                        link.disabled &&
+                          "opacity-50 cursor-not-allowed pointer-events-none"
                       )}
-                      {item.href === "/dashboard/corrigir" && pendingCount > 0 && (
-                        <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
-                          {pendingCount}
-                        </span>
-                      )}
-                    </span>
-                  </Link>
-                ))}
+                    >
+                      {link.icon}
+                      <span className="text-sm flex items-center gap-2">
+                        {link.title}
+                        {link.isNew && (
+                          <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                            Novidade
+                          </span>
+                        )}
+                        {link.href === "/dashboard/corrigir" &&
+                          pendingCount > 0 && (
+                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                              {pendingCount}
+                            </span>
+                          )}
+                      </span>
+                    </Link>
+                  );
+                })}
 
                 {/* Logout */}
                 <div className="border-t border-border mt-4 pt-4">

@@ -441,11 +441,91 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-6xl">
+      {/* 1. Title + subtitle */}
       <DashboardHeader
         heading="Cadastro de Alunos"
         text="Cadastre alunos e use o código de 7 dígitos na folha de respostas para identificar as provas."
+      />
+
+      {/* 2. Import box */}
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setCsvDragging(true);
+        }}
+        onDragLeave={() => setCsvDragging(false)}
+        onDrop={handleCsvDrop}
+        className={`rounded-apple border-2 border-dashed p-6 flex flex-col items-center justify-center gap-2 min-h-[140px] transition-colors ${csvDragging ? "border-apple-blue bg-apple-blue/5" : "border-apple-gray-4"}`}
       >
+        <Upload className="h-10 w-10 text-apple-blue" />
+        <p className="text-subhead font-medium">Importar CSV</p>
+        <p className="text-footnote text-muted-foreground text-center max-w-xl">
+          Arraste um arquivo ou use o botão abaixo. Colunas obrigatórias: aluno (ou nome), turma, matricula. Opcional: email, sala. Matrícula deve ser única.
+        </p>
+        <div className="flex gap-2 flex-wrap justify-center">
+          <Button
+            variant="tinted"
+            size="sm"
+            disabled={csvSubmitting}
+            onClick={() => document.getElementById("csv-upload")?.click()}
+          >
+            {csvSubmitting ? "Enviando…" : "Selecionar arquivo"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={downloadTemplate}>
+            <Download className="h-4 w-4 mr-1" />
+            Modelo CSV
+          </Button>
+        </div>
+        <input
+          id="csv-upload"
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={handleCsvFileInput}
+          disabled={csvSubmitting}
+        />
+      </div>
+
+      {importResult && (
+        <div className="rounded-apple border border-apple-gray-4 bg-card p-4">
+          <p className="text-subhead font-medium mb-2">Resultado da importação</p>
+          <p className="text-footnote text-muted-foreground">
+            {importResult.created} alunos criados.
+            {importResult.failed > 0 && ` ${importResult.failed} falhas.`}
+            {importResult.skipped > 0 && ` ${importResult.skipped} ignorados (já cadastrados).`}
+          </p>
+          {importResult.errors.length > 0 && (
+            <ul className="mt-2 text-footnote text-muted-foreground list-disc list-inside max-h-32 overflow-y-auto">
+              {importResult.errors.slice(0, 10).map((err, i) => (
+                <li key={i}>
+                  Linha {err.row}: {err.message}
+                </li>
+              ))}
+              {importResult.errors.length > 10 && (
+                <li>… e mais {importResult.errors.length - 10} erros</li>
+              )}
+            </ul>
+          )}
+          {importResult.skippedDetails.length > 0 && importResult.skippedDetails.length <= 10 && (
+            <ul className="mt-2 text-footnote text-muted-foreground list-disc list-inside max-h-24 overflow-y-auto">
+              {importResult.skippedDetails.map((s, i) => (
+                <li key={i}>
+                  Linha {s.row}: {s.message}
+                </li>
+              ))}
+            </ul>
+          )}
+          {importResult.skippedDetails.length > 10 && (
+            <p className="mt-2 text-footnote text-muted-foreground">
+              … e mais {importResult.skippedDetails.length - 10} linhas já cadastradas
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 3. Filters + export + add */}
+      <div className="flex flex-wrap items-center gap-2">
         <Select value={classFilter} onValueChange={setClassFilter}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Turma" />
@@ -471,85 +551,11 @@ export default function StudentsPage() {
           <UserPlus className="h-4 w-4 mr-2" />
           Cadastrar manualmente
         </Button>
-      </DashboardHeader>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setCsvDragging(true);
-          }}
-          onDragLeave={() => setCsvDragging(false)}
-          onDrop={handleCsvDrop}
-          className={`rounded-apple border-2 border-dashed p-6 flex flex-col items-center justify-center gap-2 min-h-[140px] transition-colors ${csvDragging ? "border-apple-blue bg-apple-blue/5" : "border-apple-gray-4"}`}
-        >
-          <Upload className="h-10 w-10 text-apple-blue" />
-          <p className="text-subhead font-medium">Importar CSV</p>
-          <p className="text-footnote text-muted-foreground text-center">
-            Arraste um arquivo ou use o botão abaixo. Colunas obrigatórias: aluno (ou nome), turma, matricula. Opcional: email, sala. Matrícula deve ser única.
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="tinted"
-              size="sm"
-              disabled={csvSubmitting}
-              onClick={() => document.getElementById("csv-upload")?.click()}
-            >
-              {csvSubmitting ? "Enviando…" : "Selecionar arquivo"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="h-4 w-4 mr-1" />
-              Modelo CSV
-            </Button>
-          </div>
-          <input
-            id="csv-upload"
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={handleCsvFileInput}
-            disabled={csvSubmitting}
-          />
-        </div>
-        {importResult && (
-          <div className="rounded-apple border border-apple-gray-4 bg-card p-4">
-            <p className="text-subhead font-medium mb-2">Resultado da importação</p>
-            <p className="text-footnote text-muted-foreground">
-              {importResult.created} alunos criados.
-              {importResult.failed > 0 && ` ${importResult.failed} falhas.`}
-              {importResult.skipped > 0 && ` ${importResult.skipped} ignorados (já cadastrados).`}
-            </p>
-            {importResult.errors.length > 0 && (
-              <ul className="mt-2 text-footnote text-muted-foreground list-disc list-inside max-h-32 overflow-y-auto">
-                {importResult.errors.slice(0, 10).map((err, i) => (
-                  <li key={i}>
-                    Linha {err.row}: {err.message}
-                  </li>
-                ))}
-                {importResult.errors.length > 10 && (
-                  <li>… e mais {importResult.errors.length - 10} erros</li>
-                )}
-              </ul>
-            )}
-            {importResult.skippedDetails.length > 0 && importResult.skippedDetails.length <= 10 && (
-              <ul className="mt-2 text-footnote text-muted-foreground list-disc list-inside max-h-24 overflow-y-auto">
-                {importResult.skippedDetails.map((s, i) => (
-                  <li key={i}>
-                    Linha {s.row}: {s.message}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {importResult.skippedDetails.length > 10 && (
-              <p className="mt-2 text-footnote text-muted-foreground">
-                … e mais {importResult.skippedDetails.length - 10} linhas já cadastradas
-              </p>
-            )}
-          </div>
-        )}
       </div>
 
-      <div className="rounded-apple border border-apple-gray-4 bg-card">
+      {/* 4. Students list */}
+
+      <div className="rounded-apple border border-apple-gray-4 bg-card overflow-hidden">
         {loading ? (
           <div className="p-6 space-y-4">
             <Skeleton className="h-10 w-full" />
@@ -563,6 +569,7 @@ export default function StudentsPage() {
             </p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -615,6 +622,7 @@ export default function StudentsPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </div>
 

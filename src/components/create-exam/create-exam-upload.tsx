@@ -31,6 +31,9 @@ import {
 } from "@/components/ui/tooltip";
 
 const TOTAL_TOKEN_LIMIT = 500000;
+// Display and limit use "words" as the unit (≈0.75 words per token)
+const TOKENS_TO_WORDS = 0.75;
+const TOTAL_WORD_LIMIT = Math.round(TOTAL_TOKEN_LIMIT * TOKENS_TO_WORDS);
 const API_URL = "https://lucida-api-production.up.railway.app";
 // const API_URL = "http://localhost:8080";
 
@@ -304,6 +307,7 @@ export function CreateExamUpload({
     );
 
     const totalTokensUsed = fileTokensUsed + youtubeTokensUsed;
+    const totalWordsUsed = Math.round(totalTokensUsed * TOKENS_TO_WORDS);
     const usagePercentage = Math.round(
       (totalTokensUsed / TOTAL_TOKEN_LIMIT) * 100
     );
@@ -312,6 +316,7 @@ export function CreateExamUpload({
 
     return {
       totalTokensUsed,
+      totalWordsUsed,
       fileTokensUsed,
       youtubeTokensUsed,
       usagePercentage: Math.min(usagePercentage, 100),
@@ -864,10 +869,8 @@ export function CreateExamUpload({
                             </span>
                           ) : youtubeTokens[url]?.tokens ? (
                             `≈${Math.round(
-                              youtubeTokens[url].tokens * 0.75
-                            ).toLocaleString()} palavras • ${youtubeTokens[
-                              url
-                            ].tokens.toLocaleString()} tokens`
+                              youtubeTokens[url].tokens * TOKENS_TO_WORDS
+                            ).toLocaleString()} palavras`
                           ) : (
                             "Vídeo do YouTube"
                           )}
@@ -947,8 +950,8 @@ export function CreateExamUpload({
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {uploadMetrics.totalTokensUsed.toLocaleString()} de{" "}
-                    {TOTAL_TOKEN_LIMIT.toLocaleString()} tokens utilizados
+                    {uploadMetrics.totalWordsUsed.toLocaleString()} de{" "}
+                    {TOTAL_WORD_LIMIT.toLocaleString()} palavras utilizadas
                   </p>
                 </div>
 
@@ -976,7 +979,7 @@ export function CreateExamUpload({
                                 {(file.size / 1024 / 1024).toFixed(1)} MB • ≈
                                 {Math.round(
                                   (fileTokens[file.name] ??
-                                    Math.ceil(file.size / 4)) * 0.75
+                                    Math.ceil(file.size / 4)) * TOKENS_TO_WORDS
                                 ).toLocaleString()}{" "}
                                 palavras
                               </div>
@@ -1036,10 +1039,8 @@ export function CreateExamUpload({
                                   </span>
                                 ) : youtubeTokens[url]?.tokens ? (
                                   `≈${Math.round(
-                                    youtubeTokens[url].tokens * 0.75
-                                  ).toLocaleString()} palavras • ${youtubeTokens[
-                                    url
-                                  ].tokens.toLocaleString()} tokens`
+                                    youtubeTokens[url].tokens * TOKENS_TO_WORDS
+                                  ).toLocaleString()} palavras`
                                 ) : (
                                   "Vídeo do YouTube"
                                 )}

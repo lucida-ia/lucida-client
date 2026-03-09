@@ -41,18 +41,18 @@ export function DashboardHeader({
   };
 
   return (
-    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-      <div className="grid gap-2">
+    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:gap-8">
+      <div className="grid gap-2 min-w-0 flex-1 md:min-w-[20rem] md:max-w-2xl">
         <h1 className="text-title-2 md:text-title-1 lg:text-large-title font-bold text-foreground">
           {heading}
         </h1>
         {text && (
-          <p className="text-subhead md:text-body text-muted-foreground">
+          <p className="text-subhead md:text-body text-muted-foreground max-w-xl">
             {text}
           </p>
         )}
       </div>
-      <div className="flex gap-2 items-center">
+      <div className="flex flex-wrap gap-2 items-center shrink-0">
         {isAdmin && (
           <div className="flex items-center gap-2 rounded-apple p-4 bg-card apple-shadow">
             <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
