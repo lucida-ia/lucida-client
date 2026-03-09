@@ -48,15 +48,16 @@ export async function GET(
     const exam = await Exam.findById((scan as any).examId)
       .select("title questions")
       .lean();
+    const examDoc = exam && !Array.isArray(exam) ? exam : null;
 
     const scanData = scan as any;
     const grading = scanData.grading || {};
     let questionResults = grading.questionResults;
 
     // Populate questionResults from answers + exam answer key when missing (e.g. scans saved with questionResults: [])
-    if ((!questionResults || questionResults.length === 0) && exam?.questions?.length && scanData.answers?.length) {
-      const answerKey = buildAnswerKey((exam as any).questions);
-      const totalQuestions = (exam as any).questions.length;
+    if ((!questionResults || questionResults.length === 0) && examDoc?.questions?.length && scanData.answers?.length) {
+      const answerKey = buildAnswerKey((examDoc as any).questions);
+      const totalQuestions = (examDoc as any).questions.length;
       questionResults = [];
       for (let qNum = 1; qNum <= totalQuestions; qNum++) {
         const answer = scanData.answers.find((a: any) => a.questionNumber === qNum);
@@ -136,7 +137,7 @@ export async function GET(
       status: "success",
       scan: {
         ...scanData,
-        examTitle: exam ? (exam as any).title : "Prova não encontrada",
+        examTitle: examDoc ? (examDoc as any).title : "Prova não encontrada",
         studentName: resolvedStudent?.name ?? null,
         studentEmail: resolvedStudent?.email ?? null,
         multi_marked_questions,
