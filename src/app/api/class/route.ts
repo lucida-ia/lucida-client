@@ -4,6 +4,7 @@ import { Exam } from "@/models/Exam";
 import { Result } from "@/models/Result";
 import { auth } from "@clerk/nextjs/server";
 import { getClerkIdentity } from "@/lib/clerk";
+import { resolveStudentsByCodeBatch } from "@/lib/student-resolve";
 
 import { NextRequest, NextResponse } from "next/server";
 import { Class } from "@/models/Class";
@@ -70,16 +71,46 @@ export async function GET(request: NextRequest) {
 
     const results = await Result.find({
       classId: { $in: classes.map((c) => c._id) },
-    });
+    }).lean();
 
-    const payload = classes.map((c) => ({
-      name: c.name,
-      description: c.description || "",
-      id: c._id,
-      createdAt: c.createdAt,
-      updatedAt: c.updatedAt,
-      results: results.filter((r) => r.classId === c.id),
+    const needStudentName = results.filter(
+      (r: any) =>
+        !r.studentName &&
+        r.email &&
+        /^\d+@student\.local$/.test(String(r.email))
+    );
+    const pairs = needStudentName.map((r: any) => ({
+      classId: String(r.classId),
+      code: String(r.email).replace("@student.local", ""),
     }));
+    const studentNameMap = await resolveStudentsByCodeBatch(targetUserId, pairs);
+
+    const payload = classes.map((c: any) => {
+      const classResults = results
+        .filter((r: any) => String(r.classId) === String(c._id))
+        .map((r: any) => {
+          const plain = { ...r };
+          if (
+            !plain.studentName &&
+            plain.email &&
+            /^\d+@student\.local$/.test(String(plain.email))
+          ) {
+            const code = String(plain.email).replace("@student.local", "");
+            const key = `${plain.classId}:${code}`;
+            const resolved = studentNameMap.get(key);
+            if (resolved) plain.studentName = resolved.name;
+          }
+          return plain;
+        });
+      return {
+        name: c.name,
+        description: c.description || "",
+        id: c._id,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        results: classResults,
+      };
+    });
 
     return NextResponse.json({
       status: "success",

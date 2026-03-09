@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   Folder,
+  FolderPlus,
   Settings,
   CreditCard,
   LogOut,
@@ -17,11 +18,13 @@ import {
   MoonIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Menu,
   HelpCircle,
   FileCheck,
   BarChart3,
   ClipboardCheck,
+  ScanLine,
 } from "lucide-react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -67,8 +70,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import axios from "axios";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-type NavItem = {
+// Nav link (leaf item with href)
+type NavLink = {
   title: string;
   href: string;
   icon: React.ReactNode;
@@ -77,9 +86,59 @@ type NavItem = {
   isNew?: boolean;
 };
 
-// Export navigation items for reuse in mobile component
+// Nav group (section with children)
+type NavGroup = {
+  title: string;
+  icon: React.ReactNode;
+  role?: string[];
+  children: NavLink[];
+};
+
+export type NavItem = NavLink | NavGroup;
+
+export function isNavGroup(item: NavItem): item is NavGroup {
+  return "children" in item && Array.isArray((item as NavGroup).children);
+}
+
+// Flatten tree to list of links (for collapsed sidebar and mobile)
+export function flattenNavItems(items: NavItem[], role: string): NavLink[] {
+  return items.flatMap((item) => {
+    if (isNavGroup(item)) {
+      const visible = !item.role || item.role.includes(role);
+      if (!visible) return [];
+      return item.children.filter(
+        (c) => !c.role || c.role.includes(role)
+      );
+    }
+    const visible = !item.role || item.role.includes(role);
+    return visible ? [item] : [];
+  });
+}
+
+// Filter tree by role (groups with no visible children removed)
+function filterNavItemsByRole(items: NavItem[], role: string): NavItem[] {
+  return items.flatMap((item): NavItem[] => {
+    if (isNavGroup(item)) {
+      const groupVisible = !item.role || item.role.includes(role);
+      if (!groupVisible) return [];
+      const filteredChildren = item.children.filter(
+        (c) => !c.role || c.role.includes(role)
+      );
+      if (filteredChildren.length === 0) return [];
+      return [{ ...item, children: filteredChildren }];
+    }
+    const visible = !item.role || item.role.includes(role);
+    return visible ? [item] : [];
+  });
+}
+
+// Export navigation items (tree) for reuse in mobile component
 export function useNavItems() {
   const { shouldHideBilling, subscription } = useSubscription();
+
+  const plan = subscription?.plan;
+  const currentRole: string =
+    plan === "admin" ? "admin" : plan === "trial" ? "teacher" : "teacher";
 
   const allNavItems: NavItem[] = [
     {
@@ -89,53 +148,78 @@ export function useNavItems() {
       role: ["admin", "student", "teacher"],
     },
     {
-      title: "Criar Avaliação",
-      href: "/dashboard/exams/create",
+      title: "Avaliações",
       icon: <FileText className="h-5 w-5" />,
       role: ["admin", "teacher"],
+      children: [
+        {
+          title: "Criar Avaliação",
+          href: "/dashboard/exams/create",
+          icon: <FileText className="h-4 w-4" />,
+        },
+        {
+          title: "Visualizar Avaliações",
+          href: "/dashboard/overview",
+          icon: <FileCheck className="h-4 w-4" />,
+        },
+        {
+          title: "Corrigir Avaliação",
+          href: "/dashboard/corrigir",
+          icon: <ClipboardCheck className="h-4 w-4" />,
+          role: ["admin"],
+        },
+        {
+          title: "Scanner OMR",
+          href: "/dashboard/scan",
+          icon: <ScanLine className="h-4 w-4" />,
+          isNew: true,
+        },
+      ],
     },
     {
-      title: "Minhas Avaliações",
-      href: "/dashboard/overview",
-      icon: <FileCheck className="h-5 w-5" />,
-      role: ["admin", "teacher"],
-    },
-    {
-      title: "Corrigir Avaliações",
-      href: "/dashboard/corrigir",
-      icon: <ClipboardCheck className="h-5 w-5" />,
-      role: ["admin"],
-    },
-    {
-      title: "Analytics",
+      title: "Resultados",
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,
       role: ["admin", "teacher"],
     },
     {
-      title: "Planos",
-      href: "/dashboard/billing",
-      icon: <CreditCard className="h-5 w-5" />,
-      disabled: shouldHideBilling,
-    },
-    {
-      title: "Ajuda",
-      href: "/dashboard/help",
-      icon: <HelpCircle className="h-5 w-5" />,
+      title: "Configurações",
+      icon: <Settings className="h-5 w-5" />,
+      children: [
+        {
+          title: "Alunos",
+          href: "/dashboard/students",
+          icon: <UsersRound className="h-4 w-4" />,
+          role: ["admin", "teacher"],
+        },
+        {
+          title: "Turmas",
+          href: "/dashboard/classes",
+          icon: <Folder className="h-4 w-4" />,
+          role: ["admin", "teacher"],
+        },
+        {
+          title: "Nova turma",
+          href: "/dashboard/classes/create",
+          icon: <FolderPlus className="h-4 w-4" />,
+          role: ["admin", "teacher"],
+        },
+        {
+          title: "Planos",
+          href: "/dashboard/billing",
+          icon: <CreditCard className="h-4 w-4" />,
+          disabled: shouldHideBilling,
+        },
+        {
+          title: "Ajuda",
+          href: "/dashboard/help",
+          icon: <HelpCircle className="h-4 w-4" />,
+        },
+      ],
     },
   ];
 
-  // Derive a simple role from subscription plan
-  const plan = subscription?.plan;
-  const currentRole: string =
-    plan === "admin" ? "admin" : plan === "trial" ? "teacher" : "teacher";
-
-  // Filter items by role if specified
-  const visibleNavItems = allNavItems.filter((item) => {
-    if (!item.role) return true;
-    return item.role.includes(currentRole);
-  });
-
+  const visibleNavItems = filterNavItemsByRole(allNavItems, currentRole);
   return visibleNavItems;
 }
 
@@ -154,6 +238,15 @@ export function DashboardNav() {
   const pathname = usePathname();
   const router = useRouter();
   const navItems = useNavItems();
+  const { subscription } = useSubscription();
+  const currentRole =
+    subscription?.plan === "admin" ? "admin" : "teacher";
+  const flatItems = flattenNavItems(navItems, currentRole);
+
+  const isChildActive = (group: NavGroup) =>
+    group.children.some(
+      (c) => pathname === c.href || pathname.startsWith(c.href + "/")
+    );
 
   const fetchUserData = useCallback(async () => {
     setLoading(true);
@@ -293,9 +386,10 @@ export function DashboardNav() {
               )}
 
               {userSubscription?.plan !== "trial" &&
-                navItems.map((item, index) => (
-                  <div key={index}>
-                    {isCollapsed ? (
+                (isCollapsed ? (
+                  // Collapsed: show flattened icon-only links
+                  flatItems.map((item, index) => (
+                    <div key={index}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -307,7 +401,8 @@ export function DashboardNav() {
                             variant="plain"
                             className={cn(
                               "w-full justify-center p-2 h-11 rounded-apple",
-                              pathname === item.href &&
+                              (pathname === item.href ||
+                                pathname.startsWith(item.href + "/")) &&
                                 "bg-apple-blue/10 text-apple-blue"
                             )}
                             asChild
@@ -330,51 +425,144 @@ export function DashboardNav() {
                                 Novidade
                               </span>
                             )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <Button
-                        disabled={
-                          item.disabled || userSubscription?.plan === "trial"
-                        }
-                        size="default"
-                        variant="plain"
-                        className={cn(
-                          "w-full justify-start gap-3 h-11 rounded-apple",
-                          pathname === item.href &&
-                            "bg-apple-blue/10 text-apple-blue"
-                        )}
-                        asChild
-                      >
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
-                            (item.disabled ||
-                              userSubscription?.plan === "trial") &&
-                              "opacity-50 cursor-not-allowed"
-                          )}
-                        >
-                          {item.icon}
-                          <span className="flex items-center gap-2">
-                            {item.title}
-                            {item.isNew && (
-                              <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
-                                Novidade
-                              </span>
-                            )}
                             {item.href === "/dashboard/corrigir" &&
                               pendingCount > 0 && (
-                                <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                <span className="rounded-full bg-orange-500 text-white text-xs font-medium px-1.5">
                                   {pendingCount}
                                 </span>
                               )}
-                          </span>
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  ))
+                ) : (
+                  // Expanded: show tree with collapsible groups
+                  navItems.map((item, index) => {
+                    if (isNavGroup(item)) {
+                      const open = isChildActive(item);
+                      return (
+                        <Collapsible
+                          key={index}
+                          defaultOpen={open}
+                          className="group/collapsible"
+                        >
+                          <CollapsibleTrigger asChild>
+                            <Button
+                              size="default"
+                              variant="plain"
+                              className={cn(
+                                "group/trigger w-full justify-between gap-2 h-11 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
+                                open && "text-foreground"
+                              )}
+                            >
+                              <span className="flex items-center gap-3">
+                                {item.icon}
+                                <span>{item.title}</span>
+                              </span>
+                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]/trigger:rotate-180" />
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-apple-gray-4 pl-3">
+                              {item.children.map((child, childIndex) => {
+                                const isActive =
+                                  pathname === child.href ||
+                                  pathname.startsWith(child.href + "/");
+                                const disabled =
+                                  child.disabled ||
+                                  userSubscription?.plan === "trial";
+                                return (
+                                  <Button
+                                    key={childIndex}
+                                    disabled={disabled}
+                                    size="default"
+                                    variant="plain"
+                                    className={cn(
+                                      "w-full justify-start gap-2 h-9 rounded-apple px-2 text-muted-foreground apple-transition hover:text-foreground",
+                                      isActive &&
+                                        "bg-apple-blue/10 text-apple-blue"
+                                    )}
+                                    asChild
+                                  >
+                                    <Link
+                                      href={child.href}
+                                      className={cn(
+                                        "flex items-center gap-2",
+                                        disabled &&
+                                          "opacity-50 cursor-not-allowed"
+                                      )}
+                                    >
+                                      {child.icon}
+                                      <span className="flex items-center gap-2 text-sm">
+                                        {child.title}
+                                        {child.isNew && (
+                                          <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                                            Novidade
+                                          </span>
+                                        )}
+                                        {child.href === "/dashboard/corrigir" &&
+                                          pendingCount > 0 && (
+                                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                              {pendingCount}
+                                            </span>
+                                          )}
+                                      </span>
+                                    </Link>
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
+                    }
+                    // Single link
+                    const link = item;
+                    const isActive =
+                      pathname === link.href ||
+                      pathname.startsWith(link.href + "/");
+                    const disabled =
+                      link.disabled || userSubscription?.plan === "trial";
+                    return (
+                      <div key={index}>
+                        <Button
+                          disabled={disabled}
+                          size="default"
+                          variant="plain"
+                          className={cn(
+                            "w-full justify-start gap-3 h-11 rounded-apple",
+                            isActive && "bg-apple-blue/10 text-apple-blue"
+                          )}
+                          asChild
+                        >
+                          <Link
+                            href={link.href}
+                            className={cn(
+                              "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
+                              disabled && "opacity-50 cursor-not-allowed"
+                            )}
+                          >
+                            {link.icon}
+                            <span className="flex items-center gap-2">
+                              {link.title}
+                              {link.isNew && (
+                                <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                                  Novidade
+                                </span>
+                              )}
+                              {link.href === "/dashboard/corrigir" &&
+                                pendingCount > 0 && (
+                                  <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                    {pendingCount}
+                                  </span>
+                                )}
+                            </span>
+                          </Link>
+                        </Button>
+                      </div>
+                    );
+                  })
                 ))}
             </nav>
           </div>

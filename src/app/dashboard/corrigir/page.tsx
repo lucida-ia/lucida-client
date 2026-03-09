@@ -45,6 +45,7 @@ interface PendingResult {
   examId: string;
   examTitle: string;
   email: string;
+  studentName?: string | null;
   score: number;
   percentage: number;
   examQuestionCount: number;
@@ -733,7 +734,9 @@ export default function CorrigirPage() {
                         {result.examTitle}
                       </CardTitle>
                       <CardDescription className="mt-1">
-                        Aluno: {result.email} • Enviado em {new Date(result.createdAt).toLocaleDateString()}
+                        Aluno: {result.studentName
+                          ? `${result.studentName} (${result.email?.endsWith("@student.local") ? result.email.replace("@student.local", "") : result.email})`
+                          : result.email} • Enviado em {new Date(result.createdAt).toLocaleDateString()}
                       </CardDescription>
                     </div>
                     <Badge variant="destructive">
@@ -744,7 +747,7 @@ export default function CorrigirPage() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      Nota atual: {result.score.toFixed(1)} / {result.examQuestionCount} ({(result.percentage * 100).toFixed(1)}%)
+                      Nota atual: {result.score.toFixed(1)} / {result.examQuestionCount} ({(result.percentage > 1 ? result.percentage : result.percentage * 100).toFixed(1)}%)
                     </div>
                     <Button onClick={() => selectResult(result)}>
                       <ClipboardCheck className="h-4 w-4 mr-2" />
