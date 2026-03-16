@@ -1,6 +1,5 @@
-"use server";
-
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -9,7 +8,15 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect();
+  const isProduction = process.env.NODE_ENV === "production";
+
+
+  if (isProtectedRoute(req)) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.redirect(isProduction ? "https://app.lucidaexam.com/sign-in" : "http://localhost:3000/sign-in");
+    }
+  }
 });
 
 export const config = {

@@ -196,6 +196,8 @@ export default function UnifiedOverviewPage() {
   const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Create class modal state
+  const [isCreateClassDialogOpen, setIsCreateClassDialogOpen] =
+    React.useState(false);
   const [newClassName, setNewClassName] = React.useState("");
   const [isCreatingClass, setIsCreatingClass] = React.useState(false);
 
@@ -494,6 +496,7 @@ export default function UnifiedOverviewPage() {
           title: "Turma criada com sucesso",
         });
         setNewClassName("");
+        setIsCreateClassDialogOpen(false);
         fetchData();
       }
     } catch (error) {
@@ -877,60 +880,13 @@ export default function UnifiedOverviewPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <Dialog>
-              <DialogTrigger asChild>
-                <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()}
-                  disabled={shouldDisableActions}
-                >
-                  <GraduationCap className="h-4 w-4 mr-2" />
-                  Nova Turma
-                </DropdownMenuItem>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-                    Criar Nova Turma
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-class-name">Nome da Turma</Label>
-                    <Input
-                      id="new-class-name"
-                      placeholder="Digite o nome da turma"
-                      value={newClassName}
-                      onChange={(e) => setNewClassName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <DialogClose asChild>
-                    <Button variant="outline" disabled={isCreatingClass}>
-                      Cancelar
-                    </Button>
-                  </DialogClose>
-                  <Button
-                    onClick={handleCreateClass}
-                    disabled={isCreatingClass || !newClassName.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {isCreatingClass ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                        Criando...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar Turma
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <DropdownMenuItem
+              onSelect={() => setIsCreateClassDialogOpen(true)}
+              disabled={shouldDisableActions}
+            >
+              <GraduationCap className="h-4 w-4 mr-2" />
+              Nova Turma
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => router.push("/dashboard/exams/create")}
               disabled={shouldDisableActions}
@@ -941,6 +897,67 @@ export default function UnifiedOverviewPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Create class dialog — rendered outside DropdownMenu to avoid focus capture */}
+      <Dialog
+        open={isCreateClassDialogOpen}
+        onOpenChange={(open) => {
+          setIsCreateClassDialogOpen(open);
+          if (!open) setNewClassName("");
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Criar Nova Turma
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-class-name">Nome da Turma</Label>
+              <Input
+                id="new-class-name"
+                placeholder="Digite o nome da turma"
+                value={newClassName}
+                onChange={(e) => setNewClassName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newClassName.trim()) {
+                    handleCreateClass();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              disabled={isCreatingClass}
+              onClick={() => setIsCreateClassDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateClass}
+              disabled={isCreatingClass || !newClassName.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isCreatingClass ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Turma
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Warning banner for trial users past one week */}
       {shouldDisableActions && <ExpiredTrialAlert />}

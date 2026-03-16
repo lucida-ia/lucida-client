@@ -106,9 +106,7 @@ export function flattenNavItems(items: NavItem[], role: string): NavLink[] {
     if (isNavGroup(item)) {
       const visible = !item.role || item.role.includes(role);
       if (!visible) return [];
-      return item.children.filter(
-        (c) => !c.role || c.role.includes(role)
-      );
+      return item.children.filter((c) => !c.role || c.role.includes(role));
     }
     const visible = !item.role || item.role.includes(role);
     return visible ? [item] : [];
@@ -122,7 +120,7 @@ function filterNavItemsByRole(items: NavItem[], role: string): NavItem[] {
       const groupVisible = !item.role || item.role.includes(role);
       if (!groupVisible) return [];
       const filteredChildren = item.children.filter(
-        (c) => !c.role || c.role.includes(role)
+        (c) => !c.role || c.role.includes(role),
       );
       if (filteredChildren.length === 0) return [];
       return [{ ...item, children: filteredChildren }];
@@ -227,7 +225,7 @@ export function DashboardNav() {
   const { theme, setTheme } = useTheme();
   const [isCollapsed, setIsCollapsed, isLoaded] = useLocalStorage(
     "navbar-collapsed",
-    false
+    false,
   );
   const { shouldHideBilling, loading: subscriptionLoading } = useSubscription();
   const { user } = useUser();
@@ -239,13 +237,12 @@ export function DashboardNav() {
   const router = useRouter();
   const navItems = useNavItems();
   const { subscription } = useSubscription();
-  const currentRole =
-    subscription?.plan === "admin" ? "admin" : "teacher";
+  const currentRole = subscription?.plan === "admin" ? "admin" : "teacher";
   const flatItems = flattenNavItems(navItems, currentRole);
 
   const isChildActive = (group: NavGroup) =>
     group.children.some(
-      (c) => pathname === c.href || pathname.startsWith(c.href + "/")
+      (c) => pathname === c.href || pathname.startsWith(c.href + "/"),
     );
 
   const fetchUserData = useCallback(async () => {
@@ -253,7 +250,7 @@ export function DashboardNav() {
     try {
       const asUser = getImpersonateUserId();
       const response = await axios.get(
-        "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "")
+        "/api/user" + (asUser ? `?asUser=${encodeURIComponent(asUser)}` : ""),
       );
 
       if (response.data.status === "success") {
@@ -316,7 +313,7 @@ export function DashboardNav() {
       <div
         className={cn(
           "hidden bg-apple-secondary-system-background lg:block sticky top-0 left-0 h-screen apple-transition-slow",
-          isCollapsed ? "w-16" : "w-64"
+          isCollapsed ? "w-16" : "w-64",
         )}
       >
         <div className="flex h-screen flex-col gap-2 pt-5">
@@ -324,7 +321,7 @@ export function DashboardNav() {
             {!isCollapsed && (
               <Link
                 href="/dashboard"
-                className="flex items-center space-x-2 w-24 ml-3"
+                className="flex items-center space-x-2 ml-3 w-3/4"
               >
                 <LucidaLogo />
               </Link>
@@ -343,7 +340,7 @@ export function DashboardNav() {
                           className={cn(
                             "w-full justify-center p-2 h-11 rounded-apple",
                             pathname === "/dashboard/billing" &&
-                              "bg-apple-blue/10 text-apple-blue"
+                              "bg-apple-blue/10 text-apple-blue",
                           )}
                           asChild
                         >
@@ -367,14 +364,14 @@ export function DashboardNav() {
                       className={cn(
                         "w-full justify-start gap-3 h-11 rounded-apple",
                         pathname === "/dashboard/billing" &&
-                          "bg-apple-blue/10 text-apple-blue"
+                          "bg-apple-blue/10 text-apple-blue",
                       )}
                       asChild
                     >
                       <Link
                         href="/dashboard/billing"
                         className={cn(
-                          "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground"
+                          "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
                         )}
                       >
                         <CreditCard className="h-5 w-5" />
@@ -386,184 +383,183 @@ export function DashboardNav() {
               )}
 
               {userSubscription?.plan !== "trial" &&
-                (isCollapsed ? (
-                  // Collapsed: show flattened icon-only links
-                  flatItems.map((item, index) => (
-                    <div key={index}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            disabled={
-                              item.disabled ||
-                              userSubscription?.plan === "trial"
-                            }
-                            size="icon"
-                            variant="plain"
-                            className={cn(
-                              "w-full justify-center p-2 h-11 rounded-apple",
-                              (pathname === item.href ||
-                                pathname.startsWith(item.href + "/")) &&
-                                "bg-apple-blue/10 text-apple-blue"
-                            )}
-                            asChild
-                          >
-                            <Link href={item.href} className="relative">
-                              <div className="relative flex items-center justify-center">
-                                {item.icon}
-                                {item.isNew && (
-                                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-apple-red" />
-                                )}
-                              </div>
-                            </Link>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <div className="flex items-center gap-2">
-                            <p>{item.title}</p>
-                            {item.isNew && (
-                              <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
-                                Novidade
-                              </span>
-                            )}
-                            {item.href === "/dashboard/corrigir" &&
-                              pendingCount > 0 && (
-                                <span className="rounded-full bg-orange-500 text-white text-xs font-medium px-1.5">
-                                  {pendingCount}
-                                </span>
-                              )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  ))
-                ) : (
-                  // Expanded: show tree with collapsible groups
-                  navItems.map((item, index) => {
-                    if (isNavGroup(item)) {
-                      const open = isChildActive(item);
-                      return (
-                        <Collapsible
-                          key={index}
-                          defaultOpen={open}
-                          className="group/collapsible"
-                        >
-                          <CollapsibleTrigger asChild>
+                (isCollapsed
+                  ? // Collapsed: show flattened icon-only links
+                    flatItems.map((item, index) => (
+                      <div key={index}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
                             <Button
-                              size="default"
+                              disabled={
+                                item.disabled ||
+                                userSubscription?.plan === "trial"
+                              }
+                              size="icon"
                               variant="plain"
                               className={cn(
-                                "group/trigger w-full justify-between gap-2 h-11 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
-                                open && "text-foreground"
+                                "w-full justify-center p-2 h-11 rounded-apple",
+                                (pathname === item.href ||
+                                  pathname.startsWith(item.href + "/")) &&
+                                  "bg-apple-blue/10 text-apple-blue",
                               )}
+                              asChild
                             >
-                              <span className="flex items-center gap-3">
-                                {item.icon}
-                                <span>{item.title}</span>
-                              </span>
-                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]/trigger:rotate-180" />
+                              <Link href={item.href} className="relative">
+                                <div className="relative flex items-center justify-center">
+                                  {item.icon}
+                                  {item.isNew && (
+                                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-apple-red" />
+                                  )}
+                                </div>
+                              </Link>
                             </Button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-apple-gray-4 pl-3">
-                              {item.children.map((child, childIndex) => {
-                                const isActive =
-                                  pathname === child.href ||
-                                  pathname.startsWith(child.href + "/");
-                                const disabled =
-                                  child.disabled ||
-                                  userSubscription?.plan === "trial";
-                                return (
-                                  <Button
-                                    key={childIndex}
-                                    disabled={disabled}
-                                    size="default"
-                                    variant="plain"
-                                    className={cn(
-                                      "w-full justify-start gap-2 h-9 rounded-apple px-2 text-muted-foreground apple-transition hover:text-foreground",
-                                      isActive &&
-                                        "bg-apple-blue/10 text-apple-blue"
-                                    )}
-                                    asChild
-                                  >
-                                    <Link
-                                      href={child.href}
-                                      className={cn(
-                                        "flex items-center gap-2",
-                                        disabled &&
-                                          "opacity-50 cursor-not-allowed"
-                                      )}
-                                    >
-                                      {child.icon}
-                                      <span className="flex items-center gap-2 text-sm">
-                                        {child.title}
-                                        {child.isNew && (
-                                          <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
-                                            Novidade
-                                          </span>
-                                        )}
-                                        {child.href === "/dashboard/corrigir" &&
-                                          pendingCount > 0 && (
-                                            <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
-                                              {pendingCount}
-                                            </span>
-                                          )}
-                                      </span>
-                                    </Link>
-                                  </Button>
-                                );
-                              })}
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      );
-                    }
-                    // Single link
-                    const link = item;
-                    const isActive =
-                      pathname === link.href ||
-                      pathname.startsWith(link.href + "/");
-                    const disabled =
-                      link.disabled || userSubscription?.plan === "trial";
-                    return (
-                      <div key={index}>
-                        <Button
-                          disabled={disabled}
-                          size="default"
-                          variant="plain"
-                          className={cn(
-                            "w-full justify-start gap-3 h-11 rounded-apple",
-                            isActive && "bg-apple-blue/10 text-apple-blue"
-                          )}
-                          asChild
-                        >
-                          <Link
-                            href={link.href}
-                            className={cn(
-                              "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
-                              disabled && "opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            {link.icon}
-                            <span className="flex items-center gap-2">
-                              {link.title}
-                              {link.isNew && (
-                                <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <div className="flex items-center gap-2">
+                              <p>{item.title}</p>
+                              {item.isNew && (
+                                <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide">
                                   Novidade
                                 </span>
                               )}
-                              {link.href === "/dashboard/corrigir" &&
+                              {item.href === "/dashboard/corrigir" &&
                                 pendingCount > 0 && (
-                                  <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                  <span className="rounded-full bg-orange-500 text-white text-xs font-medium px-1.5">
                                     {pendingCount}
                                   </span>
                                 )}
-                            </span>
-                          </Link>
-                        </Button>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
-                    );
-                  })
-                ))}
+                    ))
+                  : // Expanded: show tree with collapsible groups
+                    navItems.map((item, index) => {
+                      if (isNavGroup(item)) {
+                        const open = isChildActive(item);
+                        return (
+                          <Collapsible
+                            key={index}
+                            defaultOpen={open}
+                            className="group/collapsible"
+                          >
+                            <CollapsibleTrigger asChild>
+                              <Button
+                                size="default"
+                                variant="plain"
+                                className={cn(
+                                  "group/trigger w-full justify-between gap-2 h-11 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
+                                  open && "text-foreground",
+                                )}
+                              >
+                                <span className="flex items-center gap-3">
+                                  {item.icon}
+                                  <span>{item.title}</span>
+                                </span>
+                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]/trigger:rotate-180" />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-apple-gray-4 pl-3">
+                                {item.children.map((child, childIndex) => {
+                                  const isActive =
+                                    pathname === child.href ||
+                                    pathname.startsWith(child.href + "/");
+                                  const disabled =
+                                    child.disabled ||
+                                    userSubscription?.plan === "trial";
+                                  return (
+                                    <Button
+                                      key={childIndex}
+                                      disabled={disabled}
+                                      size="default"
+                                      variant="plain"
+                                      className={cn(
+                                        "w-full justify-start gap-2 h-9 rounded-apple px-2 text-muted-foreground apple-transition hover:text-foreground",
+                                        isActive &&
+                                          "bg-apple-blue/10 text-apple-blue",
+                                      )}
+                                      asChild
+                                    >
+                                      <Link
+                                        href={child.href}
+                                        className={cn(
+                                          "flex items-center gap-2",
+                                          disabled &&
+                                            "opacity-50 cursor-not-allowed",
+                                        )}
+                                      >
+                                        {child.icon}
+                                        <span className="flex items-center gap-2 text-sm">
+                                          {child.title}
+                                          {child.isNew && (
+                                            <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                                              Novidade
+                                            </span>
+                                          )}
+                                          {child.href ===
+                                            "/dashboard/corrigir" &&
+                                            pendingCount > 0 && (
+                                              <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                                {pendingCount}
+                                              </span>
+                                            )}
+                                        </span>
+                                      </Link>
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      }
+                      // Single link
+                      const link = item;
+                      const isActive =
+                        pathname === link.href ||
+                        pathname.startsWith(link.href + "/");
+                      const disabled =
+                        link.disabled || userSubscription?.plan === "trial";
+                      return (
+                        <div key={index}>
+                          <Button
+                            disabled={disabled}
+                            size="default"
+                            variant="plain"
+                            className={cn(
+                              "w-full justify-start gap-3 h-11 rounded-apple",
+                              isActive && "bg-apple-blue/10 text-apple-blue",
+                            )}
+                            asChild
+                          >
+                            <Link
+                              href={link.href}
+                              className={cn(
+                                "flex items-center gap-3 rounded-apple px-3 py-2 text-muted-foreground apple-transition hover:text-foreground",
+                                disabled && "opacity-50 cursor-not-allowed",
+                              )}
+                            >
+                              {link.icon}
+                              <span className="flex items-center gap-2">
+                                {link.title}
+                                {link.isNew && (
+                                  <span className="inline-flex items-center rounded-full bg-apple-red text-white text-caption-2 font-semibold px-2 py-0.5 tracking-wide animate-pulse">
+                                    Novidade
+                                  </span>
+                                )}
+                                {link.href === "/dashboard/corrigir" &&
+                                  pendingCount > 0 && (
+                                    <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-medium px-1.5 shadow-sm border border-orange-200/20 animate-pulse">
+                                      {pendingCount}
+                                    </span>
+                                  )}
+                              </span>
+                            </Link>
+                          </Button>
+                        </div>
+                      );
+                    }))}
             </nav>
           </div>
           <div className="mt-auto p-4">
