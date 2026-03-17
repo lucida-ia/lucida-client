@@ -156,7 +156,7 @@ export function useNavItems() {
           icon: <FileText className="h-4 w-4" />,
         },
         {
-          title: "Visualizar Avaliações",
+          title: "Minhas Avaliações",
           href: "/dashboard/overview",
           icon: <FileCheck className="h-4 w-4" />,
         },
@@ -167,7 +167,7 @@ export function useNavItems() {
           role: ["admin"],
         },
         {
-          title: "Scanner OMR",
+          title: "Scanner",
           href: "/dashboard/scan",
           icon: <ScanLine className="h-4 w-4" />,
           isNew: false,
