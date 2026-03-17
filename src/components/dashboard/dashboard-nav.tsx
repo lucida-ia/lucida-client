@@ -170,7 +170,7 @@ export function useNavItems() {
           title: "Scanner OMR",
           href: "/dashboard/scan",
           icon: <ScanLine className="h-4 w-4" />,
-          isNew: true,
+          isNew: false,
         },
       ],
     },
@@ -194,12 +194,6 @@ export function useNavItems() {
           title: "Turmas",
           href: "/dashboard/classes",
           icon: <Folder className="h-4 w-4" />,
-          role: ["admin", "teacher"],
-        },
-        {
-          title: "Nova turma",
-          href: "/dashboard/classes/create",
-          icon: <FolderPlus className="h-4 w-4" />,
           role: ["admin", "teacher"],
         },
         {

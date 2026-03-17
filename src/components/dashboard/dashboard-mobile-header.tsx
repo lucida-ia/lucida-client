@@ -37,7 +37,7 @@ export function DashboardMobileHeader() {
         console.error("Failed to fetch pending count:", error);
       }
     };
-    
+
     fetchPendingCount();
     // Refresh count every 30 seconds
     const interval = setInterval(fetchPendingCount, 30000);
@@ -132,7 +132,7 @@ export function DashboardMobileHeader() {
                                 isActive &&
                                   "bg-apple-blue/10 text-apple-blue font-medium dark:bg-apple-blue/20",
                                 child.disabled &&
-                                  "opacity-50 cursor-not-allowed pointer-events-none"
+                                  "opacity-50 cursor-not-allowed pointer-events-none",
                               )}
                             >
                               {child.icon}
@@ -170,7 +170,7 @@ export function DashboardMobileHeader() {
                         isActive &&
                           "bg-apple-blue/10 text-apple-blue font-medium dark:bg-apple-blue/20",
                         link.disabled &&
-                          "opacity-50 cursor-not-allowed pointer-events-none"
+                          "opacity-50 cursor-not-allowed pointer-events-none",
                       )}
                     >
                       {link.icon}
