@@ -1,5 +1,32 @@
-import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  AlignmentType,
+  BorderStyle,
+} from "docx";
 import { DBExam } from "@/types/exam";
+
+const OMR_ANSWERSHEET_URL = "/omr-answersheet.png";
+
+async function downloadAnswerSheet(examTitle: string): Promise<void> {
+  try {
+    const res = await fetch(OMR_ANSWERSHEET_URL);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${examTitle}_folha_respostas.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch {
+    // Silently skip if answer sheet fails to download
+  }
+}
 
 export const exportSimplifiedGabarito = async (exam: DBExam) => {
   try {
@@ -332,6 +359,8 @@ export const exportExamToWord = async (
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+
+    await downloadAnswerSheet(exam.title);
 
     return true;
   } catch (error) {
