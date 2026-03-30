@@ -163,6 +163,39 @@ export function CameraScanner({
     };
   }, [startCamera]);
 
+  // When returning from the permission-denied screen, <video> was not mounted during
+  // startCamera — attach the live stream once the preview is in the tree.
+  useEffect(() => {
+    if (hasPermission !== true || capturedImage || !mountedRef.current) return;
+
+    const stream = streamRef.current;
+    const video = videoRef.current;
+    if (!stream || !video) return;
+    if (video.srcObject === stream) return;
+
+    video.srcObject = stream;
+
+    const playWhenReady = () => {
+      if (!mountedRef.current || !videoRef.current) return;
+      void videoRef.current.play().catch((e) => console.error("Video play:", e));
+    };
+
+    const onLoadedMetadata = () => {
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      playWhenReady();
+    };
+
+    video.addEventListener("loadedmetadata", onLoadedMetadata);
+    if (video.readyState >= 1) {
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      playWhenReady();
+    }
+
+    return () => {
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+    };
+  }, [hasPermission, capturedImage]);
+
   // Toggle flash
   const toggleFlash = useCallback(async () => {
     if (!streamRef.current || !hasFlash) return;
@@ -284,18 +317,7 @@ export function CameraScanner({
     setCapturedImage(null);
   }, []);
 
-  // Render initializing state
-  if (isInitializing && hasPermission === null) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-6">
-        <div className="text-center text-white">
-          <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Iniciando câmera...</h2>
-          <p className="text-gray-400">Aguarde enquanto acessamos a câmera</p>
-        </div>
-      </div>
-    );
-  }
+  const cameraReady = hasPermission === true && !isInitializing;
 
   // Render permission denied state
   if (hasPermission === false) {
@@ -412,17 +434,28 @@ export function CameraScanner({
 
         {/* Processing overlay */}
         {isProcessing && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+          <div className="absolute inset-0 z-[90] bg-black/70 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p>Processando folha de respostas...</p>
             </div>
           </div>
         )}
+
+        {/* Initial camera permission / stream attach — video stays mounted underneath */}
+        {isInitializing && hasPermission === null && (
+          <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black p-6">
+            <div className="text-center text-white">
+              <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Iniciando câmera...</h2>
+              <p className="text-gray-400">Aguarde enquanto acessamos a câmera</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top controls */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center">
+      <div className="absolute top-0 left-0 right-0 z-[110] p-4 flex justify-between items-center">
         <Button
           onClick={onClose}
           variant="ghost"
@@ -439,6 +472,7 @@ export function CameraScanner({
                 onClick={toggleFlash}
                 variant="ghost"
                 size="icon"
+                disabled={!cameraReady}
                 className={cn(
                   "text-white bg-black/30 hover:bg-black/50",
                   flashEnabled && "bg-yellow-500/50"
@@ -455,6 +489,7 @@ export function CameraScanner({
               onClick={switchCamera}
               variant="ghost"
               size="icon"
+              disabled={!cameraReady}
               className="text-white bg-black/30 hover:bg-black/50"
             >
               <SwitchCamera className="w-6 h-6" />
@@ -492,7 +527,7 @@ export function CameraScanner({
             <button
               onClick={captureImage}
               className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center"
-              disabled={isProcessing}
+              disabled={isProcessing || !cameraReady}
             >
               <div className="w-14 h-14 rounded-full bg-white" />
             </button>

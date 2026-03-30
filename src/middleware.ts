@@ -14,7 +14,10 @@ export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.redirect(isProduction ? "https://app.lucidaexam.com/sign-in" : "http://localhost:3000/sign-in");
+      const signInUrl = isProduction
+        ? "https://app.lucidaexam.com/sign-in"
+        : new URL("/sign-in", req.url);
+      return NextResponse.redirect(signInUrl);
     }
   }
 });

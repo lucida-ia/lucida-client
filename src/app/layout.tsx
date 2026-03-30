@@ -21,13 +21,22 @@ export const metadata: Metadata = {
   description: "Economize horas de preparação e crie avaliações melhores.",
 };
 
+const clerkAllowedRedirectOrigins = process.env.NEXT_PUBLIC_CLERK_ALLOWED_ORIGIN
+  ? process.env.NEXT_PUBLIC_CLERK_ALLOWED_ORIGIN.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  : undefined;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider localization={localization}>
+    <ClerkProvider
+      localization={localization}
+      allowedRedirectOrigins={clerkAllowedRedirectOrigins}
+    >
       <html lang="pt-BR">
         <Analytics />
         <SpeedInsights />
