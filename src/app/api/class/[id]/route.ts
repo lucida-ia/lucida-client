@@ -8,6 +8,19 @@ import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
+/** Matches Class schema; explicit type fixes broken Mongoose lean() inference on this model. */
+type ClassLeanDoc = {
+  name: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type ExamLastLean = {
+  createdAt: Date;
+  title: string;
+};
+
 export async function GET(
   _request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -47,7 +60,7 @@ export async function GET(
     const classDoc = await Class.findOne({
       _id: rawId,
       userId: requester.id,
-    }).lean();
+    }).lean<ClassLeanDoc | null>();
 
     if (!classDoc) {
       return NextResponse.json(
@@ -56,14 +69,17 @@ export async function GET(
       );
     }
 
-    const idStr = String(classDoc._id);
+    const idStr = rawId;
     const [examCount, studentCount, lastExam] = await Promise.all([
       Exam.countDocuments({ classId: idStr }),
       Student.countDocuments({
         classId: new mongoose.Types.ObjectId(idStr),
         userId: requester.id,
       }),
-      Exam.findOne({ classId: idStr }).sort({ createdAt: -1 }).select("createdAt title").lean(),
+      Exam.findOne({ classId: idStr })
+        .sort({ createdAt: -1 })
+        .select("createdAt title")
+        .lean<ExamLastLean | null>(),
     ]);
 
     return NextResponse.json({
