@@ -45,6 +45,8 @@ type QuestionType = {
 
 type DBExam = {
   _id: string;
+  /** ObjectId string of the parent class (turma). */
+  classId: string;
   title: string;
   description: string;
   duration: number;

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getImpersonateUserId } from "@/lib/utils";
+import type { Question } from "@/types/exam";
 
 export interface Result {
   _id: string;
@@ -16,10 +17,11 @@ export interface Result {
 
 export interface ExamData {
   _id: string;
+  classId: string;
   title: string;
   description?: string;
   duration: number;
-  questions: unknown[];
+  questions: Question[];
   createdAt: Date;
   updatedAt: Date;
   results: Result[];

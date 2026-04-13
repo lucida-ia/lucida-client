@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Upload, Settings, Eye } from "lucide-react";
 
-export default function CreateExamPage() {
+function CreateExamPageContent() {
   const [activeTab, setActiveTab] = useState("upload");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [youtubeUrls, setYoutubeUrls] = useState<string[]>([]);
@@ -329,5 +329,20 @@ export default function CreateExamPage() {
         </TabsContent>
       </Tabs>
     </>
+  );
+}
+
+export default function CreateExamPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto p-6">
+          <div className="h-10 w-72 bg-muted animate-pulse rounded mb-4" />
+          <div className="h-96 bg-muted animate-pulse rounded-lg" />
+        </div>
+      }
+    >
+      <CreateExamPageContent />
+    </Suspense>
   );
 }

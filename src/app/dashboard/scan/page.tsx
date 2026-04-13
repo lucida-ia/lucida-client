@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { Suspense, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,7 +55,7 @@ interface ScanResult {
   processingTimeMs: number;
 }
 
-export default function ScanPage() {
+function ScanPageContent() {
   const searchParams = useSearchParams();
   const examIdFromQuery = searchParams.get("examId");
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
@@ -373,5 +373,21 @@ export default function ScanPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ScanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto p-4 md:p-6 max-w-4xl">
+          <div className="h-8 w-64 bg-muted animate-pulse rounded mb-2" />
+          <div className="h-4 w-full max-w-xl bg-muted animate-pulse rounded mb-6" />
+          <div className="h-48 bg-muted animate-pulse rounded-lg" />
+        </div>
+      }
+    >
+      <ScanPageContent />
+    </Suspense>
   );
 }

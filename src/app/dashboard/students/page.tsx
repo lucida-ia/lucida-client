@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,7 @@ interface StudentItem {
 const TEMPLATE_CSV =
   "aluno,turma,email,matricula\nMaria Silva,3º Ano A,maria@escola.edu,1001\nJoão Santos,3º Ano A,joao@escola.edu,1002\nAna Costa,3º Ano B,ana@escola.edu,1003";
 
-export default function StudentsPage() {
+function StudentsPageContent() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const classIdFromUrl = searchParams.get("classId");
@@ -1183,5 +1183,20 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function StudentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto p-6 space-y-4">
+          <Skeleton className="h-10 w-full max-w-md" />
+          <Skeleton className="h-64 w-full rounded-lg" />
+        </div>
+      }
+    >
+      <StudentsPageContent />
+    </Suspense>
   );
 }

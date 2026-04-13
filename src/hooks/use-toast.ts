@@ -139,6 +139,9 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">;
 
+/** Arguments accepted by `toast()` from `useToast()` (title/description, not Radix `Toast` props). */
+export type ToastPayload = Toast;
+
 function toast({ ...props }: Toast) {
   const id = genId();
 

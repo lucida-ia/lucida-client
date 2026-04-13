@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import { Share2 } from "lucide-react";
 import type { ExamData } from "@/lib/fetch-unified-overview-data";
-import type { ToastProps } from "@/hooks/use-toast";
+import type { ToastPayload } from "@/hooks/use-toast";
 
 interface ShareExamContentProps {
   exam: ExamData;
-  toast: (props: ToastProps) => void;
+  toast: (props: ToastPayload) => void;
 }
 
 export function ShareExamContent({ exam, toast }: ShareExamContentProps) {

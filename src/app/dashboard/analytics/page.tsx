@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -65,7 +65,7 @@ function ExamCardSkeleton() {
   );
 }
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
   const [exams, setExams] = useState<ExamData[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -382,5 +382,27 @@ export default function AnalyticsPage() {
         )}
       </UpgradeOverlay>
     </>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense
+      fallback={
+        <>
+          <DashboardHeader
+            heading="Analytics das Provas"
+            text="Visualize dados detalhados e estatísticas das suas avaliações"
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ExamCardSkeleton key={i} />
+            ))}
+          </div>
+        </>
+      }
+    >
+      <AnalyticsPageContent />
+    </Suspense>
   );
 }
