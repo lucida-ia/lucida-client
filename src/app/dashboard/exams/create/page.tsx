@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -53,6 +53,29 @@ export default function CreateExamPage() {
 
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const classIdFromQuery = searchParams.get("classId");
+
+  useEffect(() => {
+    if (!classIdFromQuery) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await axios.get(`/api/class/${classIdFromQuery}`);
+        if (cancelled || res.data.status !== "success") return;
+        const d = res.data.data;
+        setExamConfig((prev) => ({
+          ...prev,
+          class: { _id: d.id, name: d.name },
+        }));
+      } catch {
+        /* invalid class id — ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [classIdFromQuery]);
 
   // Fetch user data to check trial status
   useEffect(() => {
@@ -281,6 +304,7 @@ export default function CreateExamPage() {
             </div>
           ) : (
             <CreateExamCustomize
+              key={`${examConfig.class._id}-${examConfig.class.name}`}
               files={uploadedFiles}
               initialConfig={examConfig}
               onConfigured={handleExamConfigured}

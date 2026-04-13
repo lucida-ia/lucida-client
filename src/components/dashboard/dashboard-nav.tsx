@@ -8,23 +8,19 @@ import {
   LayoutDashboard,
   FileText,
   Folder,
-  FolderPlus,
-  Settings,
   CreditCard,
-  LogOut,
-  UsersRound,
-  DotIcon,
   SunIcon,
   MoonIcon,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Menu,
   HelpCircle,
-  FileCheck,
   BarChart3,
   ClipboardCheck,
   ScanLine,
+  CirclePlus,
+  List,
+  CircleUser,
 } from "lucide-react";
 import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import LucidaLogo from "../lucida-logo";
@@ -146,31 +142,36 @@ export function useNavItems() {
       role: ["admin", "student", "teacher"],
     },
     {
-      title: "Avaliações",
+      title: "Turmas",
+      href: "/dashboard/turmas",
+      icon: <Folder className="h-5 w-5" />,
+      role: ["admin", "teacher"],
+    },
+    {
+      title: "Provas",
       icon: <FileText className="h-5 w-5" />,
       role: ["admin", "teacher"],
       children: [
         {
-          title: "Criar Avaliação",
+          title: "Nova prova",
           href: "/dashboard/exams/create",
-          icon: <FileText className="h-4 w-4" />,
+          icon: <CirclePlus className="h-4 w-4" />,
         },
         {
-          title: "Minhas Avaliações",
+          title: "Lista de provas",
           href: "/dashboard/overview",
-          icon: <FileCheck className="h-4 w-4" />,
-        },
-        {
-          title: "Corrigir Avaliação",
-          href: "/dashboard/corrigir",
-          icon: <ClipboardCheck className="h-4 w-4" />,
-          role: ["admin"],
+          icon: <List className="h-4 w-4" />,
         },
         {
           title: "Scanner",
           href: "/dashboard/scan",
           icon: <ScanLine className="h-4 w-4" />,
-          isNew: false,
+        },
+        {
+          title: "Corrigir",
+          href: "/dashboard/corrigir",
+          icon: <ClipboardCheck className="h-4 w-4" />,
+          role: ["admin"],
         },
       ],
     },
@@ -181,21 +182,10 @@ export function useNavItems() {
       role: ["admin", "teacher"],
     },
     {
-      title: "Configurações",
-      icon: <Settings className="h-5 w-5" />,
+      title: "Conta e suporte",
+      icon: <CircleUser className="h-5 w-5" />,
+      role: ["admin", "teacher"],
       children: [
-        {
-          title: "Alunos",
-          href: "/dashboard/students",
-          icon: <UsersRound className="h-4 w-4" />,
-          role: ["admin", "teacher"],
-        },
-        {
-          title: "Turmas",
-          href: "/dashboard/classes",
-          icon: <Folder className="h-4 w-4" />,
-          role: ["admin", "teacher"],
-        },
         {
           title: "Planos",
           href: "/dashboard/billing",
@@ -279,7 +269,11 @@ export function DashboardNav() {
   useEffect(() => {
     const fetchPendingCount = async () => {
       try {
-        const response = await fetch("/api/exam/results/pending-count");
+        const asUser = getImpersonateUserId();
+        const url =
+          "/api/exam/results/pending-count" +
+          (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "");
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setPendingCount(data.count || 0);

@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     const classes = await Class.find({ userId: user.id });
-    const classIds = classes.map((c) => c.id);
+    const classIds = classes.map((c) => String(c._id));
 
     // Get exams for user's classes
     const exams = await Exam.find({
@@ -60,7 +60,9 @@ export async function GET(request: NextRequest) {
     const examData = await Promise.all(
       exams.map(async (exam) => {
         const submissionCount = await Result.countDocuments({ examId: exam._id.toString() });
-        const className = classes.find((c) => c.id === exam.classId)?.name || "Turma Desconhecida";
+        const className =
+          classes.find((c) => String(c._id) === String(exam.classId))?.name ||
+          "Turma Desconhecida";
         
         return {
           id: exam._id,

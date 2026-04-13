@@ -65,52 +65,16 @@ import Link from "next/link";
 import { useSubscription } from "@/hooks/use-subscription";
 import { isTrialUserPastOneWeek } from "@/lib/utils";
 import { ExpiredTrialAlert } from "@/components/ui/expired-trial-alert";
+import { ShareExamContent } from "@/components/dashboard/share-exam-content";
+import {
+  fetchUnifiedOverviewData,
+  type ClassData,
+  type ExamData,
+  type Result,
+  type UnifiedOverviewPayload,
+} from "@/lib/fetch-unified-overview-data";
 
-// Types
-interface Result {
-  _id: string;
-  examId: string;
-  classId: string;
-  email: string;
-  studentName?: string | null;
-  score: number;
-  percentage: number;
-  examTitle: string;
-  examQuestionCount: number;
-  createdAt: Date;
-}
-
-interface ExamData {
-  _id: string;
-  title: string;
-  description?: string;
-  duration: number;
-  questions: any[];
-  createdAt: Date;
-  updatedAt: Date;
-  results: Result[];
-}
-
-interface ClassData {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  exams: ExamData[];
-  totalResults: number;
-  totalQuestions: number;
-}
-
-interface PageData {
-  classes: ClassData[];
-  summary: {
-    classes: number;
-    exams: number;
-    results: number;
-    questions: number;
-  };
-}
+type PageData = Omit<UnifiedOverviewPayload, "userData">;
 
 function PageSkeleton() {
   return (
@@ -257,76 +221,11 @@ export default function UnifiedOverviewPage() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const asUser = getImpersonateUserId();
-      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
-      const [examsResponse, resultsResponse, userResponse] = await Promise.all([
-        axios.get("/api/exam/all" + qs),
-        axios.get("/api/class" + qs),
-        axios.get("/api/user" + qs),
-      ]);
-
-      const classesData = examsResponse.data.data;
-      const classResults = resultsResponse.data.data;
-
-      // Set user data
-      setUserData(userResponse.data.data);
-
-      // Transform data to unified structure
-      const classes: ClassData[] = [];
-      let totalExams = 0;
-      let totalResults = 0;
-      let totalQuestions = 0;
-
-      classesData.forEach((classItem: any) => {
-        const classResultsData = classResults.find(
-          (cr: any) => cr.id === classItem.id
-        );
-
-        const examsWithResults: ExamData[] = classItem.exams.map(
-          (exam: any) => {
-            const examResults =
-              classResultsData?.results?.filter(
-                (result: Result) => result.examId === exam._id
-              ) || [];
-
-            return {
-              ...exam,
-              results: examResults,
-            };
-          }
-        );
-
-        const classData: ClassData = {
-          id: classItem.id,
-          name: classItem.name,
-          description: classResultsData?.description || "",
-          createdAt: classResultsData?.createdAt || new Date(),
-          updatedAt: classResultsData?.updatedAt || new Date(),
-          exams: examsWithResults,
-          totalResults: examsWithResults.reduce(
-            (acc, exam) => acc + exam.results.length,
-            0
-          ),
-          totalQuestions: examsWithResults.reduce(
-            (acc, exam) => acc + exam.questions.length,
-            0
-          ),
-        };
-
-        classes.push(classData);
-        totalExams += examsWithResults.length;
-        totalResults += classData.totalResults;
-        totalQuestions += classData.totalQuestions;
-      });
-
+      const payload = await fetchUnifiedOverviewData();
+      setUserData(payload.userData);
       setData({
-        classes,
-        summary: {
-          classes: classes.length,
-          exams: totalExams,
-          results: totalResults,
-          questions: totalQuestions,
-        },
+        classes: payload.classes,
+        summary: payload.summary,
       });
     } catch (error) {
       toast({
@@ -854,8 +753,8 @@ export default function UnifiedOverviewPage() {
       <>
         <div className="flex items-center justify-between">
           <DashboardHeader
-            heading="Minhas Avaliações"
-            text="Visão unificada de todas as suas turmas e provas"
+            heading="Todas as provas"
+            text="Visão global de todas as suas turmas e provas"
           />
         </div>
         <div className="mt-4">
@@ -869,8 +768,8 @@ export default function UnifiedOverviewPage() {
     <>
       <div className="flex items-center justify-between gap-4">
         <DashboardHeader
-          heading="Minhas Avaliações"
-          text="Visão unificada de todas as suas turmas e provas"
+          heading="Todas as provas"
+          text="Visão global de todas as suas turmas e provas"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -2110,246 +2009,5 @@ export default function UnifiedOverviewPage() {
         resultId={selectedResultId}
       />
     </>
-  );
-}
-
-// Share Exam Content Component
-interface ShareExamContentProps {
-  exam: ExamData;
-  toast: any;
-}
-
-function ShareExamContent({ exam, toast }: ShareExamContentProps) {
-  const [config, setConfig] = React.useState({
-    allowConsultation: false,
-    showScoreAtEnd: true,
-    showCorrectAnswersAtEnd: false,
-  });
-  const [isGenerating, setIsGenerating] = React.useState(false);
-
-  const handleConfigChange = (key: string, value: boolean) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const encodeConfig = (config: any): string => {
-    const configString = JSON.stringify(config);
-    return btoa(configString);
-  };
-
-  const shareOrCopyLink = async (
-    shareUrl: string
-  ): Promise<{ success: boolean; method: string }> => {
-    // Try Web Share API first (works great on Safari mobile)
-    if (
-      navigator.share &&
-      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-    ) {
-      try {
-        await navigator.share({
-          title: exam.title,
-          text: "Acesse esta prova:",
-          url: shareUrl,
-        });
-        return { success: true, method: "share" };
-      } catch (err) {
-        // User cancelled share or API failed
-        console.warn("Web Share API failed:", err);
-      }
-    }
-
-    // Try clipboard API with immediate execution (preserves user gesture)
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        return { success: true, method: "clipboard" };
-      } catch (err) {
-        console.warn("Modern clipboard API failed:", err);
-      }
-    }
-
-    // Fallback for older browsers
-    try {
-      // Store the currently focused element to restore focus later
-      const activeElement = document.activeElement as HTMLElement;
-
-      const textArea = document.createElement("textarea");
-      textArea.value = shareUrl;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      textArea.style.top = "-999999px";
-      textArea.style.opacity = "0";
-      textArea.style.pointerEvents = "none";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-
-      const successful = document.execCommand("copy");
-      document.body.removeChild(textArea);
-
-      // Restore focus to the previously focused element
-      if (activeElement && typeof activeElement.focus === "function") {
-        activeElement.focus();
-      }
-
-      if (successful) {
-        return { success: true, method: "execCommand" };
-      }
-    } catch (err) {
-      console.error("Fallback clipboard failed:", err);
-    }
-
-    return { success: false, method: "none" };
-  };
-
-  const handleGenerateLink = async () => {
-    try {
-      setIsGenerating(true);
-
-      // Generate the share URL first
-      const response = await axios.post("/api/exam/share", {
-        examId: exam._id,
-      });
-      const encodedConfig = encodeConfig(config);
-      const shareUrl = `${window.location.origin}/exam/${response.data.id}?c=${encodedConfig}`;
-
-      // Try to share or copy immediately (preserves user gesture)
-      const result = await shareOrCopyLink(shareUrl);
-
-      if (result.success) {
-        if (result.method === "share") {
-          toast({
-            title: "Prova Compartilhada!",
-            description: "O link da prova foi compartilhado com sucesso.",
-          });
-        } else {
-          toast({
-            title: "Link da Prova Copiado!",
-            description:
-              "O link da prova foi copiado com as configurações de segurança aplicadas.",
-          });
-        }
-        // Don't auto-close dialog, let user close manually
-      } else {
-        // Fallback: show the URL so user can copy manually
-        toast({
-          title: "Link da Prova Gerado!",
-          description: `Link: ${shareUrl}`,
-          duration: 15000, // Show longer so user can copy
-        });
-        // Don't auto-close dialog, let user close manually
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Falha ao gerar link de compartilhamento",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h3 className="font-medium text-gray-900 dark:text-zinc-100">
-          {exam.title}
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-zinc-400">
-          Configure as opções de segurança antes de compartilhar esta prova.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              Permitir consulta durante a prova
-            </p>
-            <p className="text-xs text-gray-500 dark:text-zinc-400">
-              Alunos podem acessar materiais de apoio durante a realização
-            </p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={config.allowConsultation}
-              onChange={(e) =>
-                handleConfigChange("allowConsultation", e.target.checked)
-              }
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Mostrar pontuação ao final</p>
-            <p className="text-xs text-gray-500 dark:text-zinc-400">
-              Exibir a nota final para o aluno após completar a prova
-            </p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={config.showScoreAtEnd}
-              onChange={(e) =>
-                handleConfigChange("showScoreAtEnd", e.target.checked)
-              }
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              Mostrar respostas corretas ao final
-            </p>
-            <p className="text-xs text-gray-500 dark:text-zinc-400">
-              Revelar as respostas corretas após a conclusão da prova
-            </p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={config.showCorrectAnswersAtEnd}
-              onChange={(e) =>
-                handleConfigChange("showCorrectAnswersAtEnd", e.target.checked)
-              }
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 justify-end pt-4 border-t">
-        <DialogClose asChild>
-          <Button variant="outline" disabled={isGenerating}>
-            Cancelar
-          </Button>
-        </DialogClose>
-        <Button
-          onClick={handleGenerateLink}
-          disabled={isGenerating}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          {isGenerating ? (
-            <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-              Gerando Link...
-            </>
-          ) : (
-            <>
-              <Share2 className="h-4 w-4 mr-2" />
-              Gerar Link
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
   );
 }

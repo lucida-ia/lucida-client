@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,6 +84,8 @@ const TEMPLATE_CSV =
 
 export default function StudentsPage() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const classIdFromUrl = searchParams.get("classId");
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [students, setStudents] = useState<StudentItem[]>([]);
   const [pagination, setPagination] = useState({
@@ -178,6 +181,13 @@ export default function StudentsPage() {
   }, [fetchClasses]);
 
   useEffect(() => {
+    if (classIdFromUrl) {
+      setClassFilter(classIdFromUrl);
+      setPagination((p) => ({ ...p, page: 1 }));
+    }
+  }, [classIdFromUrl]);
+
+  useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
 
@@ -196,7 +206,9 @@ export default function StudentsPage() {
   const openCreateModal = () => {
     setEditingStudent(null);
     setFormName("");
-    setFormClassId(classes[0]?.id ?? "");
+    setFormClassId(
+      classFilter !== "all" ? classFilter : classes[0]?.id ?? ""
+    );
     setFormEmail("");
     setFormMatricula("");
     setGeneratedCode(null);

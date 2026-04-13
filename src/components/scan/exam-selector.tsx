@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Select,
   SelectContent,
@@ -30,21 +30,44 @@ interface ExamSelectorProps {
   selectedExamId: string | null;
   onSelect: (examId: string, exam: Exam) => void;
   disabled?: boolean;
+  /** When set, selects this exam once the list has loaded (e.g. from ?examId= in the URL). */
+  initialExamId?: string | null;
 }
 
 export function ExamSelector({
   selectedExamId,
   onSelect,
   disabled = false,
+  initialExamId = null,
 }: ExamSelectorProps) {
   const [classes, setClasses] = useState<ClassWithExams[]>([]);
   const [allExams, setAllExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const appliedInitialRef = useRef(false);
+
+  useEffect(() => {
+    appliedInitialRef.current = false;
+  }, [initialExamId]);
 
   useEffect(() => {
     fetchExams();
   }, []);
+
+  useEffect(() => {
+    if (
+      appliedInitialRef.current ||
+      !initialExamId ||
+      loading ||
+      allExams.length === 0
+    )
+      return;
+    const ex = allExams.find((e) => e._id === initialExamId);
+    if (ex) {
+      appliedInitialRef.current = true;
+      onSelect(initialExamId, ex);
+    }
+  }, [initialExamId, loading, allExams, onSelect]);
 
   const fetchExams = async () => {
     try {

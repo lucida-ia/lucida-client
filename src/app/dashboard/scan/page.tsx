@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,6 +56,8 @@ interface ScanResult {
 }
 
 export default function ScanPage() {
+  const searchParams = useSearchParams();
+  const examIdFromQuery = searchParams.get("examId");
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -217,6 +220,7 @@ export default function ScanPage() {
             selectedExamId={selectedExam?._id || null}
             onSelect={handleExamSelect}
             disabled={isProcessing}
+            initialExamId={examIdFromQuery}
           />
         </CardContent>
       </Card>

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,8 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const classIdFilter = searchParams.get("classId");
   const { subscription, loading: subscriptionLoading } = useSubscription();
   const isTrialUser = subscription?.plan === "trial";
 
@@ -118,6 +121,14 @@ export default function AnalyticsPage() {
     router.push(`/dashboard/analytics/${examId}`);
   };
 
+  const visibleExams = React.useMemo(() => {
+    if (!classIdFilter) return exams;
+    return exams.filter((e) => String(e.classId) === String(classIdFilter));
+  }, [exams, classIdFilter]);
+
+  const examsWithSubmissions = visibleExams.filter((exam) => exam.hasAnalytics);
+  const examsWithoutSubmissions = visibleExams.filter((exam) => !exam.hasAnalytics);
+
   if (loading) {
     return (
       <>
@@ -135,9 +146,6 @@ export default function AnalyticsPage() {
     );
   }
 
-  const examsWithSubmissions = exams.filter((exam) => exam.hasAnalytics);
-  const examsWithoutSubmissions = exams.filter((exam) => !exam.hasAnalytics);
-
   return (
     <>
       <PromoDialog
@@ -146,8 +154,26 @@ export default function AnalyticsPage() {
       />
       <DashboardHeader
         heading="Analytics das Provas"
-        text="Visualize dados detalhados e estatísticas das suas avaliações"
+        text={
+          classIdFilter
+            ? "Mostrando apenas provas desta turma. Use o link abaixo para ver todas."
+            : "Visualize dados detalhados e estatísticas das suas avaliações"
+        }
       />
+
+      {classIdFilter && (
+        <div className="mt-4 flex flex-wrap gap-2 items-center text-sm">
+          <Badge variant="secondary">Filtro por turma</Badge>
+          <Button variant="link" className="h-auto p-0" asChild>
+            <Link href="/dashboard/analytics">Ver todas as provas</Link>
+          </Button>
+          <Button variant="link" className="h-auto p-0" asChild>
+            <Link href={`/dashboard/turmas/${classIdFilter}`}>
+              Abrir turma
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <UpgradeOverlay isBlocked={!subscriptionLoading && !!isTrialUser}>
         {exams.length === 0 ? (
@@ -168,6 +194,17 @@ export default function AnalyticsPage() {
                 size="lg"
               >
                 Criar Primeira Prova
+              </Button>
+            </CardContent>
+          </Card>
+        ) : visibleExams.length === 0 ? (
+          <Card className="mt-8">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <p className="text-subhead text-secondary-label text-center max-w-md mb-4">
+                Nenhuma prova desta turma para análise, ou o filtro não corresponde a nenhuma prova.
+              </p>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard/analytics">Ver todas as provas</Link>
               </Button>
             </CardContent>
           </Card>

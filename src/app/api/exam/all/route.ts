@@ -42,15 +42,19 @@ export async function GET(request: NextRequest) {
 
     const classes = await Class.find({ userId: user?.id });
 
+    const classIdStrings = classes.map((c) => String(c._id));
     const exams = await Exam.find({
-      classId: { $in: classes.map((c) => c.id) },
+      classId: { $in: classIdStrings },
     });
 
-    const payload = classes.map((c) => ({
-      name: c.name,
-      id: c._id,
-      exams: exams.filter((e) => e.classId === c.id),
-    }));
+    const payload = classes.map((c) => {
+      const cid = String(c._id);
+      return {
+        name: c.name,
+        id: c._id,
+        exams: exams.filter((e) => String(e.classId) === cid),
+      };
+    });
 
     return NextResponse.json({
       status: "success",

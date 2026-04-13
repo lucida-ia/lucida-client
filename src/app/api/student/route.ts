@@ -1,7 +1,9 @@
 import { connectToDB } from "@/lib/mongodb";
 import { Student } from "@/models/Student";
 import { Class } from "@/models/Class";
+import { User } from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
+import { getClerkIdentity } from "@/lib/clerk";
 import { NextRequest, NextResponse } from "next/server";
 import { generateUniqueStudentCode } from "@/lib/student-code";
 import mongoose from "mongoose";
@@ -22,6 +24,23 @@ export async function GET(request: NextRequest) {
     await connectToDB();
 
     const url = new URL(request.url);
+    const asUser = url.searchParams.get("asUser");
+
+    let requester = await User.findOne({ id: userId });
+    if (!requester) {
+      requester = new User({ id: userId });
+      requester.subscription.plan = "trial";
+      requester.subscription.status = "active";
+      requester.usage.examsThisPeriod = 0;
+      requester.usage.examsThisPeriodResetDate = new Date();
+      const { username, email } = await getClerkIdentity(userId);
+      if (username) requester.username = username;
+      if (email) requester.email = email;
+      await requester.save();
+    }
+    const isAdmin = requester.subscription?.plan === "admin";
+    const targetUserId = isAdmin && asUser ? asUser : userId;
+
     const classId = url.searchParams.get("classId");
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
     const limit = Math.min(
@@ -30,10 +49,10 @@ export async function GET(request: NextRequest) {
     );
 
     const filter: { userId: string; classId?: mongoose.Types.ObjectId } = {
-      userId,
+      userId: targetUserId,
     };
     if (classId) {
-      const classExists = await Class.findOne({ _id: classId, userId });
+      const classExists = await Class.findOne({ _id: classId, userId: targetUserId });
       if (!classExists) {
         return NextResponse.json(
           { status: "error", message: "Turma não encontrada" },

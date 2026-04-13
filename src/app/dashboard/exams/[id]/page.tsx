@@ -397,9 +397,7 @@ export default function ExamPreviewPage() {
             A prova que você está procurando não existe ou foi removida.
           </p>
           <Button asChild variant="tinted" className="mt-6">
-            <Link href="/dashboard/overview">
-              Voltar para Minhas Avaliações
-            </Link>
+            <Link href="/dashboard/turmas">Voltar às turmas</Link>
           </Button>
         </div>
       </div>
@@ -435,9 +433,15 @@ export default function ExamPreviewPage() {
 
           {!editingExamDetails && (
             <Button variant="outline" asChild>
-              <Link href="/dashboard/overview">
+              <Link
+                href={
+                  exam.classId
+                    ? `/dashboard/turmas/${exam.classId}`
+                    : "/dashboard/turmas"
+                }
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
+                {exam.classId ? "Voltar à turma" : "Turmas"}
               </Link>
             </Button>
           )}

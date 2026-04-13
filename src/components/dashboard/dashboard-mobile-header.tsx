@@ -14,7 +14,7 @@ import {
 import { Menu, LogOut } from "lucide-react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
+import { cn, getImpersonateUserId } from "@/lib/utils";
 import LucidaLogo from "../lucida-logo";
 import { useNavItems, isNavGroup } from "./dashboard-nav";
 
@@ -28,7 +28,11 @@ export function DashboardMobileHeader() {
   useEffect(() => {
     const fetchPendingCount = async () => {
       try {
-        const response = await fetch("/api/exam/results/pending-count");
+        const asUser = getImpersonateUserId();
+        const url =
+          "/api/exam/results/pending-count" +
+          (asUser ? `?asUser=${encodeURIComponent(asUser)}` : "");
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setPendingCount(data.count || 0);

@@ -1,15 +1,10 @@
 "use client";
 
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { OverviewStats } from "@/components/dashboard/overview-stats";
-import { RecentExams } from "@/components/dashboard/recent-exams";
-import { CreateExamCTA } from "@/components/dashboard/create-exam-cta";
-import { useUser } from "@clerk/nextjs";
 import React from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -28,7 +23,10 @@ export default function DashboardPage() {
       toast({
         title: "Turma criada com sucesso",
       });
-              router.push("/dashboard/overview");
+      const newId = response.data?.data?._id ?? response.data?.data?.id;
+      router.push(
+        newId ? `/dashboard/turmas/${newId}` : "/dashboard/turmas"
+      );
     } else {
       toast({
         title: "Erro ao criar turma",
