@@ -61,7 +61,9 @@ function CreateExamPageContent() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await axios.get(`/api/class/${classIdFromQuery}`);
+        const asUser = getImpersonateUserId();
+        const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
+        const res = await axios.get(`/api/class/${classIdFromQuery}${qs}`);
         if (cancelled || res.data.status !== "success") return;
         const d = res.data.data;
         setExamConfig((prev) => ({

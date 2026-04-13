@@ -122,8 +122,10 @@ export function TurmaHubClient({ classId }: { classId: string }) {
   const loadCore = React.useCallback(async () => {
     try {
       setLoading(true);
+      const asUser = getImpersonateUserId();
+      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
       const [metaRes, overview] = await Promise.all([
-        axios.get(`/api/class/${classId}`),
+        axios.get(`/api/class/${classId}${qs}`),
         fetchUnifiedOverviewData(),
       ]);
 

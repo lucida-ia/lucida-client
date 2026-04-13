@@ -14,6 +14,7 @@ import { Folder, Plus, Search, ChevronRight, Users } from "lucide-react";
 import { fetchUnifiedOverviewData } from "@/lib/fetch-unified-overview-data";
 import type { ClassData } from "@/lib/fetch-unified-overview-data";
 import { useToast } from "@/hooks/use-toast";
+import { getImpersonateUserId } from "@/lib/utils";
 
 type ClassRow = ClassData & { studentCount?: number };
 
@@ -29,10 +30,12 @@ export default function TurmasListPage() {
       setLoading(true);
       const overview = await fetchUnifiedOverviewData();
       const base = overview.classes;
+      const asUser = getImpersonateUserId();
+      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
       const withCounts = await Promise.all(
         base.map(async (c) => {
           try {
-            const res = await axios.get(`/api/class/${c.id}`);
+            const res = await axios.get(`/api/class/${c.id}${qs}`);
             if (res.data.status === "success") {
               return {
                 ...c,

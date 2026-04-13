@@ -22,7 +22,7 @@ type ExamLastLean = {
 };
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -57,9 +57,14 @@ export async function GET(
       await requester.save();
     }
 
+    const url = new URL(request.url);
+    const asUser = url.searchParams.get("asUser");
+    const isAdmin = requester.subscription?.plan === "admin";
+    const targetUserId = isAdmin && asUser ? asUser : requester.id;
+
     const classDoc = await Class.findOne({
       _id: rawId,
-      userId: requester.id,
+      userId: targetUserId,
     }).lean<ClassLeanDoc | null>();
 
     if (!classDoc) {
@@ -74,7 +79,7 @@ export async function GET(
       Exam.countDocuments({ classId: idStr }),
       Student.countDocuments({
         classId: new mongoose.Types.ObjectId(idStr),
-        userId: requester.id,
+        userId: targetUserId,
       }),
       Exam.findOne({ classId: idStr })
         .sort({ createdAt: -1 })
