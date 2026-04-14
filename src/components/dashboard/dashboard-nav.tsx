@@ -176,7 +176,7 @@ export function useNavItems() {
       ],
     },
     {
-      title: "Resultados",
+      title: "Análises",
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,
       role: ["admin", "teacher"],

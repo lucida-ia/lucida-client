@@ -430,9 +430,9 @@ export function TurmaHubClient({ classId }: { classId: string }) {
               {meta.studentCount === 1 ? "aluno" : "alunos"}
             </span>
             <Button variant="link" className="h-auto p-0" asChild>
-              <Link href={`/dashboard/analytics?classId=${encodeURIComponent(classId)}`}>
+              <Link href={`/dashboard/analytics/turmas/${classId}`}>
                 <BarChart3 className="h-4 w-4 mr-1" />
-                Resultados desta turma
+                Análises desta turma
               </Link>
             </Button>
           </div>
@@ -489,7 +489,7 @@ export function TurmaHubClient({ classId }: { classId: string }) {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/analytics/${exam._id}`}>
+                          <Link href={`/dashboard/analytics/turmas/${classId}/provas/${exam._id}`}>
                             <BarChart3 className="h-4 w-4 mr-2" />
                             Analytics
                           </Link>

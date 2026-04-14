@@ -36,7 +36,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
   const [pendingGrading, setPendingGrading] = React.useState(0);
   const [analyticsExams, setAnalyticsExams] = React.useState<
-    { id: unknown; title: string; className: string; submissionCount: number }[]
+    {
+      id: unknown;
+      title: string;
+      className: string;
+      classId: string;
+      submissionCount: number;
+    }[]
   >([]);
   const [studentTotal, setStudentTotal] = React.useState<number | null>(null);
   const { toast } = useToast();
@@ -58,6 +64,7 @@ export default function DashboardPage() {
         id: String(e.id),
         title: e.title,
         className: e.className,
+        classId: String(e.classId),
         submissionCount: e.submissionCount,
       }));
   }, [analyticsExams]);

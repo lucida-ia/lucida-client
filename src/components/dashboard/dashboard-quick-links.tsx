@@ -56,7 +56,7 @@ export function DashboardQuickLinks({ userData }: DashboardQuickLinksProps) {
       <Button variant="outline" size="sm" asChild>
         <Link href="/dashboard/analytics" className="gap-2">
           <BarChart3 className="h-4 w-4 shrink-0" />
-          Resultados
+          Análises
         </Link>
       </Button>
     </div>

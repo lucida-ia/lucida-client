@@ -15,6 +15,7 @@ export interface AnalyticsExamSummary {
   id: string;
   title: string;
   className: string;
+  classId: string;
   submissionCount: number;
 }
 
@@ -78,7 +79,7 @@ export function DashboardTopActivity({
             </div>
             <Button variant="ghost" size="sm" className="shrink-0" asChild>
               <Link
-                href={`/dashboard/analytics/${exam.id}`}
+                href={`/dashboard/analytics/turmas/${exam.classId}/provas/${exam.id}`}
                 className="gap-1"
               >
                 Ver análise
