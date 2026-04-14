@@ -23,6 +23,8 @@ const ClassSchema = new mongoose.Schema({
   },
 });
 
+ClassSchema.index({ userId: 1, createdAt: -1 });
+
 export const Class =
   mongoose.models.Class || mongoose.model("Class", ClassSchema);
 export { ClassSchema };

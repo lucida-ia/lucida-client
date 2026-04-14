@@ -208,36 +208,90 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all scans for this exam
-    const scans = await ScanResult.find({ examId, userId }).lean();
-
-    // Calculate statistics
-    const stats = {
-      totalScans: scans.length,
-      pendingReview: scans.filter((s: any) => s.requiresReview).length,
-      approved: scans.filter(
-        (s: any) => s.reviewStatus === "approved" || s.reviewStatus === "corrected"
-      ).length,
-      averageScore:
-        scans.length > 0
-          ? scans.reduce((sum: number, s: any) => sum + (s.grading?.percentage || 0), 0) /
-            scans.length
-          : 0,
-      highestScore: Math.max(
-        ...scans.map((s: any) => s.grading?.percentage || 0),
-        0
-      ),
-      lowestScore:
-        scans.length > 0
-          ? Math.min(...scans.map((s: any) => s.grading?.percentage || 100))
-          : 0,
-      imageQualityBreakdown: {
-        excellent: scans.filter((s: any) => s.imageQuality === "excellent").length,
-        good: scans.filter((s: any) => s.imageQuality === "good").length,
-        fair: scans.filter((s: any) => s.imageQuality === "fair").length,
-        poor: scans.filter((s: any) => s.imageQuality === "poor").length,
+    const facetResult = await ScanResult.aggregate<{
+      counts: { total: number; pendingReview: number; approved: number }[];
+      scores: { avg: number; max: number; min: number }[];
+      imageQuality: { _id: string; count: number }[];
+      distribution: { _id: number | string; count: number }[];
+    }>([
+      { $match: { examId, userId } },
+      {
+        $facet: {
+          counts: [
+            {
+              $group: {
+                _id: null,
+                total: { $sum: 1 },
+                pendingReview: { $sum: { $cond: ["$requiresReview", 1, 0] } },
+                approved: {
+                  $sum: {
+                    $cond: [
+                      { $in: ["$reviewStatus", ["approved", "corrected"]] },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+          scores: [
+            {
+              $group: {
+                _id: null,
+                avg: { $avg: { $ifNull: ["$grading.percentage", 0] } },
+                max: { $max: { $ifNull: ["$grading.percentage", 0] } },
+                min: { $min: { $ifNull: ["$grading.percentage", 100] } },
+              },
+            },
+          ],
+          imageQuality: [
+            { $group: { _id: "$imageQuality", count: { $sum: 1 } } },
+          ],
+          distribution: [
+            {
+              $bucket: {
+                groupBy: { $ifNull: ["$grading.percentage", 0] },
+                boundaries: [0, 21, 41, 61, 81, 101],
+                default: "other",
+                output: { count: { $sum: 1 } },
+              },
+            },
+          ],
+        },
       },
-      scoreDistribution: calculateScoreDistribution(scans),
+    ]);
+
+    const facet = facetResult[0] || { counts: [], scores: [], imageQuality: [], distribution: [] };
+    const counts = facet.counts[0] || { total: 0, pendingReview: 0, approved: 0 };
+    const scores = facet.scores[0] || { avg: 0, max: 0, min: 0 };
+    const imageQualityMap = new Map(
+      facet.imageQuality.map((q) => [q._id, q.count])
+    );
+    const distributionMap = new Map<string, number>(
+      facet.distribution.map((b) => [String(b._id), b.count])
+    );
+
+    const stats = {
+      totalScans: counts.total,
+      pendingReview: counts.pendingReview,
+      approved: counts.approved,
+      averageScore: counts.total > 0 ? scores.avg : 0,
+      highestScore: counts.total > 0 ? scores.max : 0,
+      lowestScore: counts.total > 0 ? scores.min : 0,
+      imageQualityBreakdown: {
+        excellent: imageQualityMap.get("excellent") || 0,
+        good: imageQualityMap.get("good") || 0,
+        fair: imageQualityMap.get("fair") || 0,
+        poor: imageQualityMap.get("poor") || 0,
+      },
+      scoreDistribution: {
+        "0-20": distributionMap.get("0") || 0,
+        "21-40": distributionMap.get("21") || 0,
+        "41-60": distributionMap.get("41") || 0,
+        "61-80": distributionMap.get("61") || 0,
+        "81-100": distributionMap.get("81") || 0,
+      },
     };
 
     return NextResponse.json({
@@ -255,23 +309,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function calculateScoreDistribution(scans: any[]): Record<string, number> {
-  const distribution: Record<string, number> = {
-    "0-20": 0,
-    "21-40": 0,
-    "41-60": 0,
-    "61-80": 0,
-    "81-100": 0,
-  };
-
-  for (const scan of scans) {
-    const percentage = scan.grading?.percentage || 0;
-    if (percentage <= 20) distribution["0-20"]++;
-    else if (percentage <= 40) distribution["21-40"]++;
-    else if (percentage <= 60) distribution["41-60"]++;
-    else if (percentage <= 80) distribution["61-80"]++;
-    else distribution["81-100"]++;
-  }
-
-  return distribution;
-}

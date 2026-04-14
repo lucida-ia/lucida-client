@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +13,8 @@ import { Folder, Plus, Search, ChevronRight, Users } from "lucide-react";
 import { fetchUnifiedOverviewData } from "@/lib/fetch-unified-overview-data";
 import type { ClassData } from "@/lib/fetch-unified-overview-data";
 import { useToast } from "@/hooks/use-toast";
-import { getImpersonateUserId } from "@/lib/utils";
 
-type ClassRow = ClassData & { studentCount?: number };
+type ClassRow = ClassData;
 
 export default function TurmasListPage() {
   const { toast } = useToast();
@@ -29,26 +27,7 @@ export default function TurmasListPage() {
     try {
       setLoading(true);
       const overview = await fetchUnifiedOverviewData();
-      const base = overview.classes;
-      const asUser = getImpersonateUserId();
-      const qs = asUser ? `?asUser=${encodeURIComponent(asUser)}` : "";
-      const withCounts = await Promise.all(
-        base.map(async (c) => {
-          try {
-            const res = await axios.get(`/api/class/${c.id}${qs}`);
-            if (res.data.status === "success") {
-              return {
-                ...c,
-                studentCount: res.data.data.studentCount as number,
-              };
-            }
-          } catch {
-            /* ignore */
-          }
-          return { ...c, studentCount: undefined };
-        })
-      );
-      setClasses(withCounts);
+      setClasses(overview.classes);
     } catch {
       toast({
         title: "Erro ao carregar turmas",

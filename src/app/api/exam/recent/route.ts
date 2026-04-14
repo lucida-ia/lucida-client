@@ -43,15 +43,44 @@ export async function GET(request: NextRequest) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const exams = await Exam.find({
+    const DEFAULT_LIMIT = 20;
+    const MAX_LIMIT = 100;
+    const pageParam = parseInt(url.searchParams.get("page") || "1", 10);
+    const limitParam = parseInt(
+      url.searchParams.get("limit") || String(DEFAULT_LIMIT),
+      10
+    );
+    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+    const limit = Math.min(
+      Math.max(Number.isFinite(limitParam) ? limitParam : DEFAULT_LIMIT, 1),
+      MAX_LIMIT
+    );
+    const skip = (page - 1) * limit;
+
+    const filter = {
       userId: user?.id,
       createdAt: { $gte: thirtyDaysAgo },
-    }).sort({ createdAt: -1 });
+    };
+
+    const [exams, total] = await Promise.all([
+      Exam.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Exam.countDocuments(filter),
+    ]);
 
     return NextResponse.json({
       status: "success",
       message: "Exams fetched successfully",
       data: exams,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     console.error("[EXAM_GET_ERROR]", error);

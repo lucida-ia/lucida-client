@@ -71,5 +71,8 @@ const ResultScheema = new mongoose.Schema({
   },
 });
 
+ResultScheema.index({ examId: 1, createdAt: -1 });
+ResultScheema.index({ classId: 1, createdAt: -1 });
+
 export const Result =
   mongoose.models.Result || mongoose.model("Result", ResultScheema);

@@ -95,5 +95,8 @@ const ExamSchema = new mongoose.Schema({
   },
 });
 
+ExamSchema.index({ userId: 1, createdAt: -1 });
+ExamSchema.index({ classId: 1, createdAt: -1 });
+
 export const Exam = mongoose.models.Exam || mongoose.model("Exam", ExamSchema);
 export { ExamSchema };

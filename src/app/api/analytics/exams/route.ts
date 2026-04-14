@@ -48,34 +48,36 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const classes = await Class.find({ userId: user.id });
+    const classes = await Class.find({ userId: user.id }).lean();
     const classIds = classes.map((c) => String(c._id));
 
-    // Get exams for user's classes
     const exams = await Exam.find({
       classId: { $in: classIds },
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Get submission counts for each exam
-    const examData = await Promise.all(
-      exams.map(async (exam) => {
-        const submissionCount = await Result.countDocuments({ examId: exam._id.toString() });
-        const className =
-          classes.find((c) => String(c._id) === String(exam.classId))?.name ||
-          "Turma Desconhecida";
-        
-        return {
-          id: exam._id,
-          title: exam.title,
-          className,
-          classId: exam.classId,
-          questionCount: exam.questionCount,
-          submissionCount,
-          createdAt: exam.createdAt,
-          hasAnalytics: submissionCount > 0,
-        };
-      })
-    );
+    const examIds = exams.map((e) => String(e._id));
+    const submissionCounts = await Result.aggregate<{ _id: string; n: number }>([
+      { $match: { examId: { $in: examIds } } },
+      { $group: { _id: "$examId", n: { $sum: 1 } } },
+    ]);
+    const countByExamId = new Map(submissionCounts.map((r) => [r._id, r.n]));
+    const classNameById = new Map(classes.map((c) => [String(c._id), c.name]));
+
+    const examData = exams.map((exam) => {
+      const submissionCount = countByExamId.get(String(exam._id)) ?? 0;
+      return {
+        id: exam._id,
+        title: exam.title,
+        className: classNameById.get(String(exam.classId)) || "Turma Desconhecida",
+        classId: exam.classId,
+        questionCount: exam.questionCount,
+        submissionCount,
+        createdAt: exam.createdAt,
+        hasAnalytics: submissionCount > 0,
+      };
+    });
 
     return NextResponse.json({
       status: "success",

@@ -47,10 +47,80 @@ export async function GET(
       );
     }
 
-    // Get all results for this exam
-    const results = await Result.find({ examId }).sort({ createdAt: -1 });
+    const [statsAgg, recentResults] = await Promise.all([
+      Result.aggregate<{
+        _id: null;
+        total: number;
+        media: number;
+        notaMinima: number;
+        notaMaxima: number;
+        ranges: {
+          excellent: number;
+          good: number;
+          satisfactory: number;
+          needsImprovement: number;
+          unsatisfactory: number;
+        };
+        distribution: { range: string; count: number }[];
+      }>([
+        { $match: { examId } },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            sumPct: { $sum: "$percentage" },
+            minPct: { $min: "$percentage" },
+            maxPct: { $max: "$percentage" },
+            d0: { $sum: { $cond: [{ $lt: ["$percentage", 0.1] }, 1, 0] } },
+            d1: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.1] }, { $lt: ["$percentage", 0.2] }] }, 1, 0] } },
+            d2: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.2] }, { $lt: ["$percentage", 0.3] }] }, 1, 0] } },
+            d3: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.3] }, { $lt: ["$percentage", 0.4] }] }, 1, 0] } },
+            d4: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.4] }, { $lt: ["$percentage", 0.5] }] }, 1, 0] } },
+            d5: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.5] }, { $lt: ["$percentage", 0.6] }] }, 1, 0] } },
+            d6: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.6] }, { $lt: ["$percentage", 0.7] }] }, 1, 0] } },
+            d7: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.7] }, { $lt: ["$percentage", 0.8] }] }, 1, 0] } },
+            d8: { $sum: { $cond: [{ $and: [{ $gte: ["$percentage", 0.8] }, { $lt: ["$percentage", 0.9] }] }, 1, 0] } },
+            d9: { $sum: { $cond: [{ $gte: ["$percentage", 0.9] }, 1, 0] } },
+          },
+        },
+        {
+          $project: {
+            total: 1,
+            media: { $multiply: [{ $divide: ["$sumPct", "$total"] }, 100] },
+            notaMinima: { $multiply: ["$minPct", 100] },
+            notaMaxima: { $multiply: ["$maxPct", 100] },
+            ranges: {
+              excellent: "$d9",
+              good: "$d8",
+              satisfactory: "$d7",
+              needsImprovement: "$d6",
+              unsatisfactory: { $add: ["$d0", "$d1", "$d2", "$d3", "$d4", "$d5"] },
+            },
+            distribution: [
+              { range: "0-10%", count: "$d0" },
+              { range: "10-20%", count: "$d1" },
+              { range: "20-30%", count: "$d2" },
+              { range: "30-40%", count: "$d3" },
+              { range: "40-50%", count: "$d4" },
+              { range: "50-60%", count: "$d5" },
+              { range: "60-70%", count: "$d6" },
+              { range: "70-80%", count: "$d7" },
+              { range: "80-90%", count: "$d8" },
+              { range: "90-100%", count: "$d9" },
+            ],
+          },
+        },
+      ]),
+      Result.find({ examId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select("email score percentage createdAt")
+        .lean(),
+    ]);
 
-    if (results.length === 0) {
+    const stats = statsAgg[0];
+
+    if (!stats || stats.total === 0) {
       return NextResponse.json({
         status: "success",
         data: {
@@ -66,11 +136,11 @@ export async function GET(
             totalSubmissions: 0,
             scoreDistribution: [],
             gradeRanges: {
-              excellent: 0, // 90-100%
-              good: 0, // 80-89%
-              satisfactory: 0, // 70-79%
-              needsImprovement: 0, // 60-69%
-              unsatisfactory: 0, // 0-59%
+              excellent: 0,
+              good: 0,
+              satisfactory: 0,
+              needsImprovement: 0,
+              unsatisfactory: 0,
             },
             recentSubmissions: [],
           },
@@ -78,40 +148,16 @@ export async function GET(
       });
     }
 
-    // Calculate analytics - Fix: Convert 0-1 percentage to 0-100
-    const percentages = results.map((r) => r.percentage * 100);
-    const media = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
-    const notaMinima = Math.min(...percentages);
-    const notaMaxima = Math.max(...percentages);
+    const scoreDistribution = stats.distribution.map((d) => ({
+      range: d.range,
+      count: d.count,
+      percentage: (d.count / stats.total) * 100,
+    }));
 
-    // Calculate score distribution (grouped by 10% ranges)
-    const scoreDistribution = Array.from({ length: 10 }, (_, i) => {
-      const rangeStart = i * 10;
-      const rangeEnd = (i + 1) * 10;
-      const count = percentages.filter(
-        (p) => p >= rangeStart && (i === 9 ? p <= rangeEnd : p < rangeEnd)
-      ).length;
-      return {
-        range: `${rangeStart}-${rangeEnd}%`,
-        count,
-        percentage: (count / results.length) * 100,
-      };
-    });
-
-    // Calculate grade ranges
-    const gradeRanges = {
-      excellent: percentages.filter((p) => p >= 90).length,
-      good: percentages.filter((p) => p >= 80 && p < 90).length,
-      satisfactory: percentages.filter((p) => p >= 70 && p < 80).length,
-      needsImprovement: percentages.filter((p) => p >= 60 && p < 70).length,
-      unsatisfactory: percentages.filter((p) => p < 60).length,
-    };
-
-    // Get recent submissions (last 10) - Keep original percentage values for display
-    const recentSubmissions = results.slice(0, 10).map((result) => ({
+    const recentSubmissions = recentResults.map((result: any) => ({
       email: result.email,
       score: result.score,
-      percentage: result.percentage * 100, // Convert for display
+      percentage: result.percentage * 100,
       submittedAt: result.createdAt,
     }));
 
@@ -121,15 +167,15 @@ export async function GET(
         exam: {
           title: exam.title,
           questionCount: exam.questionCount,
-          totalSubmissions: results.length,
+          totalSubmissions: stats.total,
         },
         analytics: {
-          media: Number(media.toFixed(2)),
-          notaMinima: Number(notaMinima.toFixed(2)),
-          notaMaxima: Number(notaMaxima.toFixed(2)),
-          totalSubmissions: results.length,
+          media: Number(stats.media.toFixed(2)),
+          notaMinima: Number(stats.notaMinima.toFixed(2)),
+          notaMaxima: Number(stats.notaMaxima.toFixed(2)),
+          totalSubmissions: stats.total,
           scoreDistribution,
-          gradeRanges,
+          gradeRanges: stats.ranges,
           recentSubmissions,
         },
       },
